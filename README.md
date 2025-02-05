@@ -7,9 +7,42 @@ Este repositorio contiene el cliente del sistema de gestión para observatorios.
 
 ### Tecnologías Implementadas
 
-- [Vue.js](https://vuejs.org) (versión 3.5.13): Framework principal para el desarrollo del cliente.
+- [Vue.js (v3.x)](https://vuejs.org): Framework principal para el desarrollo del cliente.
+- [Vite (v4.x)](https://vitejs.dev/) - Herramienta de construcción rápida
+- [Vuetify (v3.x)](https://vuetifyjs.com/) - Framework de UI basado en Material Design
+- [Pinia (v2.x)](https://pinia.vuejs.org/) - Gestión de estado para Vue 3
+- [Vue Router (v4.x)](https://router.vuejs.org/) - Enrutamiento para Vue 3
+- [Vuelidate (v2.x)](https://vuelidate.js.org/) - Validación de formularios
+- [GSAP (v3.x)](https://greensock.com/gsap/) - Animaciones avanzadas
+- [Vitest (v1.x)](https://vitest.dev/) - Pruebas unitarias
+- [Axios (v1.x)](https://axios-http.com/) - Cliente HTTP para peticiones API
+- [Vue i18n (v9.x)](https://vue-i18n.intlify.dev/) - Internacionalización
+---
+### 📂 Estructura del Proyecto
+```sh
+src/
+├── assets/                  # Archivos estáticos (imágenes, fuentes, etc.)
+├── components/              # Componentes de las vistas principales
+├── plugins/                 # Plugins de Vue 
+│   └── vuetify.js           # Configuración de Vuetify
+├── router/                  # Configuración de Vue Router
+│   └── index.js             # Definición de rutas
+├── stores/                  # Stores de Pinia
+├── views/                   # Vistas/páginas
+├── App.vue                  # Componente raíz
+└── main.js                  # Punto de entrada de la aplicación
+```
+---
+### 🛠 Scripts Disponibles
 
-#### Requisitos previos
+```sh
+npm run dev       # Inicia el servidor de desarrollo
+npm run build     # Genera la versión lista para producción
+npm run test      # Ejecuta las pruebas unitarias con Vitest
+npm run lint      # Ejecuta ESLint para verificar la calidad del código
+```
+---
+### Requisitos previos
 Antes de comenzar, asegúrate de tener instalado:
 
 - **[Node.js](https://nodejs.org/)** (versión recomendada: 16+ o 18+)
@@ -20,13 +53,13 @@ Puedes verificar la instalación de Node.js y npm con los siguientes comandos:
 node -v
 npm -v
 ```
-
-
+---
 ### Variables de Entorno
 
-### Ejecución del proyectpo
+---
+## Ejecución del proyecto
 
-#### 📦 Instalación
+### 📦 Instalación
 Clona el repositorio y accede a la carpeta del proyecto:
 ```sh
 git clone https://github.com/udistrital/observatorios_cliente.git
@@ -38,7 +71,8 @@ Instala las dependencias del proyecto:
 npm install
 ```
 
-#### 🚀 Ejecutar el proyecto en modo desarrollo
+---
+### 🚀 Ejecutar el proyecto en modo desarrollo
 Para iniciar el servidor de desarrollo, usa el siguiente comando:
 ```sh
 npm run dev
@@ -47,14 +81,15 @@ Esto iniciará el proyecto y podrás verlo en tu navegador en:
 ```
 http://localhost:5173/
 ```
-
-#### 🏗️ Construcción para producción
+---
+### 🏗️ Construcción para producción
 Si deseas generar una versión optimizada del proyecto para producción, usa:
 ```sh
 npm run build
 ```
 Esto creará una carpeta **`dist/`** con los archivos listos para ser desplegados en un servidor.
 
+---
 
 ## Estado CI
 
@@ -62,6 +97,7 @@ Esto creará una carpeta **`dist/`** con los archivos listos para ser desplegado
 | -- | -- | -- |
 | -- | -- | -- |
 
+---
 ## 📝 Licencia
 
 This file is part of observatorios_cliente.
@@ -71,4 +107,3 @@ observatorios_cliente is free software: you can redistribute it and/or modify it
 observatorios_cliente is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with novedades_crud. If not, see https://www.gnu.org/licenses/.
-
