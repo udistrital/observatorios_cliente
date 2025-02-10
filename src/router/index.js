@@ -7,11 +7,11 @@ const routes = [
   //   name: 'home',
   //   component: HomeView,
   // },
-  // {
-  //   path: '/about',
-  //   name: 'about',
-  //   component: () => import('../views/AboutView.vue'),
-  // },
+  {
+    path: '/espacios',
+    name: 'espacios',
+    component: () => import('../views/Espacios.vue'),
+  },
 ]
 
 const router = createRouter({
