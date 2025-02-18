@@ -3,9 +3,12 @@
 
 :root{
   --color-principal: #6667AB;
+  --color-acentuado: #4D4F86;
   --color-fuerte: #27283F;
-
+  --color-claro: #E8ECF7;
   --fondo-principal: #F2F2F2;
+
+  --texto-medio-color: #616161;
 }
 * {
   box-sizing: border-box;

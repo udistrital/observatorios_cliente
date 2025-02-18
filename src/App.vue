@@ -14,10 +14,6 @@ import { useRoute } from 'vue-router';
 
 const route = useRoute();
 
-//   components: { HeaderApp, FooterApp }
-// const showNavbar = computed(() => route.path !== '/');
-// export default {
-// };
 </script>
 <style scoped>
 .main {

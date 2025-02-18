@@ -49,8 +49,10 @@ export default {
 <style scoped>
 
 .footer {
+  z-index: 1100;
   max-height: 64px;
   box-shadow: 0px -4px 8px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
 }
 
 .footer__logo-image img {

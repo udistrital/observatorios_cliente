@@ -12,6 +12,11 @@ const routes = [
     name: 'espacios',
     component: () => import('../views/Espacios.vue'),
   },
+  {
+    path: '/administracion',
+    name: 'administracion',
+    component: () => import('../views/Administracion.vue'),
+  },
 ]
 
 const router = createRouter({
