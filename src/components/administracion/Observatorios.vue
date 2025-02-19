@@ -3,7 +3,7 @@
     <div class="observatorios__cabecera">
       <h1 class="observatorios__titulo">Administración de Observatorios</h1>
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus">Crear Observatorio</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearObservario" >Crear Observatorio</v-btn>
     </div>
     <v-card>
       <div class="cabecera__tabla">
@@ -49,12 +49,21 @@
         </template>
       </v-data-table>
     </v-card>
+    <v-dialog
+      v-model="dialog"
+      scrollable  
+      max-width="500px"
+      transition="dialog-transition"
+      
+    >
+      <crear-observatorio @cerrar="cerrarModal" />
+    </v-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed } from "vue";
-
+import CrearObservatorio from "./observatorios/CrearObservatorio.vue";
 const search = ref("");
 const observatorios = ref([
   { id: "OBS-1", nombre: "Observatorio 1", estado: "Activo" },
@@ -75,6 +84,19 @@ const filteredObservatories = computed(() => {
     obs.nombre.toLowerCase().includes(search.value.toLowerCase())
   );
 });
+
+const dialog = ref(false)
+
+const cerrarModal = () => {
+  console.log('si entra');
+  
+  dialog.value = false
+}
+
+const crearObservario = () => {
+  console.log("Crear observatorio");
+  dialog.value = true
+}
 
 const verObservatorio = (item) => {
   console.log("Ver:", item);
@@ -110,12 +132,10 @@ const eliminarObservatorio = (item) => {
 .cabecera__tabla {
   display: flex;
   align-items: center;
-  /* background-color: gold; */
   padding: 5px;
 }
 .buscador__tabla {
   max-width: 400px !important;
   padding-right: 20px;
-  /* background-color: green; */
 }
 </style>

@@ -29,6 +29,16 @@ html, body {
   padding: 10px;
 }
 
+
+/* ========================== Textos ====================== */
+.titulo-modal{
+  color: var(--color-acentuado);
+  font-weight: 900;
+  text-align: center;
+  font-size: 1.6rem;
+}
+
+
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
