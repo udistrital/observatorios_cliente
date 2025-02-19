@@ -2,17 +2,21 @@ import { createVuetify } from 'vuetify'
 import { mdi } from 'vuetify/iconsets/mdi'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import '@mdi/font/css/materialdesignicons.css' // Importa los estilos de Material Design Icons
+import * as labs from 'vuetify/labs/components';
+import '@mdi/font/css/materialdesignicons.css' 
 
 export default createVuetify({
-  components,
+  components:{
+    ...components,
+    ...labs,
+  },
   directives,
   icons: {
-    defaultSet: 'mdi', // Asegura que mdi está configurado como el set por defecto
+    defaultSet: 'mdi', // Cambiar a 'mdiSvg' para usar los iconos SVG
     sets: { mdi },
   },
   theme: {
-    defaultTheme: 'light', // Tema por defecto (light o dark)
+    defaultTheme: 'light', // Cambiar a 'dark' para usar el tema oscuro (No está configurado correctamente)
     themes: {
       light: {
         colors: {

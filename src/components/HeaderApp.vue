@@ -83,12 +83,12 @@ const menuItems = [
   {
     texto: "Observatorios",
     icono: "mdi-eye",
-    direccion: "/administrar/observatorios",
+    direccion: "/administracion/observatorios",
   },
   {
     texto: "Observatorios Externos",
     icono: " mdi-glasses",
-    direccion: "/administrar/observatorios-externos",
+    direccion: "/administracion/observatorios-externos",
   },
 ];
 

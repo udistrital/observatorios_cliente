@@ -19,8 +19,16 @@ body {
   background-color: #F2F2F2;
 }
 html, body {
-  overflow: hidden; /* Oculta el scroll en la página */
+  overflow: hidden; 
 }
+
+.vista__primaria{
+  /* background-color: var(--color-principal); */
+  margin-left: 64px;
+  width: calc(100% - 64px);
+  padding: 10px;
+}
+
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
