@@ -29,7 +29,7 @@ const router = useRouter();
 const espacios = ref([]);
 
 const verAdministracion = () => {
-  router.push("/admin");
+  router.push("/administracion/observatorios");
 }
 
 onMounted(() => {

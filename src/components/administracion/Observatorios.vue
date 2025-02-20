@@ -3,7 +3,9 @@
     <div class="observatorios__cabecera">
       <h1 class="observatorios__titulo">Administración de Observatorios</h1>
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearObservario" >Crear Observatorio</v-btn>
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearObservario"
+        >Crear Observatorio</v-btn
+      >
     </div>
     <v-card>
       <div class="cabecera__tabla">
@@ -28,35 +30,78 @@
         class="elevation-1"
       >
         <template v-slot:[`item.estado`]="{ item }">
-          <v-chip :color="item.columns.estado === 'Activo' ? 'green' : 'red'" dark>
+          <v-chip
+            :color="item.columns.estado === 'Activo' ? 'green' : 'red'"
+            dark
+          >
             {{ item.columns.estado }}
           </v-chip>
         </template>
 
         <template v-slot:[`item.acciones`]="{ item }">
-          <v-btn variant="text"  icon size="small" @click="verObservatorio(item)" color="primary" title="Ver observatorio" >
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="verObservatorio(item)"
+            color="primary"
+            title="Ver observatorio"
+          >
             <v-icon>mdi-eye</v-icon>
           </v-btn>
-          <v-btn variant="text" icon size="small" @click="editarObservatorio(item)" color="primary" title="Editar observatorio">
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="editarObservatorio(item)"
+            color="primary"
+            title="Editar observatorio"
+          >
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
-          <v-btn variant="text" icon size="small" @click="eliminarObservatorio(item)" color="primary" title="Eliminar observatorio">
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="eliminarObservatorio(item)"
+            color="primary"
+            title="Eliminar observatorio"
+          >
             <v-icon>mdi-trash-can</v-icon>
           </v-btn>
-          <v-btn variant="text" icon size="small" @click="eliminarObservatorio(item)" color="primary" title="Ir al observatorio">
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="confirmarEliminacion(item)"
+            color="primary"
+            title="Ir al observatorio"
+          >
             <v-icon>mdi-arrow-top-right-thick</v-icon>
           </v-btn>
         </template>
       </v-data-table>
     </v-card>
     <v-dialog
-      v-model="dialog"
-      scrollable  
+      v-model="_crearObservatorio"
+      scrollable
       max-width="500px"
       transition="dialog-transition"
-      
     >
       <crear-observatorio @cerrar="cerrarModal" />
+    </v-dialog>
+    <v-dialog
+      v-model="_gestionObservatorio"
+      scrollable
+      max-width="500px"
+      transition="dialog-transition"
+    >
+      <!-- <crear-observatorio @cerrar="cerrarModal" /> -->
+      <ObservatoriosGestion
+        :observatorio="datosObservatorio"
+        :modo="_modo"
+        @cerrar="cerrarModal"
+      />
     </v-dialog>
   </div>
 </template>
@@ -64,15 +109,35 @@
 <script setup>
 import { ref, computed } from "vue";
 import CrearObservatorio from "./observatorios/CrearObservatorio.vue";
+import ObservatoriosGestion from "./observatorios/ObservatoriosGestion.vue";
+import Swal from 'sweetalert2';
 const search = ref("");
 const observatorios = ref([
-  { id: "OBS-1", nombre: "Observatorio 1", estado: "Activo" },
-  { id: "OBS-2", nombre: "Observatorio 2", estado: "Inactivo" },
-  { id: "OBS-3", nombre: "Observatorio 3", estado: "Activo" },
+  {
+    id: "OBS-1",
+    nombre: "Observatorio 1",
+    estado: "Activo",
+    descripcion:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu scelerisque nibh. Fusce diam massa, consectetur dignissim orci ut, mollis efficitur ipsum.",
+  },
+  {
+    id: "OBS-2",
+    nombre: "Observatorio 2",
+    estado: "Inactivo",
+    descripcion:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu scelerisque nibh. Fusce diam massa, consectetur dignissim orci ut, mollis efficitur ipsum.",
+  },
+  {
+    id: "OBS-3",
+    nombre: "Observatorio 3",
+    estado: "Activo",
+    descripcion:
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu scelerisque nibh. Fusce diam massa, consectetur dignissim orci ut, mollis efficitur ipsum.",
+  },
 ]);
 
 const headers = ref([
-  { title: "ID", key: "id", aling: "center" },
+  // { title: "ID", key: "id", aling: "center" },
   { title: "Nombre", key: "nombre", align: "center" },
   { title: "Estado", key: "estado", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },
@@ -85,30 +150,76 @@ const filteredObservatories = computed(() => {
   );
 });
 
-const dialog = ref(false)
+const _crearObservatorio = ref(false);
+const _gestionObservatorio = ref(false);
+const _modo = ref(false);
+
+const datosObservatorio = ref({});
 
 const cerrarModal = () => {
-  console.log('si entra');
-  
-  dialog.value = false
-}
+  console.log("si entra");
+  _gestionObservatorio.value = false;
+  _crearObservatorio.value = false;
+};
 
 const crearObservario = () => {
   console.log("Crear observatorio");
-  dialog.value = true
-}
+  _crearObservatorio.value = true;
+};
 
 const verObservatorio = (item) => {
   console.log("Ver:", item);
+  _gestionObservatorio.value = true;
+  _modo.value = false;
+  datosObservatorio.value = item.raw;
 };
 
 const editarObservatorio = (item) => {
   console.log("Editar:", item);
+  _gestionObservatorio.value = true;
+  _modo.value = true;
+  datosObservatorio.value = item.raw;
 };
 
-const eliminarObservatorio = (item) => {
-  console.log("Eliminar:", item);
+const eliminarObservatorio = async (item) => {
+  let id = item.raw.id
+  let nombre = item.raw.nombre
+  console.log(nombre);
+  
+  const resultado = await Swal.fire({
+    title: 'Deshabilitar Observatorio',
+    html: `¿Está seguro de que desea inhabilitar el observatorio <b> ${nombre} </b> ? No podrá acceder a este espacio después de hacerlo.`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'Confirmar',
+    cancelButtonText: 'Cancelar',
+    width: '350px', 
+    customClass: {
+      popup: 'popup-personalizado',
+      title: 'titulo-alerta-personalizado', 
+      confirmButton: 'confirmacion-alerta-personalizado', 
+      cancelButton: 'cancelacion-alerta-personalizado' 
+    },
+    buttonsStyling: false
+  });
+
+  if (resultado.isConfirmed) {
+    console.log('Elemento eliminado');
+    Swal.fire({
+      title: '¡Eliminado!',
+      text: 'El elemento ha sido eliminado correctamente.',
+      icon: 'success',
+      width: '300px',
+      customClass: {
+        popup: 'popup-personalizado',
+        title: 'titulo-alerta-personalizado',
+        confirmButton: 'confirmacion-alerta-personalizado'
+      },
+      buttonsStyling: false
+    });
+  }
 };
+
 </script>
 
 <style scoped>
