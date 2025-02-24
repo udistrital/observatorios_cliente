@@ -202,9 +202,8 @@ const reactivarObservatorio = async (item) => {
   if (resultado.isConfirmed) {
     const data = { confirmacion: true };
 
-    peticionAPI(`/observatorios/${id}/`, "PUT", {activo: true})
+    peticionAPI(`/observatorios/${id}/`, "PUT", { activo: true })
       .then((data) => {
-        console.log("Elemento eliminado");
         Swal.fire({
           title: "¡Activado!",
           text: "El observatorio se ha sido reactivado correctamente.",
@@ -217,7 +216,9 @@ const reactivarObservatorio = async (item) => {
           },
           buttonsStyling: false,
         });
-        traerObservatorios();
+        setTimeout(() => {
+          traerObservatorios();
+        }, 1000);
       })
       .catch((error) => console.error(error));
   }
@@ -262,7 +263,9 @@ const eliminarObservatorio = async (item) => {
           },
           buttonsStyling: false,
         });
-        traerObservatorios();
+        setTimeout(() => {
+          traerObservatorios();
+        }, 1000);
       })
       .catch((error) => console.error(error));
   }
