@@ -29,12 +29,9 @@
         item-value="id"
         class="elevation-1"
       >
-        <template v-slot:[`item.estado`]="{ item }">
-          <v-chip
-            :color="item.columns.estado === 'Activo' ? 'green' : 'red'"
-            dark
-          >
-            {{ item.columns.estado }}
+        <template v-slot:[`item.activo`]="{ item }">
+          <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
+            {{ item.columns.activo ? "Activo" : "Inactivo" }}
           </v-chip>
         </template>
 
@@ -60,6 +57,7 @@
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
           <v-btn
+            v-if="item.columns.activo"
             variant="text"
             icon
             size="small"
@@ -68,6 +66,17 @@
             title="Eliminar observatorio"
           >
             <v-icon>mdi-trash-can</v-icon>
+          </v-btn>
+          <v-btn
+            v-else
+            variant="text"
+            icon
+            size="small"
+            @click="reactivarObservatorio(item)"
+            color="primary"
+            title="Reactivar observatorio"
+          >
+            <v-icon> mdi-sync</v-icon>
           </v-btn>
           <v-btn
             variant="text"
@@ -107,39 +116,17 @@
 </template>
 
 <script setup>
-import { ref, computed } from "vue";
+import { ref, computed, onMounted } from "vue";
 import CrearObservatorio from "./observatorios/CrearObservatorio.vue";
 import ObservatoriosGestion from "./observatorios/ObservatoriosGestion.vue";
-import Swal from 'sweetalert2';
+import peticionAPI from "../../service/conexion_api";
+import Swal from "sweetalert2";
 const search = ref("");
-const observatorios = ref([
-  {
-    id: "OBS-1",
-    nombre: "Observatorio 1",
-    estado: "Activo",
-    descripcion:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu scelerisque nibh. Fusce diam massa, consectetur dignissim orci ut, mollis efficitur ipsum.",
-  },
-  {
-    id: "OBS-2",
-    nombre: "Observatorio 2",
-    estado: "Inactivo",
-    descripcion:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu scelerisque nibh. Fusce diam massa, consectetur dignissim orci ut, mollis efficitur ipsum.",
-  },
-  {
-    id: "OBS-3",
-    nombre: "Observatorio 3",
-    estado: "Activo",
-    descripcion:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed eu scelerisque nibh. Fusce diam massa, consectetur dignissim orci ut, mollis efficitur ipsum.",
-  },
-]);
+const observatorios = ref([]);
 
 const headers = ref([
-  // { title: "ID", key: "id", aling: "center" },
   { title: "Nombre", key: "nombre", align: "center" },
-  { title: "Estado", key: "estado", align: "center" },
+  { title: "Estado", key: "activo", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },
 ]);
 
@@ -156,10 +143,19 @@ const _modo = ref(false);
 
 const datosObservatorio = ref({});
 
+const traerObservatorios = () => {
+  peticionAPI("observatorios/", "GET")
+    .then((data) => {
+      observatorios.value = data;
+    })
+    .catch((error) => console.error(error));
+};
+
 const cerrarModal = () => {
   console.log("si entra");
   _gestionObservatorio.value = false;
   _crearObservatorio.value = false;
+  traerObservatorios();
 };
 
 const crearObservario = () => {
@@ -181,45 +177,101 @@ const editarObservatorio = (item) => {
   datosObservatorio.value = item.raw;
 };
 
-const eliminarObservatorio = async (item) => {
-  let id = item.raw.id
-  let nombre = item.raw.nombre
-  console.log(nombre);
-  
+const reactivarObservatorio = async (item) => {
+  let id = item.raw.id;
+  let nombre = item.raw.nombre;
+  // console.log(item);
+
   const resultado = await Swal.fire({
-    title: 'Deshabilitar Observatorio',
-    html: `¿Está seguro de que desea inhabilitar el observatorio <b> ${nombre} </b> ? No podrá acceder a este espacio después de hacerlo.`,
-    icon: 'warning',
+    title: "Reactivar Observatorio",
+    html: `¿Está seguro de que desea reactivar el observatorio <b> ${nombre} </b> ?`,
+    icon: "warning",
     showCancelButton: true,
-    confirmButtonText: 'Confirmar',
-    cancelButtonText: 'Cancelar',
-    width: '350px', 
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
     customClass: {
-      popup: 'popup-personalizado',
-      title: 'titulo-alerta-personalizado', 
-      confirmButton: 'confirmacion-alerta-personalizado', 
-      cancelButton: 'cancelacion-alerta-personalizado' 
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
     },
-    buttonsStyling: false
+    buttonsStyling: false,
   });
 
   if (resultado.isConfirmed) {
-    console.log('Elemento eliminado');
-    Swal.fire({
-      title: '¡Eliminado!',
-      text: 'El elemento ha sido eliminado correctamente.',
-      icon: 'success',
-      width: '300px',
-      customClass: {
-        popup: 'popup-personalizado',
-        title: 'titulo-alerta-personalizado',
-        confirmButton: 'confirmacion-alerta-personalizado'
-      },
-      buttonsStyling: false
-    });
+    const data = { confirmacion: true };
+
+    peticionAPI(`/observatorios/${id}/`, "PUT", {activo: true})
+      .then((data) => {
+        console.log("Elemento eliminado");
+        Swal.fire({
+          title: "¡Activado!",
+          text: "El observatorio se ha sido reactivado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        traerObservatorios();
+      })
+      .catch((error) => console.error(error));
+  }
+};
+const eliminarObservatorio = async (item) => {
+  let id = item.raw.id;
+  let nombre = item.raw.nombre;
+  // console.log(item);
+
+  const resultado = await Swal.fire({
+    title: "Deshabilitar Observatorio",
+    html: `¿Está seguro de que desea inhabilitar el observatorio <b> ${nombre} </b> ? No podrá acceder a este espacio después de hacerlo.`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (resultado.isConfirmed) {
+    const data = { confirmacion: true };
+
+    peticionAPI(`/observatorios/${id}/`, "DELETE", data)
+      .then((data) => {
+        console.log("Elemento eliminado");
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "El elemento ha sido eliminado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        traerObservatorios();
+      })
+      .catch((error) => console.error(error));
   }
 };
 
+onMounted(() => {
+  console.log("El componente ha sido montado.");
+  traerObservatorios();
+});
 </script>
 
 <style scoped>

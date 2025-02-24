@@ -48,6 +48,8 @@
 
 <script setup>
 import { ref, watch, defineEmits, defineProps } from "vue";
+import peticionAPI from "../../../service/conexion_api";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   value: Boolean,
@@ -90,12 +92,26 @@ const crearObservatorio = () => {
   if (imagen.value) {
     formData.append("imagen", imagen.value);
   }
-  console.log("Datos enviados", Object.fromEntries(formData));
+  peticionAPI("/observatorios/", "POST", formData)
+    .then((data) => {
+      Swal.fire({
+        title: "¡Creado!",
+        text: "El observatorio se creó correctamente.",
+        icon: "success",
+        width: "300px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    })
+    .catch((error) => console.error(error));
+
   emit("cerrar");
 };
 const cancelar = () => {
-  console.log("ceerar");
-
   emit("cerrar");
 };
 </script>
