@@ -1,16 +1,16 @@
 <template>
-  <div class="observatorios">
+  <div class="estructuras">
     <div class="cabecera">
-      <h1 class="titulo__cabecera">Administración de Observatorios</h1>
+      <h1 class="titulo__cabecera">Estructuras</h1>
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearObservario"
-        >Crear Observatorio</v-btn
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearEstructura"
+        >Crear Estructura</v-btn
       >
     </div>
     <v-card>
       <div class="cabecera__tabla">
         <v-card-title class="d-flex justify-space-between align-center">
-          <span class="text-h5">Observatorios</span>
+          <span class="text-h5">Estructuras</span>
         </v-card-title>
         <v-spacer />
 
@@ -40,9 +40,9 @@
             variant="text"
             icon
             size="small"
-            @click="verObservatorio(item)"
+            @click="verEstructura(item)"
             color="primary"
-            title="Ver observatorio"
+            title="Ver estructura"
           >
             <v-icon>mdi-eye</v-icon>
           </v-btn>
@@ -50,9 +50,9 @@
             variant="text"
             icon
             size="small"
-            @click="editarObservatorio(item)"
+            @click="editarEstructura(item)"
             color="primary"
-            title="Editar observatorio"
+            title="Editar estructura"
           >
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
@@ -61,9 +61,9 @@
             variant="text"
             icon
             size="small"
-            @click="eliminarObservatorio(item)"
+            @click="eliminarEstructura(item)"
             color="primary"
-            title="Eliminar observatorio"
+            title="Eliminar estructura"
           >
             <v-icon>mdi-trash-can</v-icon>
           </v-btn>
@@ -72,9 +72,9 @@
             variant="text"
             icon
             size="small"
-            @click="reactivarObservatorio(item)"
+            @click="reactivarEstructura(item)"
             color="primary"
-            title="Reactivar observatorio"
+            title="Reactivar estructura"
           >
             <v-icon> mdi-sync</v-icon>
           </v-btn>
@@ -82,9 +82,9 @@
             variant="text"
             icon
             size="small"
-            @click="diriguirseObservatorio(item)"
+            @click="diriguirseEstructura(item)"
             color="primary"
-            title="Ir al observatorio"
+            title="Ir a la estructura"
           >
             <v-icon>mdi-arrow-top-right-thick</v-icon>
           </v-btn>
@@ -92,39 +92,26 @@
       </v-data-table>
     </v-card>
     <v-dialog
-      v-model="_crearObservatorio"
+      v-model="_crearEstructura"
       scrollable
       max-width="500px"
+      max-height="90vh"
       transition="dialog-transition"
     >
-      <crear-observatorio @cerrar="cerrarModal" />
-    </v-dialog>
-    <v-dialog
-      v-model="_gestionObservatorio"
-      scrollable
-      max-width="500px"
-      transition="dialog-transition"
-    >
-      <!-- <crear-observatorio @cerrar="cerrarModal" /> -->
-      <ObservatoriosGestion
-        :observatorio="datosObservatorio"
-        :modo="_modo"
-        @cerrar="cerrarModal"
-      />
+      <CrearEstructura @cerrar="cerrarModal" />
     </v-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import CrearObservatorio from "./observatorios/CrearObservatorio.vue";
-import ObservatoriosGestion from "./observatorios/ObservatoriosGestion.vue";
 import peticionAPI from "../../service/conexion_api";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
+import CrearEstructura from "./CrearEstructura.vue";
 const router = useRouter();
 const search = ref("");
-const observatorios = ref([]);
+const estructuras = ref([]);
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -133,55 +120,55 @@ const headers = ref([
 ]);
 
 const filteredObservatories = computed(() => {
-  if (!search.value) return observatorios.value;
-  return observatorios.value.filter((obs) =>
+  if (!search.value) return estructuras.value;
+  return estructuras.value.filter((obs) =>
     obs.nombre.toLowerCase().includes(search.value.toLowerCase())
   );
 });
 
-const _crearObservatorio = ref(false);
-const _gestionObservatorio = ref(false);
+const _crearEstructura = ref(false);
+const _gestionEstructura = ref(false);
 const _modo = ref(false);
 
-const datosObservatorio = ref({});
+const datosEstructura = ref({});
 
-const traerObservatorios = () => {
-  peticionAPI("observatorios/", "GET")
+const traerEstructuras = () => {
+  peticionAPI("campos/estructuras/", "GET")
     .then((data) => {
-      observatorios.value = data;
+      estructuras.value = data;
     })
     .catch((error) => console.error(error));
 };
 
 const cerrarModal = () => {
-  _gestionObservatorio.value = false;
-  _crearObservatorio.value = false;
-  traerObservatorios();
+  _gestionEstructura.value = false;
+  _crearEstructura.value = false;
+  traerEstructuras();
 };
 
-const crearObservario = () => {
-  _crearObservatorio.value = true;
+const crearEstructura = () => {
+  _crearEstructura.value = true;
 };
 
-const verObservatorio = (item) => {
-  _gestionObservatorio.value = true;
+const verEstructura = (item) => {
+  _gestionEstructura.value = true;
   _modo.value = false;
-  datosObservatorio.value = item.raw;
+  datosEstructura.value = item.raw;
 };
 
-const editarObservatorio = (item) => {
-  _gestionObservatorio.value = true;
+const editarEstructura = (item) => {
+  _gestionEstructura.value = true;
   _modo.value = true;
-  datosObservatorio.value = item.raw;
+  datosEstructura.value = item.raw;
 };
 
-const reactivarObservatorio = async (item) => {
+const reactivarEstructura = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
 
   const resultado = await Swal.fire({
-    title: "Reactivar Observatorio",
-    html: `¿Desea reactivar el observatorio <b> ${nombre} </b> ?`,
+    title: "Reactivar Estructura",
+    html: `¿Desea reactivar la estructura <b> ${nombre} </b> ?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
@@ -199,11 +186,11 @@ const reactivarObservatorio = async (item) => {
   if (resultado.isConfirmed) {
     const data = { confirmacion: true };
 
-    peticionAPI(`/observatorios/${id}/`, "PUT", { activo: true })
+    peticionAPI(`/campos/estructuras/${id}/`, "PUT", { activo: true })
       .then((data) => {
         Swal.fire({
           title: "¡Activado!",
-          text: "El observatorio se ha sido reactivado correctamente.",
+          text: "La estructura se ha sido reactivado correctamente.",
           icon: "success",
           width: "300px",
           customClass: {
@@ -214,19 +201,19 @@ const reactivarObservatorio = async (item) => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerObservatorios();
+          traerEstructuras();
         }, 1000);
       })
       .catch((error) => console.error(error));
   }
 };
-const eliminarObservatorio = async (item) => {
+const eliminarEstructura = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
 
   const resultado = await Swal.fire({
-    title: "Deshabilitar Observatorio",
-    html: `¿Desea inhabilitar el observatorio <b> ${nombre} </b> ? No podrá acceder a este espacio después de hacerlo.`,
+    title: "Deshabilitar Estructura",
+    html: `¿Desea inhabilitar la estructura <b> ${nombre} </b> ? `,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
@@ -244,10 +231,10 @@ const eliminarObservatorio = async (item) => {
   if (resultado.isConfirmed) {
     const data = { confirmacion: true };
 
-    peticionAPI(`/observatorios/${id}/`, "DELETE", data)
+    peticionAPI(`/campos/estructuras/${id}/`, "DELETE", data)
       .then((data) => {
         Swal.fire({
-          title: "¡Eliminado!",
+          title: "¡Deshabilitado!",
           text: "El elemento ha sido deshabilitado correctamente.",
           icon: "success",
           width: "300px",
@@ -259,30 +246,26 @@ const eliminarObservatorio = async (item) => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerObservatorios();
+          traerEstructuras();
         }, 1000);
       })
       .catch((error) => console.error(error));
   }
 }; 
-const diriguirseObservatorio = (item) => {
+const diriguirseEstructura = (item) => {
   router.push("/estructuras");
   localStorage.setItem('observatorio', item.raw.id)
   localStorage.setItem('observatorio_imagen', item.raw.imagen)
   localStorage.setItem('observatorio_nombre', item.raw.nombre)
 };
 onMounted(() => {
-  traerObservatorios();
+  traerEstructuras();
 });
 </script>
 
 <style scoped>
-.observatorios {
+.estructuras {
   width: 90%;
   margin: 40px auto;
 }
-.v-card-title {
-  background-color: #ffffff;
-}
-
 </style>

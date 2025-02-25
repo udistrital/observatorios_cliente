@@ -19,15 +19,17 @@
               : 'dawer__espacio-unhovering',
           ]"
         >
+          <!-- v-if="route.path.includes('administracion/')" -->
           <figure class="dawer__logo-espacio">
-            <img src="../assets/img/logo-admin.png" alt="Logo" />
-            <span class="dawer__titulo-espacio" v-show="isHovering"
-              >Administración</span
-            >
+            <!-- <img src="../assets/img/logo-admin.png" alt="Logo" /> -->
+            <img :src="imagenSrc" alt="Logo" />
+            <span class="dawer__titulo-espacio" v-show="isHovering">{{
+              tituloEspacio
+            }}</span>
           </figure>
         </div>
         <v-list-item
-          v-for="(item, index) in menuItems"
+          v-for="(item, index) in filteredMenuItems"
           :key="index"
           link
           :to="item.direccion"
@@ -75,27 +77,104 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
+import logoAdmin from "@/assets/img/logo-admin.png";
+import logoDefault from "@/assets/img/logo.png";
+
 const isHovering = ref(false);
-const menuItems = [
-  { texto: "Inicio", icono: "mdi-home", direccion: "/espacios" },
-  {
-    texto: "Observatorios",
-    icono: "mdi-eye",
-    direccion: "/administracion/observatorios",
-  },
-  {
-    texto: "Observatorios Externos",
-    icono: " mdi-glasses",
-    direccion: "/administracion/observatorios-externos",
-  },
-];
+// const menuItems = [
+//   { texto: "Inicio", icono: "mdi-home", direccion: "/espacios" },
+//   {
+//     texto: "Observatorios",
+//     icono: "mdi-eye",
+//     direccion: "/administracion/observatorios",
+//     admin: true,
+//   },
+//   {
+//     texto: "Observatorios Externos",
+//     icono: " mdi-glasses",
+//     direccion: "/administracion/observatorios-externos",
+//     admin: true,
+//   },
+// ];
 
 const rutasNavegacion = {};
 const route = useRoute();
 const rutasNavbar = ["/", "/espacios"];
 const verNavbar = computed(() => !rutasNavbar.includes(route.path));
+const imagenBase64 = ref("");
+
+// Computed que selecciona la imagen según la ruta
+const imagenSrc = computed(() => {
+  return route.path.includes("administracion/")
+    ? logoAdmin // Si está en administración, usa el logo admin
+    : localStorage.getItem("observatorio_imagen") || ""; // Si no, usa la imagen del localStorage
+});
+const tituloEspacio = computed(() => {
+  return route.path.includes("administracion/")
+    ? "Administración" // Si está en administración, usa el logo admin
+    : localStorage.getItem("observatorio_nombre") || ""; // Si no, usa la imagen del localStorage
+});
+
+const menuItems = [
+  {
+    texto: "Inicio",
+    icono: "mdi-home",
+    direccion: "/espacios",
+    admin: false,
+    general: true,
+  },
+  {
+    texto: "Observatorios",
+    icono: "mdi-eye",
+    direccion: "/administracion/observatorios",
+    admin: true,
+  },
+  {
+    texto: "Observatorios Externos",
+    icono: " mdi-glasses",
+    direccion: "/administracion/observatorios-externos",
+    admin: true,
+  },
+  // {
+  //   texto: "Estructuras",
+  //   icono: "mdi-source-branch",
+  //   direccion: "/estructuras",
+  //   admin: false,
+  // },
+  {
+    texto: "Estructuras",
+    icono: "mdi-graph-outline",
+    direccion: "/estructuras",
+    admin: false,
+  },
+  {
+    texto: "Tablero",
+    icono: "mdi-chart-box-outline",
+    direccion: "/panel",
+    admin: false,
+  },
+  // {
+  //   texto: "Tablero",
+  //   icono: "mdi-file-document-outline",
+  //   direccion: "/panel",
+  //   admin: false,
+  // },
+  {
+    texto: "Panel",
+    icono: "mdi-view-dashboard",
+    direccion: "/panel",
+    admin: false,
+  },
+];
+
+const filteredMenuItems = computed(() => {
+  const esAdmin = route.path.includes("administracion/");
+  return menuItems.filter(
+    (item) => item.general || (esAdmin ? item.admin : !item.admin)
+  );
+});
 </script>
 
 <style scoped>
@@ -168,6 +247,7 @@ const verNavbar = computed(() => !rutasNavbar.includes(route.path));
 }
 .dawer__logo-espacio {
   border-bottom: 2px solid rgb(189, 189, 189);
+  width: 90%;
   height: 56px;
   display: flex;
   align-items: center;

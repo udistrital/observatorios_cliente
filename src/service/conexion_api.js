@@ -18,7 +18,6 @@ const api = axios.create({
  * @returns {Promise} - Retorna la promesa de la petición
  */
 const peticionAPI = async (path, method = "GET", data = null) => {
-  console.log('entrando a peticionAPI');
   try {
     const config = {
       method,

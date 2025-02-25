@@ -34,7 +34,6 @@ const verAdministracion = () => {
 
 onMounted(() => {
   espacios.value = espaciosData.espacios;
-  console.log(espacios.value);
 });
 </script>
 

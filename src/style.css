@@ -28,6 +28,25 @@ html, body {
   padding: 10px;
 }
 
+/* ========================== Contenedores ====================== */
+.cabecera {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.cabecera__tabla {
+  display: flex;
+  align-items: center;
+  padding: 5px;
+}
+
+.subcabecera{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
 /* ========================== Textos ====================== */
 .titulo-modal{
@@ -36,8 +55,23 @@ html, body {
   text-align: center;
   font-size: 1.6rem;
 }
+.titulo__cabecera {
+  color: var(--color-acentuado);
+  font-weight: 700;
+  text-shadow: -1px -1px 2px rgba(0, 0, 0, 0.384);
+}
+.subtitulo-modal{
+  color: var(--color-acentuado);
+  font-weight: 700;
+  text-align: center;
+  font-size: 1.2rem;
+}
 
-
+/* ========================== Inputs ====================== */
+.buscador__tabla {
+  max-width: 400px !important;
+  padding-right: 20px;
+}
 
 
 /* ========================== Personalización de  SweetAlert ====================== */

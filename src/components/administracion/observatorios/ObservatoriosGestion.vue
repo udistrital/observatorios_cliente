@@ -126,10 +126,6 @@ const cargarImagen = (event) => {
   }
 };
 
-const habilitarEdicion = () => {
-  isEditing.value = true;
-};
-
 const guardarObservatorio = () => {
   const formData = new FormData();
   formData.append("nombre", nombre.value);
@@ -154,14 +150,6 @@ const guardarObservatorio = () => {
     })
     .catch((error) => console.error(error));
   emit("cerrar");
-
-  // console.log("Datos guardados", Object.fromEntries(formData));
-  // emit("guardar", {
-  //   nombre: nombre.value,
-  //   descripcion: descripcion.value,
-  //   imagenUrl: imagenUrl.value,
-  // });
-  // isEditing.value = false;
 };
 
 const cancelar = () => {
@@ -169,8 +157,6 @@ const cancelar = () => {
 };
 
 onMounted(() => {
-  console.log(props.observatorio.id);
-  
   const data = props.observatorio.imagen;
 
   if (!data || typeof data !== "string") {
