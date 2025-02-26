@@ -1,22 +1,29 @@
-import { createRouter, createWebHistory } from 'vue-router'
-// import HomeView from '../views/HomeView.vue'
+import { createRouter, createWebHistory } from "vue-router";
 
 const routes = [
-  // {
-  //   path: '/',
-  //   name: 'home',
-  //   component: HomeView,
-  // },
-  // {
-  //   path: '/about',
-  //   name: 'about',
-  //   component: () => import('../views/AboutView.vue'),
-  // },
-]
+  {
+    path: "/espacios",
+    name: "espacios",
+    component: () => import("../views/Espacios.vue"),
+  },
+  {
+    path: "/administracion",
+    component: () => import("../views/Administracion.vue"),
+    children: [
+      {path: "observatorios", component: () => import("../components/administracion/Observatorios.vue")},
+      {path: "observatorios-externos", component: () => import("../components/administracion/ObservatoriosExternos.vue")},
+    ],
+  },
+  {
+    path: "/estructuras",
+    name: "estructuras",
+    component: () => import("../views/Estructuras.vue"),
+  },
+];
 
 const router = createRouter({
   history: createWebHistory(),
   routes,
-})
+});
 
-export default router
+export default router;
