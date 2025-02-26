@@ -84,11 +84,11 @@ const emit = defineEmits(["cerrar", "crear"]);
 const dialog = ref(props.value);
 const nombreEstructura = ref("");
 const descripcion = ref("");
-const tiposDeDato = ref(["String", "Number", "Boolean", "Date"]);
-const campos = ref([{ nombre: "", tipo: "String" }]);
+const tiposDeDato = ref([""]);
+const campos = ref([{ nombre: "", tipo: "" }]);
 
 const agregarCampo = () => {
-  campos.value.push({ nombre: "", tipo: "String" });
+  campos.value.push({ nombre: "", tipo: "" });
 };
 
 const eliminarCampo = (index) => {

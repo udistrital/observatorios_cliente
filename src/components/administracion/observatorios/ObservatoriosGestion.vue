@@ -145,11 +145,15 @@ const guardarObservatorio = () => {
           title: "titulo-alerta-personalizado",
           confirmButton: "confirmacion-alerta-personalizado",
         },
-        buttonsStyling: false,
+        // buttonsStyling: false,
+        showConfirmButton: false,
+        timer: 1500
       });
+      setTimeout(() => {
+        emit("cerrar");
+      }, 1000);
     })
     .catch((error) => console.error(error));
-  emit("cerrar");
 };
 
 const cancelar = () => {

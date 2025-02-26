@@ -146,6 +146,7 @@ const _modo = ref(false);
 const datosObservatorio = ref({});
 
 const traerObservatorios = () => {
+  observatorios.value = [];
   peticionAPI("observatorios/", "GET")
     .then((data) => {
       observatorios.value = data;
@@ -154,9 +155,11 @@ const traerObservatorios = () => {
 };
 
 const cerrarModal = () => {
-  _gestionObservatorio.value = false;
-  _crearObservatorio.value = false;
   traerObservatorios();
+  setTimeout(() => {
+    _gestionObservatorio.value = false;
+    _crearObservatorio.value = false;
+  }, 2000);
 };
 
 const crearObservario = () => {
@@ -198,6 +201,8 @@ const reactivarObservatorio = async (item) => {
 
   if (resultado.isConfirmed) {
     const data = { confirmacion: true };
+    const formData = new FormData();
+    formData.append("activo", true);
 
     peticionAPI(`/observatorios/${id}/`, "PUT", { activo: true })
       .then((data) => {
@@ -264,12 +269,12 @@ const eliminarObservatorio = async (item) => {
       })
       .catch((error) => console.error(error));
   }
-}; 
+};
 const diriguirseObservatorio = (item) => {
   router.push("/estructuras");
-  localStorage.setItem('observatorio', item.raw.id)
-  localStorage.setItem('observatorio_imagen', item.raw.imagen)
-  localStorage.setItem('observatorio_nombre', item.raw.nombre)
+  localStorage.setItem("observatorio", item.raw.id);
+  localStorage.setItem("observatorio_imagen", item.raw.imagen);
+  localStorage.setItem("observatorio_nombre", item.raw.nombre);
 };
 onMounted(() => {
   traerObservatorios();
@@ -284,5 +289,4 @@ onMounted(() => {
 .v-card-title {
   background-color: #ffffff;
 }
-
 </style>
