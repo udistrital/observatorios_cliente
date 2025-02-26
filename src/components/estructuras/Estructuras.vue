@@ -105,8 +105,8 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import peticionAPI from "../../service/conexion_api";
 import { useRouter } from "vue-router";
+import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import CrearEstructura from "./CrearEstructura.vue";
 const router = useRouter();
@@ -135,15 +135,19 @@ const datosEstructura = ref({});
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET")
     .then((data) => {
+      console.log(data);
+      
       estructuras.value = data;
     })
     .catch((error) => console.error(error));
 };
 
 const cerrarModal = () => {
+  setTimeout(() => {
+    traerEstructuras();
+  }, 2000);
   _gestionEstructura.value = false;
   _crearEstructura.value = false;
-  traerEstructuras();
 };
 
 const crearEstructura = () => {

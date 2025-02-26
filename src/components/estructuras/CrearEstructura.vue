@@ -10,13 +10,6 @@
           density="comfortable"
           required
         ></v-text-field>
-        <v-textarea
-          v-model="descripcion"
-          label="Descripción"
-          variant="outlined"
-          density="comfortable"
-          required
-        ></v-textarea>
         <div class="subcabecera">
           <h3 class="subtitulo-modal">Campos</h3>
 
@@ -34,20 +27,35 @@
               hide-details="true"
               v-model="campo.nombre"
               label="Nombre del Campo"
-              class="mr-2"
+              class="mr-2 campos__field"
               variant="outlined"
               density="comfortable"
               required
             ></v-text-field>
+
             <v-select
               hide-details="true"
               v-model="campo.tipo"
               :items="tiposDeDato"
+              item-value="nombre"
               label="Tipo de dato"
               variant="outlined"
               density="comfortable"
               required
-            ></v-select>
+              max-height="20%"
+              class="campos__field"
+               style="width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+            >
+              <template v-slot:item="{ props, item }">
+                <div class="select__tipos" v-bind="props" :title="item.raw.descripcion">
+                  {{ item.raw.nombre_espanol }} ({{ item.raw.nombre }})
+                </div>
+              </template>
+              <template v-slot:selection="{ item }">
+                {{ item.raw.nombre_espanol }} ({{ item.raw.nombre }})
+              </template>
+            </v-select>
+
             <v-btn
               icon
               variant="plain"
@@ -74,7 +82,9 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineProps } from "vue";
+import { ref, defineEmits, defineProps, onMounted } from "vue";
+import peticionAPI from "@/service/conexion_api";
+import Swal from "sweetalert2";
 
 const props = defineProps({
   value: Boolean,
@@ -83,7 +93,6 @@ const emit = defineEmits(["cerrar", "crear"]);
 
 const dialog = ref(props.value);
 const nombreEstructura = ref("");
-const descripcion = ref("");
 const tiposDeDato = ref([""]);
 const campos = ref([{ nombre: "", tipo: "" }]);
 
@@ -96,15 +105,44 @@ const eliminarCampo = (index) => {
 };
 
 const crearEstructura = () => {
+  console.log('entra');
+  
   const estructura = {
     nombre: nombreEstructura.value,
-    descripcion: descripcion.value,
-    campos: campos.value,
+    observatorio: localStorage.getItem('observatorio'),
+    mapeo: campos.value,
   };
-  emit("crear", estructura);
+
+  peticionAPI("/campos/estructuras/", "POST", estructura)
+    .then((data) => {
+      Swal.fire({
+        title: "¡Creado!",
+        text: "La estructura se creó correctamente.",
+        icon: "success",
+        width: "300px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    })
+    .catch((error) => console.error(error));
+
   emit("cerrar");
 };
-
+const traerCampos = () => {
+  peticionAPI("campos/tipos", "GET")
+    .then((data) => {
+      tiposDeDato.value = Object.values(data);
+      console.log(tiposDeDato.value);
+    })
+    .catch((error) => console.error(error));
+};
+onMounted(() => {
+  traerCampos();
+});
 const cancelar = () => {
   emit("cerrar");
 };
@@ -116,5 +154,15 @@ const cancelar = () => {
   border-radius: 8px;
   max-height: 30vh;
   overflow-y: auto;
+}
+.select__tipos{
+  padding: 5px;
+  cursor: pointer;
+}
+.select__tipos:hover{
+  background-color: var(--color-claro);
+}
+.campos__field{
+  max-width: 50%;
 }
 </style>
