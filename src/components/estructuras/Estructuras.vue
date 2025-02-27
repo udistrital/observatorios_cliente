@@ -100,6 +100,15 @@
     >
       <CrearEstructura @cerrar="cerrarModal" />
     </v-dialog>
+    <v-dialog
+      v-model="_gestionEstructura"
+      scrollable
+      max-width="500px"
+      max-height="90vh"
+      transition="dialog-transition"
+    >
+      <EstructuraGestion :estructuraData="datosEstructura" :value="_modo" @cerrar="cerrarModal"  />
+    </v-dialog>
   </div>
 </template>
 
@@ -109,6 +118,7 @@ import { useRouter } from "vue-router";
 import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import CrearEstructura from "./CrearEstructura.vue";
+import EstructuraGestion from "./EstructuraGestion.vue";
 const router = useRouter();
 const search = ref("");
 const estructuras = ref([]);
@@ -169,6 +179,8 @@ const editarEstructura = (item) => {
 const reactivarEstructura = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
+  console.log(item.raw);
+  
 
   const resultado = await Swal.fire({
     title: "Reactivar Estructura",
