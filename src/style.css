@@ -39,6 +39,7 @@ html, body {
   display: flex;
   align-items: center;
   padding: 5px;
+  margin: 10px;
 }
 
 .subcabecera{

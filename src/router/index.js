@@ -19,6 +19,11 @@ const routes = [
     name: "estructuras",
     component: () => import("../views/Estructuras.vue"),
   },
+  {
+    path: "/tablero",
+    name: "tablero",
+    component: () => import("../views/Tablero.vue"),
+  },
 ];
 
 const router = createRouter({

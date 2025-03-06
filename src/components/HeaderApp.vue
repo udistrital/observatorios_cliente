@@ -152,7 +152,7 @@ const menuItems = [
   {
     texto: "Tablero",
     icono: "mdi-chart-box-outline",
-    direccion: "/panel",
+    direccion: "/tablero",
     admin: false,
   },
   // {
