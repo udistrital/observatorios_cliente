@@ -216,7 +216,49 @@ const traerEstructuras = () => {
     })
     .catch((error) => console.error(error));
 };
+const eliminarRegistro = async (item) => {
+  let id = item.raw.id;
+  const resultado = await Swal.fire({
+    title: "Eliminar Registro",
+    html: `¿Desea inhabilitar el registro? `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
 
+  if (resultado.isConfirmed) {
+    const data = { confirmacion: true };
+
+    peticionAPI(`/datos/${idEstructura.value}/${id}/`, "DELETE")
+      .then((data) => {
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "El elemento ha sido eliminado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        setTimeout(() => {
+          traerDatos({id:idEstructura.value});
+        }, 1000);
+      })
+      .catch((error) => console.error(error));
+  }
+}; 
 const agregarRegistro = () => {
   _agregarRegistro.value = true;
 };
