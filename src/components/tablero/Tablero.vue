@@ -50,34 +50,94 @@
           <span class="text-h5">{{ estructuraSeleccionada?.nombre }}</span>
         </v-card-title>
         <v-spacer></v-spacer>
-        <v-btn color="primary" variant="outlined" class="mr-2" v-if="estructuraSeleccionada">
+        <v-btn
+          color="primary"
+          variant="outlined"
+          class="mr-2"
+          v-if="estructuraSeleccionada"
+        >
           <v-icon left>mdi-paperclip</v-icon> Cargar Archivo
         </v-btn>
-        <v-btn color="primary" v-if="estructuraSeleccionada" @click="agregarRegistro">
+        <v-btn
+          color="primary"
+          v-if="estructuraSeleccionada"
+          @click="agregarRegistro"
+        >
           <v-icon left>mdi-plus</v-icon> Agregar Registro
         </v-btn>
       </div>
       <v-data-table
-      v-if="headers.length > 0"
+        v-if="headers.length > 0"
         :headers="headers"
         :items="datosFiltrados"
         class="elevation-1"
         :items-per-page="5"
-      ></v-data-table>
+      >
+        <template v-slot:[`item.acciones`]="{ item }">
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="verRegistro(item)"
+            color="primary"
+            title="Ver registro"
+          >
+            <v-icon>mdi-eye</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="editarRegistro(item)"
+            color="primary"
+            title="Editar registro"
+          >
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="eliminarRegistro(item)"
+            color="primary"
+            title="Eliminar registro"
+          >
+            <v-icon>mdi-trash-can</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
       <v-alert v-else color="primary" variant="tonal" class="ma-4">
         No se ha seleccionado ningúna estructura
       </v-alert>
     </v-card>
   </v-container>
   <v-dialog
-      v-model="_agregarRegistro"
-      scrollable
-      max-width="500px"
-      max-height="90vh"
-      transition="dialog-transition"
-    >
-      <AgregarRegistro @cerrar="cerrarModal" :campos="camposFormulario" :idEstructura="idEstructura" />
-    </v-dialog>
+    v-model="_agregarRegistro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <AgregarRegistro
+      @cerrar="cerrarModal"
+      :campos="camposFormulario"
+      :idEstructura="idEstructura"
+    />
+  </v-dialog>
+  <v-dialog
+    v-model="_gestionRegistro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <RegistroGestion
+      @cerrar="cerrarModal"
+      :esVer="_modo"
+      :idEstructura="idEstructura"
+      :campos="datosRegistro"
+    />
+  </v-dialog>
 </template>
 
 <script setup>
@@ -86,6 +146,7 @@ import peticionAPI from "@/service/conexion_api";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import AgregarRegistro from "./AgregarRegistro.vue";
+import RegistroGestion from "./RegistroGestion.vue";
 
 const headerst = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -95,67 +156,85 @@ const headerst = ref([
 
 const estructuras = ref([]);
 const estructuraSeleccionada = ref(null);
-const camposFormulario = ref([])
-const idEstructura = ref("")
-const busqueda = ref('');
+const camposFormulario = ref([]);
+const idEstructura = ref("");
+const busqueda = ref("");
 const datos = ref([]);
 const headers = ref([]);
-const _agregarRegistro = ref(false)
+const _agregarRegistro = ref(false);
+const _gestionRegistro = ref(false);
+const _modo = ref(false);
+const datosRegistro = ref([]);
 
 const traerDatos = async (nuevoValor) => {
   if (!nuevoValor?.id) return;
-  
-  const estructura = estructuras.value.find(e => e.id === nuevoValor.id);
+
+  const estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
   if (!estructura) return;
-  camposFormulario.value = estructura.mapeo
-  idEstructura.value = estructura.id 
-  headers.value = estructura.mapeo.map(item => ({
+  camposFormulario.value = estructura.mapeo;
+  idEstructura.value = estructura.id;
+  headers.value = estructura.mapeo.map((item) => ({
     title: item.nombre,
     key: item.nombre,
     value: item.nombre,
-    align: 'center',
-    sortable: true
+    align: "center",
+    sortable: true,
   }));
-  
-  
+
+  headers.value.push({
+    title: "Acciones",
+    key: "acciones",
+    value: "acciones",
+    align: "center",
+    sortable: true,
+  });
   try {
     const response = await peticionAPI(`datos/${nuevoValor.id}`, "GET");
     datos.value = response.results;
     await nextTick();
-      
   } catch (error) {
-    console.error('Error al cargar datos:', error);
+    console.error("Error al cargar datos:", error);
   }
 };
 
 const datosFiltrados = computed(() => {
-  return datos.value.filter(row =>
-    Object.values(row).some(val =>
+  return datos.value.filter((row) =>
+    Object.values(row).some((val) =>
       val.toString().toLowerCase().includes(busqueda.value.toLowerCase())
     )
   );
 });
 
 const filtrarDatos = () => {
-  console.log('Filtrando datos con búsqued:', busqueda.value);
+  console.log("Filtrando datos con búsqued:", busqueda.value);
 };
 
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET")
-  .then((data) => {
-    estructuras.value = data;
-  })
-  .catch((error) => console.error(error));
+    .then((data) => {
+      estructuras.value = data;
+    })
+    .catch((error) => console.error(error));
 };
 
 const agregarRegistro = () => {
   _agregarRegistro.value = true;
-}
+};
+const verRegistro = (item) => {
+  _gestionRegistro.value = true;
+  _modo.value = true;
+  datosRegistro.value = item.raw;
+};
+const editarRegistro = (item) => {
+  _gestionRegistro.value = true;
+  _modo.value = false;
+  datosRegistro.value = item.raw;
+};
 const cerrarModal = (data) => {
   setTimeout(() => {
     traerDatos(data);
   }, 2000);
-  // _gestionEstructura.value = false;
+  _gestionRegistro.value = false;
   _agregarRegistro.value = false;
 };
 onMounted(async () => {
