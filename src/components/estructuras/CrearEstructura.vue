@@ -105,8 +105,6 @@ const eliminarCampo = (index) => {
 };
 
 const crearEstructura = () => {
-  console.log('entra');
-  
   const estructura = {
     nombre: nombreEstructura.value,
     observatorio: localStorage.getItem('observatorio'),
@@ -136,7 +134,6 @@ const traerCampos = () => {
   peticionAPI("campos/tipos", "GET")
     .then((data) => {
       tiposDeDato.value = Object.values(data);
-      console.log(tiposDeDato.value);
     })
     .catch((error) => console.error(error));
 };

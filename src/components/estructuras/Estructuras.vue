@@ -144,9 +144,7 @@ const datosEstructura = ref({});
 
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET")
-    .then((data) => {
-      console.log(data);
-      
+    .then((data) => {      
       estructuras.value = data;
     })
     .catch((error) => console.error(error));
@@ -179,9 +177,6 @@ const editarEstructura = (item) => {
 const reactivarEstructura = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
-  console.log(item.raw);
-  
-
   const resultado = await Swal.fire({
     title: "Reactivar Estructura",
     html: `¿Desea reactivar la estructura <b> ${nombre} </b> ?`,
