@@ -67,7 +67,6 @@ const guardarCambios = () => {
   delete camposForm.value.formato;
   delete camposForm.value.id;
   camposForm.value['formato'] = "FORM"
-  console.log(camposForm.value);
   
   peticionAPI(
     `/datos/${props.idEstructura}/${props.campos.id}/`,

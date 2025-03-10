@@ -55,6 +55,7 @@
           variant="outlined"
           class="mr-2"
           v-if="estructuraSeleccionada"
+          @click="cargarArchivos"
         >
           <v-icon left>mdi-paperclip</v-icon> Cargar Archivo
         </v-btn>
@@ -71,8 +72,8 @@
         :headers="headers"
         :items="datosFiltrados"
         class="elevation-1"
-        :items-per-page="5"
       >
+        <!-- :items-per-page="5" -->
         <template v-slot:[`item.acciones`]="{ item }">
           <v-btn
             variant="text"
@@ -112,6 +113,19 @@
     </v-card>
   </v-container>
   <v-dialog
+    v-model="_cargarRegistro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <CargarArchivo
+      @cerrar="cerrarModal"
+      :campos="camposFormulario"
+      :idEstructura="idEstructura"
+    />
+  </v-dialog>
+  <v-dialog
     v-model="_agregarRegistro"
     scrollable
     max-width="500px"
@@ -147,6 +161,7 @@ import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import AgregarRegistro from "./AgregarRegistro.vue";
 import RegistroGestion from "./RegistroGestion.vue";
+import CargarArchivo from "./CargarArchivo.vue";
 
 const headerst = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -163,6 +178,7 @@ const datos = ref([]);
 const headers = ref([]);
 const _agregarRegistro = ref(false);
 const _gestionRegistro = ref(false);
+const _cargarRegistro = ref(false);
 const _modo = ref(false);
 const datosRegistro = ref([]);
 
@@ -191,6 +207,7 @@ const traerDatos = async (nuevoValor) => {
   try {
     const response = await peticionAPI(`datos/${nuevoValor.id}`, "GET");
     datos.value = response.results;
+    
     await nextTick();
   } catch (error) {
     console.error("Error al cargar datos:", error);
@@ -261,6 +278,9 @@ const eliminarRegistro = async (item) => {
 }; 
 const agregarRegistro = () => {
   _agregarRegistro.value = true;
+};
+const cargarArchivos = () => {
+  _cargarRegistro.value = true;
 };
 const verRegistro = (item) => {
   _gestionRegistro.value = true;
