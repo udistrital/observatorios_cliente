@@ -1,11 +1,11 @@
 <template>
-  <div class="">
-    <h1>Hola soy tablero</h1>
+  <div class="vista__primaria">
+    <tablero />
   </div>
 </template>
 
-<script>
-export default {};
+<script setup>
+import Tablero from "../components/tablero/Tablero.vue";
 </script>
 
 <style>
