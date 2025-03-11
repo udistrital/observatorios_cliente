@@ -17,12 +17,13 @@ const api = axios.create({
  * @param {Object|FormData} data - Datos a enviar (puede ser un objeto JSON o FormData)
  * @returns {Promise} - Retorna la promesa de la petición
  */
-const peticionAPI = async (path, method = "GET", data = null) => {
+const peticionAPI = async (path, method = "GET", data = null, params = null) => {
   try {
     const config = {
       method,
       url: path,
       headers: {},
+      params,
     };
 
     if (data instanceof FormData) {

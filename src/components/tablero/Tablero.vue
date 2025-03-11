@@ -37,10 +37,6 @@
       </div>
       <v-spacer />
       <div class="contenedor_botones">
-        <!-- <v-btn class="boton__control" color="primary" @click="filtrarDatos">
-          <v-icon left>mdi-magnify</v-icon> Buscar
-        </v-btn> -->
-        <!-- <v-btn class="boton__controv -->
       </div>
     </div>
 
@@ -67,13 +63,18 @@
           <v-icon left>mdi-plus</v-icon> Agregar Registro
         </v-btn>
       </div>
-      <v-data-table
+      <v-data-table-server
         v-if="headers.length > 0"
+        v-model:items-per-page="paginacion.itemsPerPage"
         :headers="headers"
-        :items="datosFiltrados"
-        class="elevation-1"
+        :items="datos"
+        :items-length="paginacion.totalItems"
+        :loading="cargando"
+        :search="search"
+        item-value="name"
+        @update:page="actualizarPagina"
+        @update:items-per-page="actualizarItemsPorPagina"
       >
-        <!-- :items-per-page="5" -->
         <template v-slot:[`item.acciones`]="{ item }">
           <v-btn
             variant="text"
@@ -106,10 +107,21 @@
             <v-icon>mdi-trash-can</v-icon>
           </v-btn>
         </template>
-      </v-data-table>
+      </v-data-table-server>
+
       <v-alert v-else color="primary" variant="tonal" class="ma-4">
         No se ha seleccionado ningúna estructura
       </v-alert>
+      <div class="cabecera__tabla">
+        <v-spacer></v-spacer>
+        <v-btn
+          color="primary"
+          v-if="estructuraSeleccionada"
+          @click="limpiarEstructura"
+        >
+          <v-icon left>mdi-broom</v-icon> Limpiar estructura
+        </v-btn>
+      </div>
     </v-card>
   </v-container>
   <v-dialog
@@ -155,7 +167,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
@@ -182,13 +194,28 @@ const _cargarRegistro = ref(false);
 const _modo = ref(false);
 const datosRegistro = ref([]);
 
-const traerDatos = async (nuevoValor) => {
-  if (!nuevoValor?.id) return;
+const cargando = ref(false);
+const paginacion = reactive({
+  page: 1,
+  itemsPerPage: 10,
+  totalItems: 0,
+});
 
-  const estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
+const traerDatos = async (nuevoValor) => {
+  let estructura = null;
+
+  if (nuevoValor?.id) {
+    estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
+  } else if (estructuraSeleccionada.value) {
+    estructura = estructuraSeleccionada.value;
+  }
+
   if (!estructura) return;
+
+  estructuraSeleccionada.value = estructura;
   camposFormulario.value = estructura.mapeo;
   idEstructura.value = estructura.id;
+
   headers.value = estructura.mapeo.map((item) => ({
     title: item.nombre,
     key: item.nombre,
@@ -202,18 +229,37 @@ const traerDatos = async (nuevoValor) => {
     key: "acciones",
     value: "acciones",
     align: "center",
-    sortable: true,
+    sortable: false,
   });
+
+  cargando.value = true;
   try {
-    const response = await peticionAPI(`datos/${nuevoValor.id}`, "GET");
+    const response = await peticionAPI(`datos/${estructura.id}`, "GET", null, {
+      page: paginacion.page,
+      page_size: paginacion.itemsPerPage,
+    });
+
     datos.value = response.results;
-    
+    paginacion.totalItems = Number(response.count) || 0;
+
     await nextTick();
   } catch (error) {
     console.error("Error al cargar datos:", error);
+  } finally {
+    cargando.value = false;
   }
 };
 
+const actualizarPagina = (nuevaPagina) => {
+  paginacion.page = nuevaPagina;
+  traerDatos(); // 👈
+};
+
+const actualizarItemsPorPagina = (nuevoTamaño) => {
+  paginacion.itemsPerPage = nuevoTamaño;
+  paginacion.page = 1;
+  traerDatos(); // 👈
+};
 const datosFiltrados = computed(() => {
   return datos.value.filter((row) =>
     Object.values(row).some((val) =>
@@ -233,11 +279,53 @@ const traerEstructuras = () => {
     })
     .catch((error) => console.error(error));
 };
+const limpiarEstructura = async () => {
+  const resultado = await Swal.fire({
+    title: "Limpiar Estructura",
+    html: `¿Desea eliminar todos los datos de la estructura? `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (resultado.isConfirmed) {
+    const data = { confirmacion: true };
+
+    peticionAPI(`/datos/${idEstructura.value}/`, "DELETE")
+      .then((data) => {
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "El elemento ha sido eliminado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        setTimeout(() => {
+          traerDatos({ id: idEstructura.value });
+        }, 1000);
+      })
+      .catch((error) => console.error(error));
+  }
+};
 const eliminarRegistro = async (item) => {
   let id = item.raw.id;
   const resultado = await Swal.fire({
     title: "Eliminar Registro",
-    html: `¿Desea inhabilitar el registro? `,
+    html: `¿Desea eliminar el registro? `,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
@@ -270,12 +358,12 @@ const eliminarRegistro = async (item) => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerDatos({id:idEstructura.value});
+          traerDatos({ id: idEstructura.value });
         }, 1000);
       })
       .catch((error) => console.error(error));
   }
-}; 
+};
 const agregarRegistro = () => {
   _agregarRegistro.value = true;
 };
