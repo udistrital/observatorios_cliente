@@ -37,10 +37,6 @@
       </div>
       <v-spacer />
       <div class="contenedor_botones">
-        <!-- <v-btn class="boton__control" color="primary" @click="filtrarDatos">
-          <v-icon left>mdi-magnify</v-icon> Buscar
-        </v-btn> -->
-        <!-- <v-btn class="boton__controv -->
       </div>
     </div>
 
@@ -50,42 +46,134 @@
           <span class="text-h5">{{ estructuraSeleccionada?.nombre }}</span>
         </v-card-title>
         <v-spacer></v-spacer>
-        <v-btn color="primary" variant="outlined" class="mr-2" v-if="estructuraSeleccionada">
+        <v-btn
+          color="primary"
+          variant="outlined"
+          class="mr-2"
+          v-if="estructuraSeleccionada"
+          @click="cargarArchivos"
+        >
           <v-icon left>mdi-paperclip</v-icon> Cargar Archivo
         </v-btn>
-        <v-btn color="primary" v-if="estructuraSeleccionada" @click="agregarRegistro">
+        <v-btn
+          color="primary"
+          v-if="estructuraSeleccionada"
+          @click="agregarRegistro"
+        >
           <v-icon left>mdi-plus</v-icon> Agregar Registro
         </v-btn>
       </div>
-      <v-data-table
-      v-if="headers.length > 0"
+      <v-data-table-server
+        v-if="headers.length > 0"
+        v-model:items-per-page="paginacion.itemsPerPage"
         :headers="headers"
-        :items="datosFiltrados"
-        class="elevation-1"
-        :items-per-page="5"
-      ></v-data-table>
+        :items="datos"
+        :items-length="paginacion.totalItems"
+        :loading="cargando"
+        :search="search"
+        item-value="name"
+        @update:page="actualizarPagina"
+        @update:items-per-page="actualizarItemsPorPagina"
+      >
+        <template v-slot:[`item.acciones`]="{ item }">
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="verRegistro(item)"
+            color="primary"
+            title="Ver registro"
+          >
+            <v-icon>mdi-eye</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="editarRegistro(item)"
+            color="primary"
+            title="Editar registro"
+          >
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="eliminarRegistro(item)"
+            color="primary"
+            title="Eliminar registro"
+          >
+            <v-icon>mdi-trash-can</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table-server>
+
       <v-alert v-else color="primary" variant="tonal" class="ma-4">
         No se ha seleccionado ningúna estructura
       </v-alert>
+      <div class="cabecera__tabla">
+        <v-spacer></v-spacer>
+        <v-btn
+          color="primary"
+          v-if="estructuraSeleccionada"
+          @click="limpiarEstructura"
+        >
+          <v-icon left>mdi-broom</v-icon> Limpiar estructura
+        </v-btn>
+      </div>
     </v-card>
   </v-container>
   <v-dialog
-      v-model="_agregarRegistro"
-      scrollable
-      max-width="500px"
-      max-height="90vh"
-      transition="dialog-transition"
-    >
-      <AgregarRegistro @cerrar="cerrarModal" :campos="camposFormulario" :idEstructura="idEstructura" />
-    </v-dialog>
+    v-model="_cargarRegistro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <CargarArchivo
+      @cerrar="cerrarModal"
+      :campos="camposFormulario"
+      :idEstructura="idEstructura"
+    />
+  </v-dialog>
+  <v-dialog
+    v-model="_agregarRegistro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <AgregarRegistro
+      @cerrar="cerrarModal"
+      :campos="camposFormulario"
+      :idEstructura="idEstructura"
+    />
+  </v-dialog>
+  <v-dialog
+    v-model="_gestionRegistro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <RegistroGestion
+      @cerrar="cerrarModal"
+      :esVer="_modo"
+      :idEstructura="idEstructura"
+      :campos="datosRegistro"
+    />
+  </v-dialog>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, nextTick } from "vue";
+import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import AgregarRegistro from "./AgregarRegistro.vue";
+import RegistroGestion from "./RegistroGestion.vue";
+import CargarArchivo from "./CargarArchivo.vue";
 
 const headerst = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -95,67 +183,208 @@ const headerst = ref([
 
 const estructuras = ref([]);
 const estructuraSeleccionada = ref(null);
-const camposFormulario = ref([])
-const idEstructura = ref("")
-const busqueda = ref('');
+const camposFormulario = ref([]);
+const idEstructura = ref("");
+const busqueda = ref("");
 const datos = ref([]);
 const headers = ref([]);
-const _agregarRegistro = ref(false)
+const _agregarRegistro = ref(false);
+const _gestionRegistro = ref(false);
+const _cargarRegistro = ref(false);
+const _modo = ref(false);
+const datosRegistro = ref([]);
+
+const cargando = ref(false);
+const paginacion = reactive({
+  page: 1,
+  itemsPerPage: 10,
+  totalItems: 0,
+});
 
 const traerDatos = async (nuevoValor) => {
-  if (!nuevoValor?.id) return;
-  
-  const estructura = estructuras.value.find(e => e.id === nuevoValor.id);
+  let estructura = null;
+
+  if (nuevoValor?.id) {
+    estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
+  } else if (estructuraSeleccionada.value) {
+    estructura = estructuraSeleccionada.value;
+  }
+
   if (!estructura) return;
-  camposFormulario.value = estructura.mapeo
-  idEstructura.value = estructura.id 
-  headers.value = estructura.mapeo.map(item => ({
+
+  estructuraSeleccionada.value = estructura;
+  camposFormulario.value = estructura.mapeo;
+  idEstructura.value = estructura.id;
+
+  headers.value = estructura.mapeo.map((item) => ({
     title: item.nombre,
     key: item.nombre,
     value: item.nombre,
-    align: 'center',
-    sortable: true
+    align: "center",
+    sortable: true,
   }));
-  
-  
+
+  headers.value.push({
+    title: "Acciones",
+    key: "acciones",
+    value: "acciones",
+    align: "center",
+    sortable: false,
+  });
+
+  cargando.value = true;
   try {
-    const response = await peticionAPI(`datos/${nuevoValor.id}`, "GET");
+    const response = await peticionAPI(`datos/${estructura.id}`, "GET", null, {
+      page: paginacion.page,
+      page_size: paginacion.itemsPerPage,
+    });
+
     datos.value = response.results;
+    paginacion.totalItems = Number(response.count) || 0;
+
     await nextTick();
-      
   } catch (error) {
-    console.error('Error al cargar datos:', error);
+    console.error("Error al cargar datos:", error);
+  } finally {
+    cargando.value = false;
   }
 };
 
+const actualizarPagina = (nuevaPagina) => {
+  paginacion.page = nuevaPagina;
+  traerDatos(); // 👈
+};
+
+const actualizarItemsPorPagina = (nuevoTamaño) => {
+  paginacion.itemsPerPage = nuevoTamaño;
+  paginacion.page = 1;
+  traerDatos(); // 👈
+};
 const datosFiltrados = computed(() => {
-  return datos.value.filter(row =>
-    Object.values(row).some(val =>
+  return datos.value.filter((row) =>
+    Object.values(row).some((val) =>
       val.toString().toLowerCase().includes(busqueda.value.toLowerCase())
     )
   );
 });
 
 const filtrarDatos = () => {
-  console.log('Filtrando datos con búsqued:', busqueda.value);
+  console.log("Filtrando datos con búsqued:", busqueda.value);
 };
 
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET")
-  .then((data) => {
-    estructuras.value = data;
-  })
-  .catch((error) => console.error(error));
+    .then((data) => {
+      estructuras.value = data;
+    })
+    .catch((error) => console.error(error));
 };
+const limpiarEstructura = async () => {
+  const resultado = await Swal.fire({
+    title: "Limpiar Estructura",
+    html: `¿Desea eliminar todos los datos de la estructura? `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
 
+  if (resultado.isConfirmed) {
+    const data = { confirmacion: true };
+
+    peticionAPI(`/datos/${idEstructura.value}/`, "DELETE")
+      .then((data) => {
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "El elemento ha sido eliminado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        setTimeout(() => {
+          traerDatos({ id: idEstructura.value });
+        }, 1000);
+      })
+      .catch((error) => console.error(error));
+  }
+};
+const eliminarRegistro = async (item) => {
+  let id = item.raw.id;
+  const resultado = await Swal.fire({
+    title: "Eliminar Registro",
+    html: `¿Desea eliminar el registro? `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (resultado.isConfirmed) {
+    const data = { confirmacion: true };
+
+    peticionAPI(`/datos/${idEstructura.value}/${id}/`, "DELETE")
+      .then((data) => {
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "El elemento ha sido eliminado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        setTimeout(() => {
+          traerDatos({ id: idEstructura.value });
+        }, 1000);
+      })
+      .catch((error) => console.error(error));
+  }
+};
 const agregarRegistro = () => {
   _agregarRegistro.value = true;
-}
+};
+const cargarArchivos = () => {
+  _cargarRegistro.value = true;
+};
+const verRegistro = (item) => {
+  _gestionRegistro.value = true;
+  _modo.value = true;
+  datosRegistro.value = item.raw;
+};
+const editarRegistro = (item) => {
+  _gestionRegistro.value = true;
+  _modo.value = false;
+  datosRegistro.value = item.raw;
+};
 const cerrarModal = (data) => {
   setTimeout(() => {
     traerDatos(data);
   }, 2000);
-  // _gestionEstructura.value = false;
+  _gestionRegistro.value = false;
   _agregarRegistro.value = false;
 };
 onMounted(async () => {
