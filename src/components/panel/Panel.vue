@@ -1,16 +1,16 @@
 <template>
-  <div class="estructuras">
+  <div class="paneles">
     <div class="cabecera">
-      <h1 class="titulo__cabecera">Estructuras</h1>
+      <h1 class="titulo__cabecera">Paneles</h1>
       <v-spacer />
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearEstructura"
-        >Crear Estructura</v-btn
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearPanel"
+        >Crear Panel</v-btn
       >
     </div>
     <v-card>
       <div class="cabecera__tabla">
         <v-card-title class="d-flex justify-space-between align-center">
-          <span class="text-h5">Estructuras</span>
+          <span class="text-h5">Paneles</span>
         </v-card-title>
         <v-spacer />
 
@@ -40,9 +40,9 @@
             variant="text"
             icon
             size="small"
-            @click="verEstructura(item)"
+            @click="verPanel(item)"
             color="primary"
-            title="Ver estructura"
+            title="Ver panel"
           >
             <v-icon>mdi-eye</v-icon>
           </v-btn>
@@ -50,9 +50,9 @@
             variant="text"
             icon
             size="small"
-            @click="editarEstructura(item)"
+            @click="editarPanel(item)"
             color="primary"
-            title="Editar estructura"
+            title="Editar panel"
           >
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
@@ -61,9 +61,9 @@
             variant="text"
             icon
             size="small"
-            @click="eliminarEstructura(item)"
+            @click="eliminarPanel(item)"
             color="primary"
-            title="Eliminar estructura"
+            title="Eliminar panel"
           >
             <v-icon>mdi-trash-can</v-icon>
           </v-btn>
@@ -72,9 +72,9 @@
             variant="text"
             icon
             size="small"
-            @click="reactivarEstructura(item)"
+            @click="reactivarPanel(item)"
             color="primary"
-            title="Reactivar estructura"
+            title="Reactivar panel"
           >
             <v-icon> mdi-sync</v-icon>
           </v-btn>
@@ -82,9 +82,9 @@
             variant="text"
             icon
             size="small"
-            @click="diriguirseEstructura(item)"
+            @click="diriguirsePanel(item)"
             color="primary"
-            title="Ir a la estructura"
+            title="Ir al panel"
           >
             <v-icon>mdi-arrow-top-right-thick</v-icon>
           </v-btn>
@@ -92,22 +92,24 @@
       </v-data-table>
     </v-card>
     <v-dialog
-      v-model="_crearEstructura"
+      v-model="_crearPanel"
       scrollable
       max-width="500px"
       max-height="90vh"
       transition="dialog-transition"
     >
-      <CrearEstructura @cerrar="cerrarModal" />
+      <!-- <CrearPanel @cerrar="cerrarModal" /> -->
+      <CrearPanel @cerrar="cerrarModal"/>
     </v-dialog>
     <v-dialog
-      v-model="_gestionEstructura"
+      v-model="_gestionPanel"
       scrollable
       max-width="500px"
       max-height="90vh"
       transition="dialog-transition"
     >
-      <EstructuraGestion :estructuraData="datosEstructura" :value="_modo" @cerrar="cerrarModal"  />
+      <!-- <PanelGestion :panelData="datosPanel" :value="_modo" @cerrar="cerrarModal"  /> -->
+      <PanelGestion :panelData="datosPanel" :value="_modo" @cerrar="cerrarModal" />
     </v-dialog>
   </div>
 </template>
@@ -117,11 +119,11 @@ import { ref, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
-import CrearEstructura from "./CrearEstructura.vue";
-import EstructuraGestion from "./EstructuraGestion.vue";
+import CrearPanel from "./CrearPanel.vue";
+import PanelGestion from "./PanelGestion.vue";
 const router = useRouter();
 const search = ref("");
-const estructuras = ref([]);
+const paneles = ref([]);
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -130,56 +132,56 @@ const headers = ref([
 ]);
 
 const filteredObservatories = computed(() => {
-  if (!search.value) return estructuras.value;
-  return estructuras.value.filter((obs) =>
+  if (!search.value) return paneles.value;
+  return paneles.value.filter((obs) =>
     obs.nombre.toLowerCase().includes(search.value.toLowerCase())
   );
 });
 
-const _crearEstructura = ref(false);
-const _gestionEstructura = ref(false);
+const _crearPanel = ref(false);
+const _gestionPanel = ref(false);
 const _modo = ref(false);
 
-const datosEstructura = ref({});
+const datosPanel = ref({});
 
-const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET")
+const traerPaneles = () => {
+  peticionAPI("dashboards/", "GET")
     .then((data) => {      
-      estructuras.value = data;
+      paneles.value = data;
     })
     .catch((error) => console.error(error));
 };
 
 const cerrarModal = () => {
   setTimeout(() => {
-    traerEstructuras();
+    traerPaneles();
   }, 2000);
-  _gestionEstructura.value = false;
-  _crearEstructura.value = false;
+  _gestionPanel.value = false;
+  _crearPanel.value = false;
 };
 
-const crearEstructura = () => {
-  _crearEstructura.value = true;
+const crearPanel = () => {
+  _crearPanel.value = true;
 };
 
-const verEstructura = (item) => {
-  _gestionEstructura.value = true;
+const verPanel = (item) => {
+  _gestionPanel.value = true;
   _modo.value = false;
-  datosEstructura.value = item.raw;
+  datosPanel.value = item.raw;
 };
 
-const editarEstructura = (item) => {
-  _gestionEstructura.value = true;
+const editarPanel = (item) => {
+  _gestionPanel.value = true;
   _modo.value = true;
-  datosEstructura.value = item.raw;
+  datosPanel.value = item.raw;
 };
 
-const reactivarEstructura = async (item) => {
+const reactivarPanel = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
   const resultado = await Swal.fire({
-    title: "Reactivar Estructura",
-    html: `¿Desea reactivar la estructura <b> ${nombre} </b> ?`,
+    title: "Reactivar Panel",
+    html: `¿Desea reactivar el panel <b> ${nombre} </b> ?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
@@ -197,11 +199,11 @@ const reactivarEstructura = async (item) => {
   if (resultado.isConfirmed) {
     const data = { confirmacion: true };
 
-    peticionAPI(`/campos/estructuras/${id}/`, "PUT", { activo: true })
+    peticionAPI(`dashboards/${id}/`, "PUT", { activo: true })
       .then((data) => {
         Swal.fire({
           title: "¡Activado!",
-          text: "La estructura se ha sido reactivado correctamente.",
+          text: "El panel se ha sido reactivado correctamente.",
           icon: "success",
           width: "300px",
           customClass: {
@@ -212,19 +214,19 @@ const reactivarEstructura = async (item) => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerEstructuras();
+          traerPaneles();
         }, 1000);
       })
       .catch((error) => console.error(error));
   }
 };
-const eliminarEstructura = async (item) => {
+const eliminarPanel = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
 
   const resultado = await Swal.fire({
-    title: "Deshabilitar Estructura",
-    html: `¿Desea inhabilitar la estructura <b> ${nombre} </b> ? `,
+    title: "Deshabilitar Panel",
+    html: `¿Desea inhabilitar la panel <b> ${nombre} </b> ? `,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
@@ -242,7 +244,7 @@ const eliminarEstructura = async (item) => {
   if (resultado.isConfirmed) {
     const data = { confirmacion: true };
 
-    peticionAPI(`/campos/estructuras/${id}/`, "DELETE", data)
+    peticionAPI(`dashboards/${id}/`, "DELETE", data)
       .then((data) => {
         Swal.fire({
           title: "¡Deshabilitado!",
@@ -257,25 +259,22 @@ const eliminarEstructura = async (item) => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerEstructuras();
+          traerPaneles();
         }, 1000);
       })
       .catch((error) => console.error(error));
   }
 }; 
-const diriguirseEstructura = (item) => {
-  router.push("/tablero");
-  // localStorage.setItem('observatorio', item.raw.id)
-  // localStorage.setItem('observatorio_imagen', item.raw.imagen)
-  // localStorage.setItem('observatorio_nombre', item.raw.nombre)
+const diriguirsePanel = (item) => {
+  // router.push("/paneles");
 };
 onMounted(() => {
-  traerEstructuras();
+  traerPaneles();
 });
 </script>
 
 <style scoped>
-.estructuras {
+.paneles {
   width: 90%;
   margin: 40px auto;
 }

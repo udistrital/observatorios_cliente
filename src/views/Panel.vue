@@ -1,11 +1,12 @@
 <template>
-  <div class="">
-    <h1>Hola soy panel</h1>
+  <div class="vista__primaria">
+    <Panel/>
   </div>
 </template>
 
-<script>
-export default {};
+<script setup>
+import Panel from '../components/panel/Panel.vue';
+
 </script>
 
 <style>
