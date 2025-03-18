@@ -29,6 +29,12 @@ const routes = [
     name: "panel",
     component: () => import("../views/Panel.vue"),
   },
+
+
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/espacios",
+  },
 ];
 
 const router = createRouter({
