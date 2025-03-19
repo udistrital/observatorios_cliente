@@ -171,6 +171,8 @@ import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
+import { useEstructuraStore } from "@/stores/estructuraStore";
+
 import AgregarRegistro from "./AgregarRegistro.vue";
 import RegistroGestion from "./RegistroGestion.vue";
 import CargarArchivo from "./CargarArchivo.vue";
@@ -180,6 +182,9 @@ const headerst = ref([
   { title: "Estado", key: "activo", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },
 ]);
+
+const router = useRouter();
+const estructuraStore = useEstructuraStore();
 
 const estructuras = ref([]);
 const estructuraSeleccionada = ref(null);
@@ -201,22 +206,69 @@ const paginacion = reactive({
   totalItems: 0,
 });
 
-const traerDatos = async (nuevoValor) => {
-  let estructura = null;
+// const traerDatos = async (nuevoValor) => {
+//   let estructura = null;
 
-  if (nuevoValor?.id) {
-    estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
-  } else if (estructuraSeleccionada.value) {
-    estructura = estructuraSeleccionada.value;
+//   if (nuevoValor?.id) {
+//     estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
+//   } else if (estructuraSeleccionada.value) {
+//     estructura = estructuraSeleccionada.value;
+//   }
+
+//   if (!estructura) return;
+
+//   estructuraSeleccionada.value = estructura;
+//   camposFormulario.value = estructura.mapeo;
+//   idEstructura.value = estructura.id;
+
+//   headers.value = estructura.mapeo.map((item) => ({
+//     title: item.nombre,
+//     key: item.nombre,
+//     value: item.nombre,
+//     align: "center",
+//     sortable: true,
+//   }));
+
+//   headers.value.push({
+//     title: "Acciones",
+//     key: "acciones",
+//     value: "acciones",
+//     align: "center",
+//     sortable: false,
+//   });
+
+//   cargando.value = true;
+//   try {
+//     const response = await peticionAPI(`datos/${estructura.id}`, "GET", null, {
+//       page: paginacion.page,
+//       page_size: paginacion.itemsPerPage,
+//     });
+
+//     datos.value = response.results;
+//     paginacion.totalItems = Number(response.count) || 0;
+
+//     await nextTick();
+//   } catch (error) {
+//     console.error("Error al cargar datos:", error);
+//   } finally {
+//     cargando.value = false;
+//   }
+// };
+
+const traerDatos = async (estructura) => {
+  console.log(estructura);
+  
+  let estructuraActiva = estructura;
+  if (!estructuraActiva && estructuraSeleccionada.value) {
+    estructuraActiva = estructuraSeleccionada.value;
   }
+  if (!estructuraActiva) return;
 
-  if (!estructura) return;
+  estructuraSeleccionada.value = estructuraActiva;
+  camposFormulario.value = estructuraActiva.mapeo;
+  idEstructura.value = estructuraActiva.id;
 
-  estructuraSeleccionada.value = estructura;
-  camposFormulario.value = estructura.mapeo;
-  idEstructura.value = estructura.id;
-
-  headers.value = estructura.mapeo.map((item) => ({
+  headers.value = estructuraActiva.mapeo.map((item) => ({
     title: item.nombre,
     key: item.nombre,
     value: item.nombre,
@@ -234,14 +286,14 @@ const traerDatos = async (nuevoValor) => {
 
   cargando.value = true;
   try {
-    const response = await peticionAPI(`datos/${estructura.id}`, "GET", null, {
-      page: paginacion.page,
-      page_size: paginacion.itemsPerPage,
-    });
-
+    const response = await peticionAPI(
+      `datos/${estructuraActiva.id}`,
+      "GET",
+      null,
+      { page: paginacion.page, page_size: paginacion.itemsPerPage }
+    );
     datos.value = response.results;
     paginacion.totalItems = Number(response.count) || 0;
-
     await nextTick();
   } catch (error) {
     console.error("Error al cargar datos:", error);
@@ -387,8 +439,17 @@ const cerrarModal = (data) => {
   _gestionRegistro.value = false;
   _agregarRegistro.value = false;
 };
+// onMounted(async () => {
+//   traerEstructuras();
+// });
 onMounted(async () => {
+  // Opcional: cargar las estructuras disponibles si es necesario
   traerEstructuras();
+  // Si el store tiene una estructura cargada, la usamos por defecto
+  if (estructuraStore.estructura) {
+    estructuraSeleccionada.value = estructuraStore.estructura;
+    traerDatos(estructuraStore.estructura);
+  }
 });
 </script>
 

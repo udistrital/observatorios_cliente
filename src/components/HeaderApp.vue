@@ -81,7 +81,7 @@ import { computed, onMounted, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import logoAdmin from "@/assets/img/logo-admin.png";
 import logoDefault from "@/assets/img/logo.png";
-
+import { useObservatorioStore } from "@/stores/observatorioStore";
 const isHovering = ref(false);
 // const menuItems = [
 //   { texto: "Inicio", icono: "mdi-home", direccion: "/espacios" },
@@ -104,17 +104,18 @@ const route = useRoute();
 const rutasNavbar = ["/", "/espacios"];
 const verNavbar = computed(() => !rutasNavbar.includes(route.path));
 const imagenBase64 = ref("");
+const observatorioStore = useObservatorioStore();
 
-// Computed que selecciona la imagen según la ruta
 const imagenSrc = computed(() => {
   return route.path.includes("administracion/")
-    ? logoAdmin // Si está en administración, usa el logo admin
-    : localStorage.getItem("observatorio_imagen") || ""; // Si no, usa la imagen del localStorage
+    ? logoAdmin 
+    : observatorioStore.observatorio?.imagen || "";
 });
+
 const tituloEspacio = computed(() => {
   return route.path.includes("administracion/")
-    ? "Administración" // Si está en administración, usa el logo admin
-    : localStorage.getItem("observatorio_nombre") || ""; // Si no, usa la imagen del localStorage
+    ? "Administración"
+    : observatorioStore.observatorio?.nombre || "";
 });
 
 const menuItems = [

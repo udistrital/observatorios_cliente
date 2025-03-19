@@ -24,6 +24,17 @@ const routes = [
     name: "tablero",
     component: () => import("../views/Tablero.vue"),
   },
+  {
+    path: "/panel",
+    name: "panel",
+    component: () => import("../views/Panel.vue"),
+  },
+
+
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/espacios",
+  },
 ];
 
 const router = createRouter({
