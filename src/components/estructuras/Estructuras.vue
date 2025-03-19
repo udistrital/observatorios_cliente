@@ -119,6 +119,11 @@ import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import CrearEstructura from "./CrearEstructura.vue";
 import EstructuraGestion from "./EstructuraGestion.vue";
+import { useEstructuraStore } from "@/stores/estructuraStore";
+// import { useRouter } from "vue-router";
+
+// const router = useRouter();
+const estructuraStore = useEstructuraStore();
 const router = useRouter();
 const search = ref("");
 const estructuras = ref([]);
@@ -264,10 +269,13 @@ const eliminarEstructura = async (item) => {
   }
 }; 
 const diriguirseEstructura = (item) => {
+  estructuraStore.setEstructura({
+    id: item.raw.id,
+    nombre: item.raw.nombre,
+    mapeo: item.raw.mapeo
+  });
+
   router.push("/tablero");
-  // localStorage.setItem('observatorio', item.raw.id)
-  // localStorage.setItem('observatorio_imagen', item.raw.imagen)
-  // localStorage.setItem('observatorio_nombre', item.raw.nombre)
 };
 onMounted(() => {
   traerEstructuras();
