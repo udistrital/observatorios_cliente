@@ -44,7 +44,7 @@
         </v-list-item>
       </v-list>
     </v-navigation-drawer>
-    <v-app-bar color="white" dense fixed class="fixed-app-bar">
+    <!-- <v-app-bar color="white" dense fixed class="fixed-app-bar">
       <v-spacer />
       <div class="header__logo">
         <figure class="header__logo-image">
@@ -72,7 +72,7 @@
           <span class="header__info-text">correo@correo.com</span>
         </div>
       </div>
-    </v-app-bar>
+    </v-app-bar> -->
   </div>
 </template>
 
