@@ -1,0 +1,281 @@
+<template>
+  <div class="paneles">
+    <div class="cabecera">
+      <h1 class="titulo__cabecera">Paneles</h1>
+      <v-spacer />
+      <v-btn color="primary" prepend-icon="mdi-plus" @click="crearPanel"
+        >Crear Panel</v-btn
+      >
+    </div>
+    <v-card>
+      <div class="cabecera__tabla">
+        <v-card-title class="d-flex justify-space-between align-center">
+          <span class="text-h5">Paneles</span>
+        </v-card-title>
+        <v-spacer />
+
+        <v-text-field
+          class="buscador__tabla"
+          v-model="search"
+          append-inner-icon="mdi-magnify"
+          label="Buscar"
+          variant="underlined"
+        />
+      </div>
+
+      <v-data-table
+        :headers="headers"
+        :items="filteredObservatories"
+        item-value="id"
+        class="elevation-1"
+      >
+        <template v-slot:[`item.activo`]="{ item }">
+          <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
+            {{ item.columns.activo ? "Activo" : "Inactivo" }}
+          </v-chip>
+        </template>
+
+        <template v-slot:[`item.acciones`]="{ item }">
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="verPanel(item)"
+            color="primary"
+            title="Ver panel"
+          >
+            <v-icon>mdi-eye</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="editarPanel(item)"
+            color="primary"
+            title="Editar panel"
+          >
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn
+            v-if="item.columns.activo"
+            variant="text"
+            icon
+            size="small"
+            @click="eliminarPanel(item)"
+            color="primary"
+            title="Eliminar panel"
+          >
+            <v-icon>mdi-trash-can</v-icon>
+          </v-btn>
+          <v-btn
+            v-else
+            variant="text"
+            icon
+            size="small"
+            @click="reactivarPanel(item)"
+            color="primary"
+            title="Reactivar panel"
+          >
+            <v-icon> mdi-sync</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="diriguirsePanel(item)"
+            color="primary"
+            title="Ir al panel"
+          >
+            <v-icon>mdi-arrow-top-right-thick</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
+    <v-dialog
+      v-model="_crearPanel"
+      scrollable
+      max-width="500px"
+      max-height="90vh"
+      transition="dialog-transition"
+    >
+      <!-- <CrearPanel @cerrar="cerrarModal" /> -->
+      <CrearPanel @cerrar="cerrarModal"/>
+    </v-dialog>
+    <v-dialog
+      v-model="_gestionPanel"
+      scrollable
+      max-width="500px"
+      max-height="90vh"
+      transition="dialog-transition"
+    >
+      <!-- <PanelGestion :panelData="datosPanel" :value="_modo" @cerrar="cerrarModal"  /> -->
+      <PanelGestion :panelData="datosPanel" :value="_modo" @cerrar="cerrarModal" />
+    </v-dialog>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import peticionAPI from "../../service/conexion_api";
+import Swal from "sweetalert2";
+import CrearPanel from "./CrearPanel.vue";
+import PanelGestion from "./PanelGestion.vue";
+const router = useRouter();
+const search = ref("");
+const paneles = ref([]);
+
+const headers = ref([
+  { title: "Nombre", key: "nombre", align: "center" },
+  { title: "Estado", key: "activo", align: "center" },
+  { title: "Acciones", key: "acciones", sortable: false, align: "center" },
+]);
+
+const filteredObservatories = computed(() => {
+  if (!search.value) return paneles.value;
+  return paneles.value.filter((obs) =>
+    obs.nombre.toLowerCase().includes(search.value.toLowerCase())
+  );
+});
+
+const _crearPanel = ref(false);
+const _gestionPanel = ref(false);
+const _modo = ref(false);
+
+const datosPanel = ref({});
+
+const traerPaneles = () => {
+  peticionAPI("dashboards/", "GET")
+    .then((data) => {      
+      paneles.value = data;
+    })
+    .catch((error) => console.error(error));
+};
+
+const cerrarModal = () => {
+  setTimeout(() => {
+    traerPaneles();
+  }, 2000);
+  _gestionPanel.value = false;
+  _crearPanel.value = false;
+};
+
+const crearPanel = () => {
+  _crearPanel.value = true;
+};
+
+const verPanel = (item) => {
+  _gestionPanel.value = true;
+  _modo.value = false;
+  datosPanel.value = item.raw;
+};
+
+const editarPanel = (item) => {
+  _gestionPanel.value = true;
+  _modo.value = true;
+  datosPanel.value = item.raw;
+};
+
+const reactivarPanel = async (item) => {
+  let id = item.raw.id;
+  let nombre = item.raw.nombre;
+  const resultado = await Swal.fire({
+    title: "Reactivar Panel",
+    html: `¿Desea reactivar el panel <b> ${nombre} </b> ?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (resultado.isConfirmed) {
+    const data = { confirmacion: true };
+
+    peticionAPI(`dashboards/${id}/`, "PUT", { activo: true })
+      .then((data) => {
+        Swal.fire({
+          title: "¡Activado!",
+          text: "El panel se ha sido reactivado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        setTimeout(() => {
+          traerPaneles();
+        }, 1000);
+      })
+      .catch((error) => console.error(error));
+  }
+};
+const eliminarPanel = async (item) => {
+  let id = item.raw.id;
+  let nombre = item.raw.nombre;
+
+  const resultado = await Swal.fire({
+    title: "Deshabilitar Panel",
+    html: `¿Desea inhabilitar la panel <b> ${nombre} </b> ? `,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (resultado.isConfirmed) {
+    const data = { confirmacion: true };
+
+    peticionAPI(`dashboards/${id}/`, "DELETE", data)
+      .then((data) => {
+        Swal.fire({
+          title: "¡Deshabilitado!",
+          text: "El elemento ha sido deshabilitado correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+        setTimeout(() => {
+          traerPaneles();
+        }, 1000);
+      })
+      .catch((error) => console.error(error));
+  }
+}; 
+const diriguirsePanel = (item) => {
+  // router.push("/paneles");
+};
+onMounted(() => {
+  traerPaneles();
+});
+</script>
+
+<style scoped>
+.paneles {
+  width: 90%;
+  margin: 40px auto;
+}
+</style>
