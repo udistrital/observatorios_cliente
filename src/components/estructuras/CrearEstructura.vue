@@ -32,27 +32,30 @@
               density="comfortable"
               required
             ></v-text-field>
-
             <v-select
-              hide-details="true"
               v-model="campo.tipo"
               :items="tiposDeDato"
               item-value="nombre"
               label="Tipo de dato"
+              placeholder="Selecciona un tipo"
               variant="outlined"
               density="comfortable"
               required
-              max-height="20%"
+              hide-details="true"
               class="campos__field"
-               style="width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+              style="width: 50%"
             >
               <template v-slot:item="{ props, item }">
-                <div class="select__tipos" v-bind="props" :title="item.raw.descripcion">
+                <div
+                  class="select__tipos"
+                  v-bind="props"
+                  :title="item.raw.descripcion"
+                >
                   {{ item.raw.nombre_espanol }} ({{ item.raw.nombre }})
                 </div>
               </template>
               <template v-slot:selection="{ item }">
-                {{ item.raw.nombre_espanol }} ({{ item.raw.nombre }})
+                {{ item.raw.nombre_espanol }} {{ item.raw.nombre }}
               </template>
             </v-select>
 
@@ -107,7 +110,7 @@ const eliminarCampo = (index) => {
 const crearEstructura = () => {
   const estructura = {
     nombre: nombreEstructura.value,
-    observatorio: localStorage.getItem('observatorio'),
+    observatorio: localStorage.getItem("observatorio"),
     mapeo: campos.value,
   };
 
@@ -152,14 +155,14 @@ const cancelar = () => {
   max-height: 30vh;
   overflow-y: auto;
 }
-.select__tipos{
+.select__tipos {
   padding: 5px;
   cursor: pointer;
 }
-.select__tipos:hover{
+.select__tipos:hover {
   background-color: var(--color-claro);
 }
-.campos__field{
+.campos__field {
   max-width: 50%;
 }
 </style>

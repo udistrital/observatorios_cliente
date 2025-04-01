@@ -107,7 +107,11 @@
       max-height="90vh"
       transition="dialog-transition"
     >
-      <EstructuraGestion :estructuraData="datosEstructura" :value="_modo" @cerrar="cerrarModal"  />
+      <EstructuraGestion
+        :estructuraData="datosEstructura"
+        :value="_modo"
+        @cerrar="cerrarModal"
+      />
     </v-dialog>
   </div>
 </template>
@@ -120,9 +124,9 @@ import Swal from "sweetalert2";
 import CrearEstructura from "./CrearEstructura.vue";
 import EstructuraGestion from "./EstructuraGestion.vue";
 import { useEstructuraStore } from "@/stores/estructuraStore";
-// import { useRouter } from "vue-router";
+import { useObservatorioStore } from "@/stores/observatorioStore";
 
-// const router = useRouter();
+const observatorioStore = useObservatorioStore();
 const estructuraStore = useEstructuraStore();
 const router = useRouter();
 const search = ref("");
@@ -148,8 +152,8 @@ const _modo = ref(false);
 const datosEstructura = ref({});
 
 const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET")
-    .then((data) => {      
+  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.id})
+    .then((data) => {
       estructuras.value = data;
     })
     .catch((error) => console.error(error));
@@ -267,12 +271,12 @@ const eliminarEstructura = async (item) => {
       })
       .catch((error) => console.error(error));
   }
-}; 
+};
 const diriguirseEstructura = (item) => {
   estructuraStore.setEstructura({
     id: item.raw.id,
     nombre: item.raw.nombre,
-    mapeo: item.raw.mapeo
+    mapeo: item.raw.mapeo,
   });
 
   router.push("/tablero");
