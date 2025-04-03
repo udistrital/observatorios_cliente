@@ -419,8 +419,6 @@ onMounted(async () => {
   display: flex;
   justify-content: space-between;
 }
-.textfield__control {
-}
 .boton__control {
   margin-left: 15px;
 }
