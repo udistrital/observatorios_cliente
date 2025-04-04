@@ -176,7 +176,9 @@ import { useEstructuraStore } from "@/stores/estructuraStore";
 import AgregarRegistro from "./AgregarRegistro.vue";
 import RegistroGestion from "./RegistroGestion.vue";
 import CargarArchivo from "./CargarArchivo.vue";
+import { useObservatorioStore } from "@/stores/observatorioStore";
 
+const observatorioStore = useObservatorioStore();
 const headerst = ref([
   { title: "Nombre", key: "nombre", align: "center" },
   { title: "Estado", key: "activo", align: "center" },
@@ -205,55 +207,6 @@ const paginacion = reactive({
   itemsPerPage: 10,
   totalItems: 0,
 });
-
-// const traerDatos = async (nuevoValor) => {
-//   let estructura = null;
-
-//   if (nuevoValor?.id) {
-//     estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
-//   } else if (estructuraSeleccionada.value) {
-//     estructura = estructuraSeleccionada.value;
-//   }
-
-//   if (!estructura) return;
-
-//   estructuraSeleccionada.value = estructura;
-//   camposFormulario.value = estructura.mapeo;
-//   idEstructura.value = estructura.id;
-
-//   headers.value = estructura.mapeo.map((item) => ({
-//     title: item.nombre,
-//     key: item.nombre,
-//     value: item.nombre,
-//     align: "center",
-//     sortable: true,
-//   }));
-
-//   headers.value.push({
-//     title: "Acciones",
-//     key: "acciones",
-//     value: "acciones",
-//     align: "center",
-//     sortable: false,
-//   });
-
-//   cargando.value = true;
-//   try {
-//     const response = await peticionAPI(`datos/${estructura.id}`, "GET", null, {
-//       page: paginacion.page,
-//       page_size: paginacion.itemsPerPage,
-//     });
-
-//     datos.value = response.results;
-//     paginacion.totalItems = Number(response.count) || 0;
-
-//     await nextTick();
-//   } catch (error) {
-//     console.error("Error al cargar datos:", error);
-//   } finally {
-//     cargando.value = false;
-//   }
-// };
 
 const traerDatos = async (estructura) => {
   console.log(estructura);
@@ -285,6 +238,7 @@ const traerDatos = async (estructura) => {
   });
 
   cargando.value = true;
+  datos.value  = []
   try {
     const response = await peticionAPI(
       `datos/${estructuraActiva.id}`,
@@ -304,13 +258,13 @@ const traerDatos = async (estructura) => {
 
 const actualizarPagina = (nuevaPagina) => {
   paginacion.page = nuevaPagina;
-  traerDatos(); // 👈
+  traerDatos(); 
 };
 
 const actualizarItemsPorPagina = (nuevoTamaño) => {
   paginacion.itemsPerPage = nuevoTamaño;
   paginacion.page = 1;
-  traerDatos(); // 👈
+  traerDatos(); 
 };
 const datosFiltrados = computed(() => {
   return datos.value.filter((row) =>
@@ -325,7 +279,7 @@ const filtrarDatos = () => {
 };
 
 const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET")
+  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.id})
     .then((data) => {
       estructuras.value = data;
     })
@@ -439,13 +393,8 @@ const cerrarModal = (data) => {
   _gestionRegistro.value = false;
   _agregarRegistro.value = false;
 };
-// onMounted(async () => {
-//   traerEstructuras();
-// });
 onMounted(async () => {
-  // Opcional: cargar las estructuras disponibles si es necesario
   traerEstructuras();
-  // Si el store tiene una estructura cargada, la usamos por defecto
   if (estructuraStore.estructura) {
     estructuraSeleccionada.value = estructuraStore.estructura;
     traerDatos(estructuraStore.estructura);
@@ -469,8 +418,6 @@ onMounted(async () => {
 .contenedor_botones {
   display: flex;
   justify-content: space-between;
-}
-.textfield__control {
 }
 .boton__control {
   margin-left: 15px;

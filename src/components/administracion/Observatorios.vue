@@ -105,7 +105,6 @@
       max-width="500px"
       transition="dialog-transition"
     >
-      <!-- <crear-observatorio @cerrar="cerrarModal" /> -->
       <ObservatoriosGestion
         :observatorio="datosObservatorio"
         :modo="_modo"
@@ -122,6 +121,10 @@ import ObservatoriosGestion from "./observatorios/ObservatoriosGestion.vue";
 import peticionAPI from "../../service/conexion_api";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
+import { useObservatorioStore } from "@/stores/observatorioStore";
+
+const observatorioStore = useObservatorioStore();
+
 const router = useRouter();
 const search = ref("");
 const observatorios = ref([]);
@@ -142,7 +145,6 @@ const filteredObservatories = computed(() => {
 const _crearObservatorio = ref(false);
 const _gestionObservatorio = ref(false);
 const _modo = ref(false);
-
 const datosObservatorio = ref({});
 
 const traerObservatorios = () => {
@@ -155,8 +157,8 @@ const traerObservatorios = () => {
 };
 
 const cerrarModal = () => {
-  traerObservatorios();
   setTimeout(() => {
+    traerObservatorios();
     _gestionObservatorio.value = false;
     _crearObservatorio.value = false;
   }, 2000);
@@ -270,11 +272,15 @@ const eliminarObservatorio = async (item) => {
       .catch((error) => console.error(error));
   }
 };
+
 const diriguirseObservatorio = (item) => {
+  console.log(item.raw);
+  observatorioStore.setObservatorio({
+    id: item.raw.id,
+    nombre: item.raw.nombre,
+    imagen: item.raw.imagen,
+  });
   router.push("/estructuras");
-  localStorage.setItem("observatorio", item.raw.id);
-  localStorage.setItem("observatorio_imagen", item.raw.imagen);
-  localStorage.setItem("observatorio_nombre", item.raw.nombre);
 };
 onMounted(() => {
   traerObservatorios();
