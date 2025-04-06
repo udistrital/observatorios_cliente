@@ -25,18 +25,16 @@
             {{ item.raw.nombre }}
           </template>
         </v-select>
-        <v-text-field
-          v-model="busqueda"
-          label="Buscar"
-          variant="outlined"
-          @click:append-inner="filtrarDatos"
-          density="compact"
-          hide-details
-          class="textfield__control"
-        ></v-text-field>
       </div>
       <v-spacer />
       <div class="contenedor_botones">
+        <v-btn
+          color="primary"
+          v-if="estructuraSeleccionada"
+          @click="limpiarEstructura"
+        >
+          <v-icon left>mdi-filter-variant</v-icon>
+        </v-btn>
       </div>
     </div>
 
@@ -70,10 +68,10 @@
         :items="datos"
         :items-length="paginacion.totalItems"
         :loading="cargando"
-        :search="search"
         item-value="name"
         @update:page="actualizarPagina"
         @update:items-per-page="actualizarItemsPorPagina"
+        @update:sort-by="actualizarOrden"
       >
         <template v-slot:[`item.acciones`]="{ item }">
           <v-btn
@@ -188,6 +186,15 @@ const headerst = ref([
 const router = useRouter();
 const estructuraStore = useEstructuraStore();
 
+const sortBy = ref(null);
+const sortDesc = ref(false);
+const ordering = computed(() => {
+  if (sortBy.value) {
+    return sortDesc.value == "asc" ? `${sortBy.value}` : `-${sortBy.value}`;
+  }
+  return "";
+});
+
 const estructuras = ref([]);
 const estructuraSeleccionada = ref(null);
 const camposFormulario = ref([]);
@@ -209,8 +216,7 @@ const paginacion = reactive({
 });
 
 const traerDatos = async (estructura) => {
-  console.log(estructura);
-  
+  estructuraStore.setEstructura(estructura);
   let estructuraActiva = estructura;
   if (!estructuraActiva && estructuraSeleccionada.value) {
     estructuraActiva = estructuraSeleccionada.value;
@@ -238,13 +244,17 @@ const traerDatos = async (estructura) => {
   });
 
   cargando.value = true;
-  datos.value  = []
+  datos.value = [];
   try {
     const response = await peticionAPI(
       `datos/${estructuraActiva.id}`,
       "GET",
       null,
-      { page: paginacion.page, page_size: paginacion.itemsPerPage }
+      {
+        page: paginacion.page,
+        page_size: paginacion.itemsPerPage,
+        ordering: ordering.value,
+      }
     );
     datos.value = response.results;
     paginacion.totalItems = Number(response.count) || 0;
@@ -258,13 +268,20 @@ const traerDatos = async (estructura) => {
 
 const actualizarPagina = (nuevaPagina) => {
   paginacion.page = nuevaPagina;
-  traerDatos(); 
+  traerDatos();
 };
 
 const actualizarItemsPorPagina = (nuevoTamaño) => {
   paginacion.itemsPerPage = nuevoTamaño;
   paginacion.page = 1;
-  traerDatos(); 
+  traerDatos();
+};
+const actualizarOrden = (payload) => {
+  if (payload.length > 0) {
+    sortBy.value = payload[0].key;
+    sortDesc.value = payload[0].order;
+  }
+  traerDatos();
 };
 const datosFiltrados = computed(() => {
   return datos.value.filter((row) =>
@@ -279,7 +296,9 @@ const filtrarDatos = () => {
 };
 
 const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.id})
+  peticionAPI("campos/estructuras/", "GET", null, {
+    observatorio: observatorioStore.observatorio?.id,
+  })
     .then((data) => {
       estructuras.value = data;
     })
@@ -321,7 +340,7 @@ const limpiarEstructura = async () => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerDatos({ id: idEstructura.value });
+          traerDatos(estructuraStore.estructura);
         }, 1000);
       })
       .catch((error) => console.error(error));
@@ -364,7 +383,7 @@ const eliminarRegistro = async (item) => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerDatos({ id: idEstructura.value });
+          traerDatos(estructuraStore.estructura);
         }, 1000);
       })
       .catch((error) => console.error(error));
@@ -388,11 +407,12 @@ const editarRegistro = (item) => {
 };
 const cerrarModal = (data) => {
   setTimeout(() => {
-    traerDatos(data);
+    traerDatos(estructuraStore.estructura);
   }, 2000);
   _gestionRegistro.value = false;
   _agregarRegistro.value = false;
 };
+
 onMounted(async () => {
   traerEstructuras();
   if (estructuraStore.estructura) {
@@ -413,7 +433,7 @@ onMounted(async () => {
 }
 .textfield__contenedor {
   display: flex;
-  width: 80%;
+  width: 50%;
 }
 .contenedor_botones {
   display: flex;
