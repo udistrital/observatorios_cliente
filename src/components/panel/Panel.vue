@@ -26,9 +26,15 @@
       <v-data-table
         :headers="headers"
         :items="filteredObservatories"
+        :loading="cargando"
         item-value="id"
         class="elevation-1"
+        no-data-text="No se encontraron datos"
+        items-per-page-text="Elementos por página:"
       >
+        <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
         <template v-slot:[`item.activo`]="{ item }">
           <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
             {{ item.columns.activo ? "Activo" : "Inactivo" }}
@@ -98,8 +104,7 @@
       max-height="90vh"
       transition="dialog-transition"
     >
-      <!-- <CrearPanel @cerrar="cerrarModal" /> -->
-      <CrearPanel @cerrar="cerrarModal"/>
+      <CrearPanel @cerrar="cerrarModal" />
     </v-dialog>
     <v-dialog
       v-model="_gestionPanel"
@@ -108,8 +113,11 @@
       max-height="90vh"
       transition="dialog-transition"
     >
-      <!-- <PanelGestion :panelData="datosPanel" :value="_modo" @cerrar="cerrarModal"  /> -->
-      <PanelGestion :panelData="datosPanel" :value="_modo" @cerrar="cerrarModal" />
+      <PanelGestion
+        :panelData="datosPanel"
+        :value="_modo"
+        @cerrar="cerrarModal"
+      />
     </v-dialog>
   </div>
 </template>
@@ -121,9 +129,13 @@ import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import CrearPanel from "./CrearPanel.vue";
 import PanelGestion from "./PanelGestion.vue";
+import { useObservatorioStore } from "@/stores/observatorioStore";
+
+const observatorioStore = useObservatorioStore();
 const router = useRouter();
 const search = ref("");
 const paneles = ref([]);
+const cargando = ref(false);
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -145,9 +157,13 @@ const _modo = ref(false);
 const datosPanel = ref({});
 
 const traerPaneles = () => {
-  peticionAPI("dashboards/", "GET")
-    .then((data) => {      
-      paneles.value = data;
+  cargando.value = true;
+  peticionAPI("dashboards/", "GET", null, {
+    observatorio: observatorioStore.observatorio?.id,
+  })
+  .then((data) => {
+    paneles.value = data;
+    cargando.value = false;
     })
     .catch((error) => console.error(error));
 };
@@ -264,7 +280,7 @@ const eliminarPanel = async (item) => {
       })
       .catch((error) => console.error(error));
   }
-}; 
+};
 const diriguirsePanel = (item) => {
   // router.push("/paneles");
 };
