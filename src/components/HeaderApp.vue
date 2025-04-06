@@ -184,7 +184,7 @@ const filteredMenuItems = computed(() => {
   top: 0;
   left: 0;
   height: 100vh;
-  z-index: 1300;
+  z-index: 0;
   box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
   transition: width 0.3s ease-in-out;
   background-color: brown;
@@ -193,7 +193,7 @@ const filteredMenuItems = computed(() => {
   position: fixed;
   width: 100%;
   left: 0;
-  z-index: 1200;
+  /* z-index: 1200; */
 }
 .header__logo-image img {
   height: 50px;
@@ -227,8 +227,11 @@ const filteredMenuItems = computed(() => {
 }
 .dawer__espacio {
   height: 100%;
-  height: 56px;
+  height: 85px;
   display: flex;
+  align-items: center;
+  width: 90%;
+  border-bottom: 2px solid rgb(189, 189, 189);
 }
 .dawer__espacio-hovering {
   margin-left: 8px;
@@ -247,7 +250,7 @@ const filteredMenuItems = computed(() => {
   object-fit: cover;
 }
 .dawer__logo-espacio {
-  border-bottom: 2px solid rgb(189, 189, 189);
+  /* border-bottom: 2px solid rgb(189, 189, 189); */
   width: 90%;
   height: 56px;
   display: flex;

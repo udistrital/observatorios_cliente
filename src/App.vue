@@ -2,7 +2,7 @@
   <v-app>
     <ng-uui-oas ref="oas"></ng-uui-oas>
     <ng-uui-notioas ref="notioas"></ng-uui-notioas>
-    <!-- <header-app /> -->
+    <header-app />
     <div class="main">
       <router-view></router-view>
     </div>
