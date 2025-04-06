@@ -26,9 +26,15 @@
       <v-data-table
         :headers="headers"
         :items="filteredObservatories"
+        :loading="cargando"
         item-value="id"
         class="elevation-1"
+        no-data-text="No se encontraron datos"
+        items-per-page-text="Elementos por página:"
       >
+        <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
         <template v-slot:[`item.activo`]="{ item }">
           <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
             {{ item.columns.activo ? "Activo" : "Inactivo" }}
@@ -105,7 +111,6 @@
       max-width="500px"
       transition="dialog-transition"
     >
-      <!-- <crear-observatorio @cerrar="cerrarModal" /> -->
       <ObservatoriosGestion
         :observatorio="datosObservatorio"
         :modo="_modo"
@@ -122,9 +127,14 @@ import ObservatoriosGestion from "./observatorios/ObservatoriosGestion.vue";
 import peticionAPI from "../../service/conexion_api";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
+import { useObservatorioStore } from "@/stores/observatorioStore";
+
+const observatorioStore = useObservatorioStore();
+
 const router = useRouter();
 const search = ref("");
 const observatorios = ref([]);
+const cargando = ref(false);
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -142,21 +152,22 @@ const filteredObservatories = computed(() => {
 const _crearObservatorio = ref(false);
 const _gestionObservatorio = ref(false);
 const _modo = ref(false);
-
 const datosObservatorio = ref({});
 
 const traerObservatorios = () => {
+  cargando.value = true;
   observatorios.value = [];
   peticionAPI("observatorios/", "GET")
-    .then((data) => {
-      observatorios.value = data;
+  .then((data) => {
+    observatorios.value = data;
+    cargando.value = false;
     })
     .catch((error) => console.error(error));
 };
 
 const cerrarModal = () => {
-  traerObservatorios();
   setTimeout(() => {
+    traerObservatorios();
     _gestionObservatorio.value = false;
     _crearObservatorio.value = false;
   }, 2000);
@@ -270,11 +281,15 @@ const eliminarObservatorio = async (item) => {
       .catch((error) => console.error(error));
   }
 };
+
 const diriguirseObservatorio = (item) => {
+  console.log(item.raw);
+  observatorioStore.setObservatorio({
+    id: item.raw.id,
+    nombre: item.raw.nombre,
+    imagen: item.raw.imagen,
+  });
   router.push("/estructuras");
-  localStorage.setItem("observatorio", item.raw.id);
-  localStorage.setItem("observatorio_imagen", item.raw.imagen);
-  localStorage.setItem("observatorio_nombre", item.raw.nombre);
 };
 onMounted(() => {
   traerObservatorios();

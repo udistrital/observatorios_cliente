@@ -35,7 +35,9 @@
 import { ref, defineEmits, defineProps, onMounted } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import Swal from "sweetalert2";
+import { useObservatorioStore } from "@/stores/observatorioStore";
 
+const observatorioStore = useObservatorioStore();
 const props = defineProps({
   value: Boolean,
 });
@@ -48,13 +50,14 @@ const descripcion = ref("");
 const crearPanel = () => {
   const panel = {
     nombre: nombrePanel.value,
-    descripcion: descripcion.value
+    descripcion: descripcion.value,
+    observatorio: observatorioStore.observatorio?.id
   };
   peticionAPI("dashboards/", "POST", panel)
     .then((data) => {
       Swal.fire({
         title: "¡Creado!",
-        text: "La panel se creó correctamente.",
+        text: "El panel se creó correctamente.",
         icon: "success",
         width: "300px",
         customClass: {

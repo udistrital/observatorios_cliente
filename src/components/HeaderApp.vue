@@ -132,12 +132,12 @@ const menuItems = [
     direccion: "/administracion/observatorios",
     admin: true,
   },
-  {
-    texto: "Observatorios Externos",
-    icono: " mdi-glasses",
-    direccion: "/administracion/observatorios-externos",
-    admin: true,
-  },
+  // {
+  //   texto: "Observatorios Externos",
+  //   icono: " mdi-glasses",
+  //   direccion: "/administracion/observatorios-externos",
+  //   admin: true,
+  // },
   // {
   //   texto: "Estructuras",
   //   icono: "mdi-source-branch",

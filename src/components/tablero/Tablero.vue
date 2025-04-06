@@ -25,18 +25,25 @@
             {{ item.raw.nombre }}
           </template>
         </v-select>
-        <v-text-field
-          v-model="busqueda"
-          label="Buscar"
-          variant="outlined"
-          @click:append-inner="filtrarDatos"
-          density="compact"
-          hide-details
-          class="textfield__control"
-        ></v-text-field>
       </div>
       <v-spacer />
       <div class="contenedor_botones">
+        <v-btn
+          v-if="_filtroActivo"
+          @click="limpiarFiltro"
+          color="primary"
+          variant="outlined"
+          class="mr-2"
+        >
+          <v-icon left>mdi-filter-variant-remove</v-icon> Limpiar Filtro
+        </v-btn>
+        <v-btn
+          color="primary"
+          v-if="estructuraSeleccionada"
+          @click="agregarFiltro"
+        >
+          <v-icon left>mdi-filter-variant</v-icon>
+        </v-btn>
       </div>
     </div>
 
@@ -70,11 +77,16 @@
         :items="datos"
         :items-length="paginacion.totalItems"
         :loading="cargando"
-        :search="search"
+        items-per-page-text="Elementos por página:"
         item-value="name"
         @update:page="actualizarPagina"
         @update:items-per-page="actualizarItemsPorPagina"
+        @update:sort-by="actualizarOrden"
+        no-data-text="No se encontraron datos"
       >
+        <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
         <template v-slot:[`item.acciones`]="{ item }">
           <v-btn
             variant="text"
@@ -164,6 +176,21 @@
       :campos="datosRegistro"
     />
   </v-dialog>
+  <v-dialog
+    v-model="_agregarFilro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <FiltrarDatos
+      @cerrar="cerrarModal"
+      @filtrar="aplicarFiltro"
+      :campos="camposFormulario"
+      :idEstructura="idEstructura"
+    />
+    <!-- <filtrar-datos/> -->
+  </v-dialog>
 </template>
 
 <script setup>
@@ -175,8 +202,11 @@ import { useEstructuraStore } from "@/stores/estructuraStore";
 
 import AgregarRegistro from "./AgregarRegistro.vue";
 import RegistroGestion from "./RegistroGestion.vue";
+import FiltrarDatos from "./FiltrarDatos.vue";
 import CargarArchivo from "./CargarArchivo.vue";
+import { useObservatorioStore } from "@/stores/observatorioStore";
 
+const observatorioStore = useObservatorioStore();
 const headerst = ref([
   { title: "Nombre", key: "nombre", align: "center" },
   { title: "Estado", key: "activo", align: "center" },
@@ -185,6 +215,15 @@ const headerst = ref([
 
 const router = useRouter();
 const estructuraStore = useEstructuraStore();
+
+const sortBy = ref(null);
+const sortDesc = ref(false);
+const ordering = computed(() => {
+  if (sortBy.value) {
+    return sortDesc.value == "asc" ? `${sortBy.value}` : `-${sortBy.value}`;
+  }
+  return "";
+});
 
 const estructuras = ref([]);
 const estructuraSeleccionada = ref(null);
@@ -196,8 +235,11 @@ const headers = ref([]);
 const _agregarRegistro = ref(false);
 const _gestionRegistro = ref(false);
 const _cargarRegistro = ref(false);
+const _agregarFilro = ref(false);
+const _filtroActivo = ref(false);
 const _modo = ref(false);
 const datosRegistro = ref([]);
+const filtros = ref({});
 
 const cargando = ref(false);
 const paginacion = reactive({
@@ -206,58 +248,8 @@ const paginacion = reactive({
   totalItems: 0,
 });
 
-// const traerDatos = async (nuevoValor) => {
-//   let estructura = null;
-
-//   if (nuevoValor?.id) {
-//     estructura = estructuras.value.find((e) => e.id === nuevoValor.id);
-//   } else if (estructuraSeleccionada.value) {
-//     estructura = estructuraSeleccionada.value;
-//   }
-
-//   if (!estructura) return;
-
-//   estructuraSeleccionada.value = estructura;
-//   camposFormulario.value = estructura.mapeo;
-//   idEstructura.value = estructura.id;
-
-//   headers.value = estructura.mapeo.map((item) => ({
-//     title: item.nombre,
-//     key: item.nombre,
-//     value: item.nombre,
-//     align: "center",
-//     sortable: true,
-//   }));
-
-//   headers.value.push({
-//     title: "Acciones",
-//     key: "acciones",
-//     value: "acciones",
-//     align: "center",
-//     sortable: false,
-//   });
-
-//   cargando.value = true;
-//   try {
-//     const response = await peticionAPI(`datos/${estructura.id}`, "GET", null, {
-//       page: paginacion.page,
-//       page_size: paginacion.itemsPerPage,
-//     });
-
-//     datos.value = response.results;
-//     paginacion.totalItems = Number(response.count) || 0;
-
-//     await nextTick();
-//   } catch (error) {
-//     console.error("Error al cargar datos:", error);
-//   } finally {
-//     cargando.value = false;
-//   }
-// };
-
 const traerDatos = async (estructura) => {
-  console.log(estructura);
-  
+  estructuraStore.setEstructura(estructura);
   let estructuraActiva = estructura;
   if (!estructuraActiva && estructuraSeleccionada.value) {
     estructuraActiva = estructuraSeleccionada.value;
@@ -285,12 +277,18 @@ const traerDatos = async (estructura) => {
   });
 
   cargando.value = true;
+  datos.value = [];
   try {
     const response = await peticionAPI(
       `datos/${estructuraActiva.id}`,
       "GET",
       null,
-      { page: paginacion.page, page_size: paginacion.itemsPerPage }
+      {
+        page: paginacion.page,
+        page_size: paginacion.itemsPerPage,
+        ordering: ordering.value,
+        ...filtros.value,
+      }
     );
     datos.value = response.results;
     paginacion.totalItems = Number(response.count) || 0;
@@ -304,13 +302,20 @@ const traerDatos = async (estructura) => {
 
 const actualizarPagina = (nuevaPagina) => {
   paginacion.page = nuevaPagina;
-  traerDatos(); // 👈
+  traerDatos();
 };
 
 const actualizarItemsPorPagina = (nuevoTamaño) => {
   paginacion.itemsPerPage = nuevoTamaño;
   paginacion.page = 1;
-  traerDatos(); // 👈
+  traerDatos();
+};
+const actualizarOrden = (payload) => {
+  if (payload.length > 0) {
+    sortBy.value = payload[0].key;
+    sortDesc.value = payload[0].order;
+  }
+  traerDatos();
 };
 const datosFiltrados = computed(() => {
   return datos.value.filter((row) =>
@@ -320,12 +325,25 @@ const datosFiltrados = computed(() => {
   );
 });
 
-const filtrarDatos = () => {
-  console.log("Filtrando datos con búsqued:", busqueda.value);
+const aplicarFiltro = (data) => {
+  filtros.value = Object.fromEntries(
+    Object.entries(data).filter(
+      ([, value]) => value !== null && value !== undefined && value !== ""
+    )
+  );
+  traerDatos();
+  _filtroActivo.value = true;
+  _agregarFilro.value = false;
 };
-
+const limpiarFiltro = () => {
+  filtros.value = {};
+  traerDatos();
+  _filtroActivo.value = false;
+};
 const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET")
+  peticionAPI("campos/estructuras/", "GET", null, {
+    observatorio: observatorioStore.observatorio?.id,
+  })
     .then((data) => {
       estructuras.value = data;
     })
@@ -367,7 +385,7 @@ const limpiarEstructura = async () => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerDatos({ id: idEstructura.value });
+          traerDatos(estructuraStore.estructura);
         }, 1000);
       })
       .catch((error) => console.error(error));
@@ -410,7 +428,7 @@ const eliminarRegistro = async (item) => {
           buttonsStyling: false,
         });
         setTimeout(() => {
-          traerDatos({ id: idEstructura.value });
+          traerDatos(estructuraStore.estructura);
         }, 1000);
       })
       .catch((error) => console.error(error));
@@ -434,18 +452,17 @@ const editarRegistro = (item) => {
 };
 const cerrarModal = (data) => {
   setTimeout(() => {
-    traerDatos(data);
+    traerDatos(estructuraStore.estructura);
   }, 2000);
   _gestionRegistro.value = false;
   _agregarRegistro.value = false;
+  _agregarFilro.value = false;
 };
-// onMounted(async () => {
-//   traerEstructuras();
-// });
+const agregarFiltro = () => {
+  _agregarFilro.value = true;
+};
 onMounted(async () => {
-  // Opcional: cargar las estructuras disponibles si es necesario
   traerEstructuras();
-  // Si el store tiene una estructura cargada, la usamos por defecto
   if (estructuraStore.estructura) {
     estructuraSeleccionada.value = estructuraStore.estructura;
     traerDatos(estructuraStore.estructura);
@@ -464,13 +481,11 @@ onMounted(async () => {
 }
 .textfield__contenedor {
   display: flex;
-  width: 80%;
+  width: 50%;
 }
 .contenedor_botones {
   display: flex;
   justify-content: space-between;
-}
-.textfield__control {
 }
 .boton__control {
   margin-left: 15px;

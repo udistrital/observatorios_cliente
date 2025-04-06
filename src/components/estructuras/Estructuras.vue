@@ -26,9 +26,15 @@
       <v-data-table
         :headers="headers"
         :items="filteredObservatories"
+        :loading="cargando"
         item-value="id"
         class="elevation-1"
+        no-data-text="No se encontraron datos"
+        items-per-page-text="Elementos por página:"
       >
+      <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
         <template v-slot:[`item.activo`]="{ item }">
           <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
             {{ item.columns.activo ? "Activo" : "Inactivo" }}
@@ -107,7 +113,11 @@
       max-height="90vh"
       transition="dialog-transition"
     >
-      <EstructuraGestion :estructuraData="datosEstructura" :value="_modo" @cerrar="cerrarModal"  />
+      <EstructuraGestion
+        :estructuraData="datosEstructura"
+        :value="_modo"
+        @cerrar="cerrarModal"
+      />
     </v-dialog>
   </div>
 </template>
@@ -120,13 +130,14 @@ import Swal from "sweetalert2";
 import CrearEstructura from "./CrearEstructura.vue";
 import EstructuraGestion from "./EstructuraGestion.vue";
 import { useEstructuraStore } from "@/stores/estructuraStore";
-// import { useRouter } from "vue-router";
+import { useObservatorioStore } from "@/stores/observatorioStore";
 
-// const router = useRouter();
+const observatorioStore = useObservatorioStore();
 const estructuraStore = useEstructuraStore();
 const router = useRouter();
 const search = ref("");
 const estructuras = ref([]);
+const cargando = ref(false);
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -148,9 +159,11 @@ const _modo = ref(false);
 const datosEstructura = ref({});
 
 const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET")
-    .then((data) => {      
-      estructuras.value = data;
+  cargando.value = true;
+  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.id})
+  .then((data) => {
+    estructuras.value = data;
+    cargando.value = false;
     })
     .catch((error) => console.error(error));
 };
@@ -267,12 +280,12 @@ const eliminarEstructura = async (item) => {
       })
       .catch((error) => console.error(error));
   }
-}; 
+};
 const diriguirseEstructura = (item) => {
   estructuraStore.setEstructura({
     id: item.raw.id,
     nombre: item.raw.nombre,
-    mapeo: item.raw.mapeo
+    mapeo: item.raw.mapeo,
   });
 
   router.push("/tablero");
