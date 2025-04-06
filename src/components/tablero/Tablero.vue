@@ -77,11 +77,16 @@
         :items="datos"
         :items-length="paginacion.totalItems"
         :loading="cargando"
+        items-per-page-text="Elementos por página:"
         item-value="name"
         @update:page="actualizarPagina"
         @update:items-per-page="actualizarItemsPorPagina"
         @update:sort-by="actualizarOrden"
+        no-data-text="No se encontraron datos"
       >
+        <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
         <template v-slot:[`item.acciones`]="{ item }">
           <v-btn
             variant="text"
@@ -234,7 +239,7 @@ const _agregarFilro = ref(false);
 const _filtroActivo = ref(false);
 const _modo = ref(false);
 const datosRegistro = ref([]);
-const filtros = ref({})
+const filtros = ref({});
 
 const cargando = ref(false);
 const paginacion = reactive({
@@ -282,7 +287,7 @@ const traerDatos = async (estructura) => {
         page: paginacion.page,
         page_size: paginacion.itemsPerPage,
         ordering: ordering.value,
-        ...filtros.value
+        ...filtros.value,
       }
     );
     datos.value = response.results;
@@ -320,21 +325,21 @@ const datosFiltrados = computed(() => {
   );
 });
 
-const aplicarFiltro =  (data) => {
+const aplicarFiltro = (data) => {
   filtros.value = Object.fromEntries(
     Object.entries(data).filter(
       ([, value]) => value !== null && value !== undefined && value !== ""
     )
   );
-  traerDatos()
-  _filtroActivo.value = true
-  _agregarFilro.value = false
-}
+  traerDatos();
+  _filtroActivo.value = true;
+  _agregarFilro.value = false;
+};
 const limpiarFiltro = () => {
-  filtros.value = {}
-  traerDatos()
-  _filtroActivo.value = false
-}
+  filtros.value = {};
+  traerDatos();
+  _filtroActivo.value = false;
+};
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET", null, {
     observatorio: observatorioStore.observatorio?.id,

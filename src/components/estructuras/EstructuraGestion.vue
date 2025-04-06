@@ -19,7 +19,6 @@
           </v-btn>
         </div>
         <div class="contenedor-campos">
-          <!-- {{ estructura }} -->
           <div v-for="(campo, index) in estructura.mapeo" :key="index" class="d-flex align-center mb-2">
             <v-text-field
               v-model="campo.nombre"
@@ -43,7 +42,7 @@
               required
               max-height="20%"
               class="campos__field"
-               style="width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"
+               style="width: 50%;"
             >
               <template v-slot:item="{ props, item }">
                 <div class="select__tipos" v-bind="props" :title="item.raw.descripcion">
@@ -65,7 +64,6 @@
       <v-spacer></v-spacer>
       <v-btn variant="outlined" color="primary" text @click="cancelar">Cancelar</v-btn>
       <v-btn v-if="isEditing" variant="flat" color="primary" @click="guardarEstructura">Modificar</v-btn>
-      <!-- <v-btn v-else variant="flat" color="primary" @click="habilitarEdicion">Editar</v-btn> -->
     </v-card-actions>
   </v-card>
 </template>
@@ -106,15 +104,6 @@ const habilitarEdicion = () => {
 };
 
 const guardarEstructura = () => {
-  // emit("guardar", estructura.value);
-  // isEditing.value = false;
-  
-  // const estructura = {
-  //   nombre: nombreEstructura.value,
-  //   observatorio: localStorage.getItem('observatorio'),
-  //   mapeo: campos.value,
-  // };
-
   peticionAPI(`/campos/estructuras/${estructura.value.id}/`, "PUT", estructura.value)
     .then((data) => {
       Swal.fire({

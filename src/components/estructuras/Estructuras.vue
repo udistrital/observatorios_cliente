@@ -26,9 +26,15 @@
       <v-data-table
         :headers="headers"
         :items="filteredObservatories"
+        :loading="cargando"
         item-value="id"
         class="elevation-1"
+        no-data-text="No se encontraron datos"
+        items-per-page-text="Elementos por página:"
       >
+      <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
         <template v-slot:[`item.activo`]="{ item }">
           <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
             {{ item.columns.activo ? "Activo" : "Inactivo" }}
@@ -131,6 +137,7 @@ const estructuraStore = useEstructuraStore();
 const router = useRouter();
 const search = ref("");
 const estructuras = ref([]);
+const cargando = ref(false);
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -152,9 +159,11 @@ const _modo = ref(false);
 const datosEstructura = ref({});
 
 const traerEstructuras = () => {
+  cargando.value = true;
   peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.id})
-    .then((data) => {
-      estructuras.value = data;
+  .then((data) => {
+    estructuras.value = data;
+    cargando.value = false;
     })
     .catch((error) => console.error(error));
 };

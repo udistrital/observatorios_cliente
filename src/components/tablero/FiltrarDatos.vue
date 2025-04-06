@@ -28,8 +28,6 @@
 
 <script setup>
 import { ref, defineEmits, defineProps, onMounted } from "vue";
-import peticionAPI from "@/service/conexion_api";
-import Swal from "sweetalert2";
 
 const props = defineProps({
   campos: Object,
