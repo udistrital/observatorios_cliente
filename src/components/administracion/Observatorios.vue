@@ -26,9 +26,15 @@
       <v-data-table
         :headers="headers"
         :items="filteredObservatories"
+        :loading="cargando"
         item-value="id"
         class="elevation-1"
+        no-data-text="No se encontraron datos"
+        items-per-page-text="Elementos por página:"
       >
+        <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
         <template v-slot:[`item.activo`]="{ item }">
           <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
             {{ item.columns.activo ? "Activo" : "Inactivo" }}
@@ -128,6 +134,7 @@ const observatorioStore = useObservatorioStore();
 const router = useRouter();
 const search = ref("");
 const observatorios = ref([]);
+const cargando = ref(false);
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -148,10 +155,12 @@ const _modo = ref(false);
 const datosObservatorio = ref({});
 
 const traerObservatorios = () => {
+  cargando.value = true;
   observatorios.value = [];
   peticionAPI("observatorios/", "GET")
-    .then((data) => {
-      observatorios.value = data;
+  .then((data) => {
+    observatorios.value = data;
+    cargando.value = false;
     })
     .catch((error) => console.error(error));
 };
