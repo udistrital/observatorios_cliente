@@ -29,9 +29,18 @@
       <v-spacer />
       <div class="contenedor_botones">
         <v-btn
+          v-if="_filtroActivo"
+          @click="limpiarFiltro"
+          color="primary"
+          variant="outlined"
+          class="mr-2"
+        >
+          <v-icon left>mdi-filter-variant-remove</v-icon> Limpiar Filtro
+        </v-btn>
+        <v-btn
           color="primary"
           v-if="estructuraSeleccionada"
-          @click="limpiarEstructura"
+          @click="agregarFiltro"
         >
           <v-icon left>mdi-filter-variant</v-icon>
         </v-btn>
@@ -162,6 +171,21 @@
       :campos="datosRegistro"
     />
   </v-dialog>
+  <v-dialog
+    v-model="_agregarFilro"
+    scrollable
+    max-width="500px"
+    max-height="90vh"
+    transition="dialog-transition"
+  >
+    <FiltrarDatos
+      @cerrar="cerrarModal"
+      @filtrar="aplicarFiltro"
+      :campos="camposFormulario"
+      :idEstructura="idEstructura"
+    />
+    <!-- <filtrar-datos/> -->
+  </v-dialog>
 </template>
 
 <script setup>
@@ -173,6 +197,7 @@ import { useEstructuraStore } from "@/stores/estructuraStore";
 
 import AgregarRegistro from "./AgregarRegistro.vue";
 import RegistroGestion from "./RegistroGestion.vue";
+import FiltrarDatos from "./FiltrarDatos.vue";
 import CargarArchivo from "./CargarArchivo.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 
@@ -205,8 +230,11 @@ const headers = ref([]);
 const _agregarRegistro = ref(false);
 const _gestionRegistro = ref(false);
 const _cargarRegistro = ref(false);
+const _agregarFilro = ref(false);
+const _filtroActivo = ref(false);
 const _modo = ref(false);
 const datosRegistro = ref([]);
+const filtros = ref({})
 
 const cargando = ref(false);
 const paginacion = reactive({
@@ -254,6 +282,7 @@ const traerDatos = async (estructura) => {
         page: paginacion.page,
         page_size: paginacion.itemsPerPage,
         ordering: ordering.value,
+        ...filtros.value
       }
     );
     datos.value = response.results;
@@ -291,10 +320,21 @@ const datosFiltrados = computed(() => {
   );
 });
 
-const filtrarDatos = () => {
-  console.log("Filtrando datos con búsqued:", busqueda.value);
-};
-
+const aplicarFiltro =  (data) => {
+  filtros.value = Object.fromEntries(
+    Object.entries(data).filter(
+      ([, value]) => value !== null && value !== undefined && value !== ""
+    )
+  );
+  traerDatos()
+  _filtroActivo.value = true
+  _agregarFilro.value = false
+}
+const limpiarFiltro = () => {
+  filtros.value = {}
+  traerDatos()
+  _filtroActivo.value = false
+}
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET", null, {
     observatorio: observatorioStore.observatorio?.id,
@@ -411,8 +451,11 @@ const cerrarModal = (data) => {
   }, 2000);
   _gestionRegistro.value = false;
   _agregarRegistro.value = false;
+  _agregarFilro.value = false;
 };
-
+const agregarFiltro = () => {
+  _agregarFilro.value = true;
+};
 onMounted(async () => {
   traerEstructuras();
   if (estructuraStore.estructura) {
