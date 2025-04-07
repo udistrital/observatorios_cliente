@@ -33,7 +33,7 @@
           :key="index"
           link
           :to="item.direccion"
-          :class="{ 'active-item': route.path === item.direccion }"
+          :class="{ 'active-item': route.path.includes(item.direccion)  }"
         >
           <div class="dawer__item">
             <v-icon class="mr-2 dawer__icon">{{ item.icono }}</v-icon>

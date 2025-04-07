@@ -28,9 +28,18 @@ const routes = [
     path: "/panel",
     name: "panel",
     component: () => import("../views/Panel.vue"),
+    // children: [
+    //   {path: "graficas", component: () => import("../components/panel/Graficas.vue")},
+    // ]
   },
-
-
+  {
+    path: "/panel/graficas",
+    name: "panelGraficas",
+    component: () => import("../components/panel/Graficas.vue"),
+    // children: [
+    //   {path: "graficas", component: () => import("../components/panel/Graficas.vue")},
+    // ]
+  },
   {
     path: "/:pathMatch(.*)*",
     redirect: "/espacios",
