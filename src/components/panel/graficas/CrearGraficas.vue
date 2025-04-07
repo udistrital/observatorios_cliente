@@ -1,6 +1,11 @@
 <template>
   <div class="main__creargrafica">
-    <div class="creargrafica__container"></div>
+    <div class="creargrafica__container">
+      <div class="muestra__grafica" v-if="verificar">
+        <PieChart v-if="tipoVisualizacion == 'pie'" :data="datosGrafica.data" :title="nombreGrafica" />
+        <BarChart v-if="tipoVisualizacion == 'barras'" :data="datosGrafica.data" :title="nombreGrafica"/>
+      </div>
+    </div>
     <div class="creargrafica__formulario">
       <v-card>
         <v-card-text>
@@ -94,6 +99,8 @@ import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import Swal from "sweetalert2";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import PieChart from "./PieChart.vue";
+import BarChart from "./BarChart.vue";
 
 const observatorioStore = useObservatorioStore();
 const tipoGrafica = ref("");
@@ -114,6 +121,8 @@ const tiposGrafica = [
   { label: "Pie", value: "pie" },
 ];
 
+const verificar = ref(false)
+const tipoVisualizacion = ref('')
 const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const traerConfiguracion = () => {
@@ -159,7 +168,6 @@ const crearConfiguracion = () => {
   };
 
   for (const element of entradas) {
-    console.log(element);
     configuracion.configuracion[element] = {
       campo: campoConfigSeleccionado.value[element],
       operacion: formValues.value[element]
@@ -169,8 +177,8 @@ const crearConfiguracion = () => {
   peticionAPI("/constructor_graficos/probar_configuracion/", "POST", configuracion)
     .then((data) => {
       datosGrafica.value = data
-      console.log(datosGrafica.value);
-      
+      verificar.value = true
+      tipoVisualizacion.value = data.grafico_metadata.tipo
       // Swal.fire({
       //   title: "¡Creado!",
       //   text: "La estructura se creó correctamente.",
@@ -215,5 +223,11 @@ onMounted(() => {
 .creargrafica__formulario {
   width: 30%;
   min-height: 20px;
+}
+.muestra__grafica{
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 </style>
