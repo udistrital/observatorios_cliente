@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
+import { useObservatorioStore } from '@/stores/observatorioStore';
 
 const routes = [
   {
@@ -15,17 +16,17 @@ const routes = [
     ],
   },
   {
-    path: "/estructuras",
+    path: "/:observatorio_id/estructuras",
     name: "estructuras",
     component: () => import("../views/Estructuras.vue"),
   },
   {
-    path: "/tablero",
+    path: "/:observatorio_id/tablero",
     name: "tablero",
     component: () => import("../views/Tablero.vue"),
   },
   {
-    path: "/panel",
+    path: "/:observatorio_id/panel",
     name: "panel",
     component: () => import("../views/Panel.vue"),
   },
@@ -40,6 +41,35 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const observatorioStore = useObservatorioStore();
+  const { observatorio_id } = to.params;
+  
+  if (observatorio_id) {
+    const storedData = localStorage.getItem("observatorios_espacios");
+    if (storedData) {
+      let observatorios = [];
+      try {
+        observatorios = JSON.parse(storedData);
+      } catch (error) {
+        console.error("Error al parsear observatorios del localStorage:", error);
+      }
+      const matchedObservatorio = observatorios.find(
+        (item) => item.observatorio_id === observatorio_id
+      );
+      if (matchedObservatorio) {
+        observatorioStore.setObservatorio(matchedObservatorio);
+      } else {
+        observatorioStore.setObservatorio({ id: observatorio_id });
+      }
+    } else {
+      observatorioStore.setObservatorio({ id: observatorio_id });
+    }
+  }
+  
+  next();
 });
 
 export default router;
