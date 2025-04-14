@@ -13,7 +13,6 @@
           <span class="text-h5">Observatorios</span>
         </v-card-title>
         <v-spacer />
-
         <v-text-field
           class="buscador__tabla"
           v-model="search"
@@ -160,9 +159,9 @@ const traerObservatorios = () => {
   cargando.value = true;
   observatorios.value = [];
   peticionAPI("observatorios/", "GET")
-  .then((data) => {
-    observatorios.value = data;
-    cargando.value = false;
+    .then((data) => {
+      observatorios.value = data;
+      cargando.value = false;
     })
     .catch((error) => console.error(error));
 };
@@ -192,7 +191,7 @@ const editarObservatorio = (item) => {
 };
 
 const reactivarObservatorio = async (item) => {
-  let id = item.raw.id;
+  let id = item.raw.observatorio_id;
   let nombre = item.raw.nombre;
 
   const resultado = await Swal.fire({
@@ -239,7 +238,7 @@ const reactivarObservatorio = async (item) => {
   }
 };
 const eliminarObservatorio = async (item) => {
-  let id = item.raw.id;
+  let id = item.raw.observatorio_id;
   let nombre = item.raw.nombre;
 
   const resultado = await Swal.fire({
@@ -285,13 +284,13 @@ const eliminarObservatorio = async (item) => {
 };
 
 const diriguirseObservatorio = (item) => {
-  console.log(item.raw);
   observatorioStore.setObservatorio({
     id: item.raw.id,
+    observatorio_id: item.raw.observatorio_id,
     nombre: item.raw.nombre,
     imagen: item.raw.imagen,
   });
-  router.push("/estructuras");
+  router.push(`/${item.raw.observatorio_id}/estructuras`);
 };
 onMounted(() => {
   traerObservatorios();

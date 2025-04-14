@@ -9,5 +9,5 @@ export const useObservatorioStore = defineStore("observatorioStore", {
       this.observatorio = data;
     },
   },
-  persist: true,
+  // persist: true,
 });

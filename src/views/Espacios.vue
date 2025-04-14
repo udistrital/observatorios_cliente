@@ -49,13 +49,13 @@ const traerObservatorios = () => {
 };
 
 const diriguirseObservatorio = (item) => {
-  console.log(item);
   observatorioStore.setObservatorio({
     id: item.id,
+    observatorio_id: item.observatorio_id,
     nombre: item.nombre,
     imagen: item.imagen,
   });
-  router.push("/estructuras");
+  router.push(`/${item.observatorio_id}/estructuras`);
 };
 onMounted(() => {
   espacios.value = espaciosData.espacios;
