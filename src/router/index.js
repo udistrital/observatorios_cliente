@@ -43,19 +43,33 @@ const router = createRouter({
   routes,
 });
 
-// router.beforeEach((to, from, next) => {
-//   const observatorioStore = useObservatorioStore();
-//   const { observatorio_id } = to.params;
-//   console.log("Observatorio ID:", observatorio_id);
+router.beforeEach((to, from, next) => {
+  const observatorioStore = useObservatorioStore();
+  const { observatorio_id } = to.params;
   
-//   if (observatorio_id) {
-//     // Asigna o actualiza el observatorio en el store.
-//     observatorioStore.setObservatorio({
-//       observatorio_id: observatorio_id,
-//       // Puedes agregar más propiedades si las recuperas del backend.
-//     });
-//   }
-//   next();
-// });
+  if (observatorio_id) {
+    const storedData = localStorage.getItem("observatorios_espacios");
+    if (storedData) {
+      let observatorios = [];
+      try {
+        observatorios = JSON.parse(storedData);
+      } catch (error) {
+        console.error("Error al parsear observatorios del localStorage:", error);
+      }
+      const matchedObservatorio = observatorios.find(
+        (item) => item.observatorio_id === observatorio_id
+      );
+      if (matchedObservatorio) {
+        observatorioStore.setObservatorio(matchedObservatorio);
+      } else {
+        observatorioStore.setObservatorio({ id: observatorio_id });
+      }
+    } else {
+      observatorioStore.setObservatorio({ id: observatorio_id });
+    }
+  }
+  
+  next();
+});
 
 export default router;

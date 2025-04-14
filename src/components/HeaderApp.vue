@@ -92,6 +92,8 @@ const imagenSrc = computed(() => {
 });
 
 const tituloEspacio = computed(() => {
+  console.log(observatorioStore);
+  
   return route.path.includes("administracion/")
     ? "Administración"
     : observatorioStore.observatorio?.nombre || "";
