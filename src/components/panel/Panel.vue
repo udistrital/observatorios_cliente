@@ -293,7 +293,7 @@ const diriguirsePanel = (item) => {
     observatorio: item.raw.observatorio,
   });
 
-  router.push("/panel/graficas");
+  router.push("/panel/principal");
 };
 onMounted(() => {
   traerPaneles();

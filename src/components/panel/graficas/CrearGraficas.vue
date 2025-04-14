@@ -81,11 +81,11 @@
             </div>
           </v-form>
           <v-card-actions v-if="configuracionGrafica?.datos_requeridos">
-            <v-spacer></v-spacer>
-            <v-btn variant="flat" color="primary" @click="crearConfiguracion"
-              >Visualizar</v-btn
-            >
           </v-card-actions>
+            <v-card-actions style="display: flex; justify-content: flex-end; gap: 10px;">
+            <v-btn variant="flat" color="primary" @click="crearConfiguracion">Visualizar</v-btn>
+            <v-btn variant="flat" color="secondary" @click="guardarGrafica">Guardar</v-btn>
+            </v-card-actions>
         </v-card-text>
       </v-card>
     </div>
@@ -101,7 +101,16 @@ import Swal from "sweetalert2";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import PieChart from "./PieChart.vue";
 import BarChart from "./BarChart.vue";
+import { usePanelStore } from '@/stores/panelStore';
 
+const props = defineProps({
+  columna: Number,
+  fila: Number,
+  panel: String,
+});
+
+
+const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const tipoGrafica = ref("");
 const nombreGrafica = ref("");
@@ -194,8 +203,52 @@ const crearConfiguracion = () => {
     })
     .catch((error) => console.error(error));
 };
+
+const guardarGrafica = () => {
+  let entradas = Object.keys(campoConfigSeleccionado.value);
+  let configuracion = {
+    estructura: estructuraSeleccionada.value,
+    configuracion: {
+      tipo: tipoGrafica.value,
+    },
+  };
+
+  for (const element of entradas) {
+    configuracion.configuracion[element] = {
+      campo: campoConfigSeleccionado.value[element],
+      operacion: formValues.value[element]
+    }
+  }
+  configuracion.nombre = nombreGrafica.value;
+  configuracion.columna = props.columna;
+  configuracion.fila = props.fila;
+  configuracion.descripcion = "Desc";
+
+  const panelId = panelStore.panel?.id
+
+  peticionAPI(`/graficos/${panelId}/`, "POST", configuracion)
+    .then((data) => {
+      Swal.fire({
+        title: "¡Guardado!",
+        text: "La gráfica se guardó correctamente.",
+        icon: "success",
+        width: "300px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    })
+    .catch((error) => console.error(error));
+
+
+}
+
 onMounted(() => {
   traerEstructuras();
+  console.log(props.columna, props.fila, props.panel);
 });
 </script>
 

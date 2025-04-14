@@ -33,12 +33,19 @@ const routes = [
     // ]
   },
   {
-    path: "/panel/graficas",
+    path: "/panel/graficas/:panel/:columna/:fila",
     name: "panelGraficas",
+    props: true,
     component: () => import("../components/panel/Graficas.vue"),
     // children: [
     //   {path: "graficas", component: () => import("../components/panel/Graficas.vue")},
     // ]
+  },
+  {
+    path: "/panel/principal",
+    name: "panelPrincipal",
+    component: () => import("../components/panel/PanelVistaPrincipal.vue"),
+    
   },
   {
     path: "/:pathMatch(.*)*",
