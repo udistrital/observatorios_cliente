@@ -79,6 +79,12 @@
         :loading="cargando"
         items-per-page-text="Elementos por página:"
         item-value="name"
+        :items-per-page-options="[
+          {title: '10' , value: 10},
+          {title: '25' , value: 25},
+          {title: '50' , value: 50},
+          {title: '100' , value: 100}
+        ]"
         @update:page="actualizarPagina"
         @update:items-per-page="actualizarItemsPorPagina"
         @update:sort-by="actualizarOrden"

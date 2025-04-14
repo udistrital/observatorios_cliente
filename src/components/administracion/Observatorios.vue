@@ -162,7 +162,7 @@ const traerObservatorios = () => {
     .then((data) => {
       observatorios.value = data;
       cargando.value = false;
-      localStorage.setItem('observatorios_espacios', observatorios.value)
+      localStorage.setItem('observatorios_espacios', JSON.stringify(observatorios.value))
     })
     .catch((error) => console.error(error));
 };
