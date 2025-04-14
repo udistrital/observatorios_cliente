@@ -133,7 +133,7 @@ const guardarObservatorio = () => {
   if (imagen.value) {
     formData.append("imagen", imagen.value);
   }
-  peticionAPI(`/observatorios/${props.observatorio.id}/`, "PUT", formData)
+  peticionAPI(`/observatorios/${props.observatorio.observatorio_id}/`, "PUT", formData)
     .then((data) => {
       Swal.fire({
         title: "¡Actualizado!",

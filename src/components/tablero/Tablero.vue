@@ -342,7 +342,7 @@ const limpiarFiltro = () => {
 };
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET", null, {
-    observatorio: observatorioStore.observatorio?.id,
+    observatorio: observatorioStore.observatorio?.observatorio_id,
   })
     .then((data) => {
       estructuras.value = data;
@@ -457,6 +457,7 @@ const cerrarModal = (data) => {
   _gestionRegistro.value = false;
   _agregarRegistro.value = false;
   _agregarFilro.value = false;
+  _cargarRegistro.value = false;
 };
 const agregarFiltro = () => {
   _agregarFilro.value = true;

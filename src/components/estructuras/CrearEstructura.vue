@@ -88,7 +88,9 @@
 import { ref, defineEmits, defineProps, onMounted } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import Swal from "sweetalert2";
+import { useObservatorioStore } from "@/stores/observatorioStore";
 
+const observatorioStore = useObservatorioStore();
 const props = defineProps({
   value: Boolean,
 });
@@ -110,7 +112,7 @@ const eliminarCampo = (index) => {
 const crearEstructura = () => {
   const estructura = {
     nombre: nombreEstructura.value,
-    observatorio: localStorage.getItem("observatorio"),
+    observatorio: observatorioStore.observatorio?.observatorio_id,
     mapeo: campos.value,
   };
 
