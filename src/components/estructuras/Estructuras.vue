@@ -160,7 +160,7 @@ const datosEstructura = ref({});
 
 const traerEstructuras = () => {
   cargando.value = true;
-  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.id})
+  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
   .then((data) => {
     estructuras.value = data;
     cargando.value = false;
@@ -287,8 +287,9 @@ const diriguirseEstructura = (item) => {
     nombre: item.raw.nombre,
     mapeo: item.raw.mapeo,
   });
+console.log(`${observatorioStore.observatorio?.observatorio_id}/tablero`);
 
-  router.push("/tablero");
+  router.push(`/${observatorioStore.observatorio?.observatorio_id}/tablero`);
 };
 onMounted(() => {
   traerEstructuras();

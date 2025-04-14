@@ -146,7 +146,7 @@ const guardarArchivo = async () => {
     })
     .catch((error) => {
       console.error(error);
-      Swal.fire("Error", "Ocurrió un error al subir el archivo", "error");
+      // Swal.fire("Error", "Ocurrió un error al subir el archivo", "error");
     });
 
   emit("cerrar", { id: props.idEstructura });
