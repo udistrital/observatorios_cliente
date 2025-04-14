@@ -91,6 +91,7 @@
             @click="diriguirseObservatorio(item)"
             color="primary"
             title="Ir al observatorio"
+            v-if="item.columns.activo"
           >
             <v-icon>mdi-arrow-top-right-thick</v-icon>
           </v-btn>
@@ -137,6 +138,7 @@ const observatorios = ref([]);
 const cargando = ref(false);
 
 const headers = ref([
+  { title: "ID del Observatorio", key: "observatorio_id", align: "center" },
   { title: "Nombre", key: "nombre", align: "center" },
   { title: "Estado", key: "activo", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },

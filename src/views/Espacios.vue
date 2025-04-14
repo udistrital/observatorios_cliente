@@ -7,16 +7,17 @@
       </figure>
       <h4 class="espacio__titulo">Administración</h4>
     </div>
-    <div
-      class="espacio elevation-5"
-      v-for="(espacio, index) in espacios"
-      :key="index"
-      @click="diriguirseObservatorio(espacio)"
-    >
-      <figure class="espacio__img">
-        <img :src="espacio.imagen" alt="administracion" />
-      </figure>
-      <h4 class="espacio__titulo">{{ espacio.nombre }}</h4>
+    <div v-for="(espacio, index) in espacios" :key="index">
+      <div
+        v-if="espacio.activo"
+        class="espacio elevation-5"
+        @click="diriguirseObservatorio(espacio)"
+      >
+        <figure class="espacio__img">
+          <img :src="espacio.imagen" alt="administracion" />
+        </figure>
+        <h4 class="espacio__titulo">{{ espacio.nombre }}</h4>
+      </div>
     </div>
   </div>
 </template>
@@ -31,11 +32,11 @@ import { useObservatorioStore } from "@/stores/observatorioStore";
 const observatorioStore = useObservatorioStore();
 const router = useRouter();
 const espacios = ref([]);
-const observatorios = ref()
+const observatorios = ref();
 
 const verAdministracion = () => {
   router.push("/administracion/observatorios");
-}
+};
 
 const traerObservatorios = () => {
   espacios.value = [];
@@ -49,22 +50,13 @@ const traerObservatorios = () => {
 
 const diriguirseObservatorio = (item) => {
   console.log(item);
-  
-  // Guarda el objeto observatorio en el store
   observatorioStore.setObservatorio({
     id: item.id,
     nombre: item.nombre,
     imagen: item.imagen,
   });
-
-  // Redirige a la ruta deseada
   router.push("/estructuras");
 };
-// const imagenSrc = computed(() => {
-//   return route.path.includes("administracion/")
-//     ? logoAdmin // Si está en administración, usa el logo admin
-//     : localStorage.getItem("observatorio_imagen") || ""; // Si no, usa la imagen del localStorage
-// });
 onMounted(() => {
   espacios.value = espaciosData.espacios;
   traerObservatorios();
