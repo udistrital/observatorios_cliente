@@ -124,7 +124,6 @@ onMounted(() => {
       tiposDeDato.value = Object.values(data);
     })
     .catch((error) => console.error(error));
-  console.log(estructura.value);
 });
 
 const agregarCampo = () => {
