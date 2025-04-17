@@ -30,6 +30,7 @@
           @change="cargarImagen"
           variant="outlined"
           density="comfortable"
+          accept=".jpg,.jpeg,.png,.webp,.svg"
         />
       </v-form>
       <div v-if="imagenUrl" class="mt-4 text-center">
