@@ -4,6 +4,8 @@
       <div class="muestra__grafica" v-if="verificar">
         <PieChart v-if="tipoVisualizacion == 'pie'" :data="datosGrafica.data" :title="nombreGrafica" />
         <BarChart v-if="tipoVisualizacion == 'barras'" :data="datosGrafica.data" :title="nombreGrafica"/>
+        <LineChart v-if="tipoVisualizacion == 'linea'" :data="datosGrafica.data" :title="nombreGrafica" :metadata="datosGrafica.grafico_metadata"/>
+        
       </div>
     </div>
     <div class="creargrafica__formulario">
@@ -77,6 +79,110 @@
                   width="35px"
                   class="textfield__control"
                 ></v-select>
+                <div v-if="configuracionOperacion[campo.tipo]?.obligatorios.length >0 || configuracionOperacion[campo.tipo]?.opcionales.length >0">
+                  <details>
+                    <summary>Configurar</summary>
+                    <div 
+                      class="campos__configuracion"
+                      v-for="(sub_campo, index) in configuracionOperacion[campo.tipo]?.obligatorios"
+                      :key="index"
+                      >
+                      <v-text-field 
+                        v-if="sub_campo.tipo== 'number'" 
+                        type="number"
+                        item-title="valor_espanol"
+                        :label="capitalize(sub_campo.valor_espanol) +  ' *'"
+                        :menu-props="{ maxHeight: '200px' }"
+                        v-model="sub_campo.valor_actual"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        width="35px"
+                        class="textfield__control"
+                        ></v-text-field>
+
+                      <v-text-field 
+                        v-if="sub_campo.tipo== 'text'"
+                        item-title="valor_espanol"
+                        :label="capitalize(sub_campo.valor_espanol) +  ' *' "
+                        :menu-props="{ maxHeight: '200px' }"
+                        v-model="sub_campo.valor_actual"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        width="35px"
+                        class="textfield__control"
+                      >
+                      </v-text-field>
+
+                      <v-checkbox 
+                        v-if="sub_campo.tipo=='checkbox'"
+                        item-title="valor_espanol"
+                          :menu-props="{ maxHeight: '200px' }"
+                          :label="capitalize(sub_campo.valor_espanol) + ' *'"
+                          v-model="sub_campo.valor_actual"
+                          variant="outlined"
+                          density="compact"
+                          hide-details
+                          width="35px"
+                          class="textfield__control"
+                      >
+                      </v-checkbox>
+
+
+                    </div>
+
+                    <div 
+                      class="campos__configuracion"
+                      v-for="(sub_campo, index) in configuracionOperacion[campo.tipo]?.opcionales"
+                      :key="index"
+                      >
+                      <v-text-field 
+                        v-if="sub_campo.tipo== 'number'" 
+                        type="number"
+                        item-title="valor_espanol"
+                        :label="capitalize(sub_campo.valor_espanol)"
+                        :menu-props="{ maxHeight: '200px' }"
+                        v-model="sub_campo.valor_actual"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        width="35px"
+                        class="textfield__control"
+                        ></v-text-field>
+
+                      <v-text-field 
+                        v-if="sub_campo.tipo== 'text'"
+                        item-title="valor_espanol"
+                        :label="capitalize(sub_campo.valor_espanol)"
+                        :menu-props="{ maxHeight: '200px' }"
+                        v-model="sub_campo.valor_actual"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        width="35px"
+                        class="textfield__control"
+                      >
+                      </v-text-field>
+
+                      <v-checkbox 
+                      v-if="sub_campo.tipo=='checkbox'"
+                      item-title="valor_espanol"
+                        :menu-props="{ maxHeight: '200px' }"
+                        :label="capitalize(sub_campo.valor_espanol)"
+                        v-model="sub_campo.valor_actual"
+                        variant="outlined"
+                        density="compact"
+                        hide-details
+                        width="35px"
+                        class="textfield__control"
+                      >
+                      </v-checkbox>
+
+
+                    </div>
+                  </details>
+                </div>
               </div>
             </div>
           </v-form>
@@ -101,6 +207,7 @@ import Swal from "sweetalert2";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import PieChart from "./PieChart.vue";
 import BarChart from "./BarChart.vue";
+import LineChart from "./LineChart.vue";
 import { usePanelStore } from '@/stores/panelStore';
 
 const props = defineProps({
@@ -116,6 +223,7 @@ const tipoGrafica = ref("");
 const nombreGrafica = ref("");
 const estructuraSeleccionada = ref("");
 const configuracionGrafica = ref({});
+const configuracionOperacion = ref({});
 const cargando = ref(false);
 const estructuras = ref([]);
 const formValues = ref({});
@@ -128,6 +236,10 @@ const tiposGrafica = [
     value: "barras",
   },
   { label: "Pie", value: "pie" },
+  {
+    label: "Línea",
+    value: "linea"
+  }
 ];
 
 const verificar = ref(false)
@@ -150,6 +262,7 @@ const traerCamposSugeridos = (campoTipo) => {
   })
     .then((data) => {
       camposConfig.value[campoTipo] = data.campos_recomendados;
+      configuracionOperacion.value[campoTipo] = data.datos_operacion
     })
     .catch((error) => console.error(error));
 };
@@ -177,10 +290,33 @@ const crearConfiguracion = () => {
   };
 
   for (const element of entradas) {
+    console.log("element", element)
     configuracion.configuracion[element] = {
       campo: campoConfigSeleccionado.value[element],
-      operacion: formValues.value[element]
+      operacion: formValues.value[element],
+      obligatorios: {},
+      opcionales : {}
     }
+
+    let subcampos = configuracionOperacion.value[element];
+    if (subcampos?.obligatorios) {
+      for (const subcampo of subcampos.obligatorios) {
+        // Si el subcampo tiene un input dinámico, tomamos el valor actual
+        const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
+        configuracion.configuracion[element].obligatorios[subcampo.valor] = valorActual;
+
+      }
+    }
+
+    if (subcampos?.opcionales) {
+      for (const subcampo of subcampos.opcionales) {
+        // Si el subcampo tiene un input dinámico, tomamos el valor actual
+        const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
+        configuracion.configuracion[element].opcionales[subcampo.valor] = valorActual;
+      }
+    }
+
+
   }
 
   peticionAPI("/constructor_graficos/probar_configuracion/", "POST", configuracion)
@@ -216,7 +352,27 @@ const guardarGrafica = () => {
   for (const element of entradas) {
     configuracion.configuracion[element] = {
       campo: campoConfigSeleccionado.value[element],
-      operacion: formValues.value[element]
+      operacion: formValues.value[element],
+      obligatorios: {},
+      opcionales : {}
+    }
+
+    let subcampos = configuracionOperacion.value[element];
+    if (subcampos?.obligatorios) {
+      for (const subcampo of subcampos.obligatorios) {
+        // Si el subcampo tiene un input dinámico, tomamos el valor actual
+        const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
+        configuracion.configuracion[element].obligatorios[subcampo.valor] = valorActual;
+        
+      }
+    }
+
+    if (subcampos?.opcionales) {
+      for (const subcampo of subcampos.opcionales) {
+        // Si el subcampo tiene un input dinámico, tomamos el valor actual
+        const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
+        configuracion.configuracion[element].opcionales[subcampo.valor] = valorActual;
+      }
     }
   }
   configuracion.nombre = nombreGrafica.value;

@@ -1,26 +1,35 @@
 <template>
-    <div 
-      class="contenedor-grilla vista__primaria" 
-      ref="contenedor"  
-      :style="{
-        '--tamano-celdas': tamanoCeldas,
-        '--tamano-filas': tamanoFilas
-      }"
-    >
-      <button @click="agregarItem">Crear Grafico</button>
-      <div v-for="indiceFila in filas" :key="indiceFila" class="fila">
-        <div
-          v-for="indiceColumna in columnas"
-          :key="indiceColumna"
-          :data-swapy-slot="`${indiceColumna}_${indiceFila}`"
-          class="celda"
-          :id = "`${indiceColumna}_${indiceFila}`"
-          @click="crearGrafica(indiceColumna, indiceFila)"
-        >
-        </div>
+  <div
+    class="contenedor-grilla vista__primaria"
+    ref="contenedor"
+    :style="{
+      '--tamano-celdas': tamanoCeldas,
+      '--tamano-filas': tamanoFilas
+    }"
+  >
+    <button @click="agregarItem">Crear Grafico</button>
+
+    <div v-for="indiceFila in filas" :key="indiceFila" class="fila">
+      <div
+        v-for="indiceColumna in columnas"
+        :key="indiceColumna"
+        :data-swapy-slot="`${indiceColumna}_${indiceFila}`"
+        class="celda"
+        :id="`${indiceColumna}_${indiceFila}`"
+        @click="crearGrafica(indiceColumna, indiceFila)"
+      >
+        <!-- Si hay un gráfico en esa posición, renderiza el componente -->
+        <ContenedorGrafica
+          v-if="buscarGrafico(indiceColumna, indiceFila)"
+          :dashboard-id="panelStore.panel.id"
+          :grafico-id="buscarGrafico(indiceColumna, indiceFila)?.id"
+          :tipo="buscarGrafico(indiceColumna, indiceFila)?.configuracion?.tipo"
+          :nombre-grafica="buscarGrafico(indiceColumna, indiceFila)?.nombre"
+        />
       </div>
     </div>
-  </template>
+  </div>
+</template>
   
   <script setup>
   import { createSwapy } from 'swapy'
@@ -28,6 +37,7 @@
   import { useRouter } from 'vue-router';
   import peticionAPI from "@/service/conexion_api";
   import { usePanelStore } from '@/stores/panelStore'; 
+  import ContenedorGrafica from './graficas/contenedorGrafica.vue';
   
   const panelStore = usePanelStore();
   const panelId = panelStore.panel.id;
@@ -52,6 +62,16 @@
     swapy.value?.destroy();
   });
   
+
+  const buscarGrafico = (columna, fila) => {
+    console.log(graficos.value.find(
+      (grafico) => grafico.columna === columna && grafico.fila === fila
+    ) ,  fila, columna)
+    return graficos.value.find(
+      (grafico) => grafico.columna === columna && grafico.fila === fila
+    );
+  };
+
   const agregarItem = () => {
         console.log("Por aqui pase ")
         const slots = document.querySelectorAll(".celda"); // Obtener todas las celdas
@@ -85,66 +105,22 @@
         swapy.value.update()
   }
   
-  // export default {
-  //   data() {
-  //     return {
-  //       filas: tamanoFilas,
-  //       columnas: tamanoCeldas,
-  //       tamanoCeldas, 
-  //       tamanoFilas  
-  //     };
-  //   },
-  //   methods: {
-      
-  //   }
-  // };
 
 
 const graficos = ref([]);
 
 const obtenerGraficos = async () => {
-    try {
-        const response = await peticionAPI(`/graficos/${panelStore.panel.id}`).then((response) => {
-            graficos.value = response;
-            graficos.value.forEach((grafico) => {
-                const { columna, fila } = grafico;
-                const tipoVisualizacion = "pie";
-                const datosGrafica = {metrica :   [32,30.647773279352226], "etiquetas": [
-            1,
-            0
-        ]}
-        const nombreGrafica = grafico.nombre || "Grafico";
-        
-        const slotId = `${columna}_${fila}`;
-                const slotSeleccionado = document.getElementById(slotId);
-
-                if (slotSeleccionado && !slotSeleccionado.querySelector(".item")) {
-                    const nuevoItem = document.createElement("div");
-                    nuevoItem.classList.add("item-inactivo");
-                    nuevoItem.style.width = "100%";
-                    nuevoItem.style.height = "100%";
-                    nuevoItem.style.backgroundColor = "rgb(243, 63, 213)";
-                    nuevoItem.style.border = "1px solid black";
-                    nuevoItem.setAttribute("data-swapy-item", slotId);
-
-                    const chartHtml = tipoVisualizacion === 'pie'
-                        ? `<PieChart :data='${JSON.stringify(datosGrafica.data)}' :title='${nombreGrafica}' />`
-                        : tipoVisualizacion === 'barras'
-                        ? `<BarChart :data='${JSON.stringify(datosGrafica.data)}' :title='${nombreGrafica}' />`
-                        : `<div class='item-inactivo'>${nombreGrafica || "Grafico"}</div>`;
-
-                    nuevoItem.innerHTML = chartHtml;
-                    slotSeleccionado.appendChild(nuevoItem);
-                }
-            });
-            swapy.value?.update();
-        });
-       
-        
-    } catch (error) {
-        console.error('Error al obtener los graficos:', error);
-    }
+  try {
+    const response = await peticionAPI(`/graficos/${panelStore.panel.id}`);
+    graficos.value = response;
+  } catch (error) {
+    console.error("Error al obtener los gráficos:", error);
+  }
 };
+
+
+
+
 
 onMounted(() => {
     obtenerGraficos();
@@ -176,7 +152,6 @@ onMounted(() => {
   .celda {
     width: calc(100% / var(--tamano-celdas));
     height: 100%;
-    background-color: rgb(189, 189, 189);
     border-radius: 16px;
   
   }
