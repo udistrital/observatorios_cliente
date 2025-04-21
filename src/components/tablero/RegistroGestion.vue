@@ -75,27 +75,6 @@ const obtenerDatosEstructura = () => {
 onMounted(() => {
     armarFormulario();
     obtenerDatosEstructura();
-
-});
-
-const obtenerDatosEstructura = () => {
-  peticionAPI(`campos/estructuras/${props.idEstructura}/`, "GET")
-    .then((data) => {
-      if (Array.isArray(data.mapeo)) {
-        data.mapeo.forEach((item) => {
-          if (!(item.nombre in camposForm.value)) {
-          camposForm.value[item.nombre] = "";
-          }
-        });
-      }
-    })
-    .catch((error) => console.error(error));
-};
-
-onMounted(() => {
-    armarFormulario();
-    obtenerDatosEstructura();
-
 });
 
 const guardarCambios = () => {

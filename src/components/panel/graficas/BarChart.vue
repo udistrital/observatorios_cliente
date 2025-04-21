@@ -1,9 +1,9 @@
 <template>
   <div>
     <ApexCharts
-      type="bar"
       :width="width"
       :height="height"
+      type="bar"
       :series="series"
       :options="chartOptions"
       @dataPointSelection="handleBarClick"
