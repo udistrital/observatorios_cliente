@@ -120,6 +120,7 @@
       />
     </v-dialog>
   </div>
+  <!-- <router-view></router-view> -->
 </template>
 
 <script setup>
@@ -130,7 +131,9 @@ import Swal from "sweetalert2";
 import CrearPanel from "./CrearPanel.vue";
 import PanelGestion from "./PanelGestion.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import { usePanelStore } from '@/stores/panelStore';
 
+const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const router = useRouter();
 const search = ref("");
@@ -282,7 +285,15 @@ const eliminarPanel = async (item) => {
   }
 };
 const diriguirsePanel = (item) => {
-  // router.push("/paneles");
+  console.log(item);
+  panelStore.setPanel({
+    id:          item.raw.id,
+    nombre:      item.raw.nombre,
+    descripcion: item.raw.descripcion,
+    observatorio: item.raw.observatorio,
+  });
+
+  router.push("/panel/principal");
 };
 onMounted(() => {
   traerPaneles();
