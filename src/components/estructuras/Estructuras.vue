@@ -287,8 +287,6 @@ const diriguirseEstructura = (item) => {
     nombre: item.raw.nombre,
     mapeo: item.raw.mapeo,
   });
-console.log(`${observatorioStore.observatorio?.observatorio_id}/tablero`);
-
   router.push(`/${observatorioStore.observatorio?.observatorio_id}/tablero`);
 };
 onMounted(() => {

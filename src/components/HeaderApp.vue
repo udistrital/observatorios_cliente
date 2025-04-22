@@ -1,24 +1,34 @@
 <template>
   <div>
+    <!-- <v-navigation-drawer
+    > -->
+    <!-- permanent
+      temporary -->
+    <!-- :width="isHovering ? 200 : 64" -->
     <v-navigation-drawer
       class="floating-drawer"
-      permanent
-      temporary
-      :width="isHovering ? 200 : 64"
       @mouseenter="isHovering = true"
       @mouseleave="isHovering = false"
       color="light"
       v-if="verNavbar"
+      expand-on-hover
+      rail
+      :rail-width="64"
+      :width="250"
     >
       <v-list>
         <div
           :class="[
             'dawer__espacio',
-            isHovering ? 'dawer__espacio-hovering' : 'dawer__espacio-unhovering',
+            isHovering
+              ? 'dawer__espacio-hovering'
+              : 'dawer__espacio-unhovering',
           ]"
         >
           <figure class="dawer__logo-espacio">
-            <img :src="imagenSrc" alt="Logo" />
+            <div class="dawer__img-espacio">
+              <img :src="imagenSrc" alt="Logo" />
+            </div>
             <span class="dawer__titulo-espacio" v-show="isHovering">
               {{ tituloEspacio }}
             </span>
@@ -56,7 +66,12 @@
       <v-spacer />
       <div class="header__info">
         <div class="header__info-bell">
-          <v-btn class="ma-2" color="primary" icon="mdi-bell" variant="text"></v-btn>
+          <v-btn
+            class="ma-2"
+            color="primary"
+            icon="mdi-bell"
+            variant="text"
+          ></v-btn>
         </div>
         <div class="header__info-email">
           <v-icon color="primary" class="mdi mdi-account-circle"></v-icon>
@@ -79,7 +94,9 @@ const route = useRoute();
 const observatorioStore = useObservatorioStore();
 
 const observatorioId = computed(() => {
-  return route.params.observatorio_id || observatorioStore.observatorio?.id || "";
+  return (
+    route.params.observatorio_id || observatorioStore.observatorio?.id || ""
+  );
 });
 
 const rutasNavbar = ["/", "/espacios"];
@@ -87,13 +104,11 @@ const verNavbar = computed(() => !rutasNavbar.includes(route.path));
 
 const imagenSrc = computed(() => {
   return route.path.includes("administracion/")
-    ? logoAdmin 
+    ? logoAdmin
     : observatorioStore.observatorio?.imagen || logoDefault;
 });
 
 const tituloEspacio = computed(() => {
-  console.log(observatorioStore);
-  
   return route.path.includes("administracion/")
     ? "Administración"
     : observatorioStore.observatorio?.nombre || "";
@@ -135,7 +150,7 @@ const menuItems = [
 
 const dynamicMenuItems = computed(() => {
   const esAdmin = route.path.includes("administracion/");
-  
+
   // Primero filtramos los items según la condición original:
   // Si el item es general, se muestra; de lo contrario, se muestran
   // aquellos que son admin sólo en rutas de administración y viceversa.
@@ -156,7 +171,6 @@ const dynamicMenuItems = computed(() => {
     return item;
   });
 });
-
 </script>
 
 <style scoped>
@@ -219,8 +233,14 @@ const dynamicMenuItems = computed(() => {
 .dawer__titulo-espacio {
   font-size: 18px;
   font-weight: bolder;
-  margin-left: 5px;
+  /* margin-left: 10px; */
   color: var(--texto-medio-color);
+}
+.dawer__img-espacio {
+  min-width: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .dawer__logo-espacio img {
   height: 45px;
@@ -246,5 +266,10 @@ const dynamicMenuItems = computed(() => {
 }
 .active-item {
   border-left: 5px var(--color-acentuado) solid;
+  padding-left: -5px;
+}
+
+.floating-drawer.v-navigation-drawer--rail {
+  width: 64px !important;
 }
 </style>

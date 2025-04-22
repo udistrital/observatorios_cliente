@@ -1,10 +1,10 @@
 <template>
   <v-card>
     <v-card-title class="titulo-modal">
-      {{ isEditing ? 'Modificar Estructura' : 'Ver Estructura' }}
+      {{ isEditing ? "Modificar Estructura" : "Ver Estructura" }}
     </v-card-title>
     <v-card-text>
-      <v-form  @submit.prevent="guardarEstructura">
+      <v-form @submit.prevent="guardarEstructura">
         <v-text-field
           v-model="estructura.nombre"
           label="Nombre de la estructura"
@@ -14,12 +14,22 @@
         ></v-text-field>
         <div class="subcabecera">
           <h3 class="subtitulo-modal">Campos</h3>
-          <v-btn v-if="isEditing" icon color="primary" density="compact" @click="agregarCampo">
+          <v-btn
+            v-if="isEditing"
+            icon
+            color="primary"
+            density="compact"
+            @click="agregarCampo"
+          >
             <v-icon>mdi-plus</v-icon>
           </v-btn>
         </div>
         <div class="contenedor-campos">
-          <div v-for="(campo, index) in estructura.mapeo" :key="index" class="d-flex align-center mb-2">
+          <div
+            v-for="(campo, index) in estructura.mapeo"
+            :key="index"
+            class="d-flex align-center mb-2"
+          >
             <v-text-field
               v-model="campo.nombre"
               label="Nombre del Campo"
@@ -31,7 +41,7 @@
               :disabled="!isEditing"
             ></v-text-field>
             <v-select
-              :disabled="!isEditing"
+              :disabled="!isEditing || campo.deshabilitado"
               hide-details="true"
               v-model="campo.tipo"
               :items="tiposDeDato"
@@ -42,10 +52,14 @@
               required
               max-height="20%"
               class="campos__field"
-               style="width: 50%;"
+              style="width: 50%"
             >
               <template v-slot:item="{ props, item }">
-                <div class="select__tipos" v-bind="props" :title="item.raw.descripcion">
+                <div
+                  class="select__tipos"
+                  v-bind="props"
+                  :title="item.raw.descripcion"
+                >
                   {{ item.raw.nombre_espanol }} ({{ item.raw.nombre }})
                 </div>
               </template>
@@ -53,7 +67,14 @@
                 {{ item.raw.nombre_espanol }} ({{ item.raw.nombre }})
               </template>
             </v-select>
-            <v-btn v-if="isEditing" icon variant="plain" density="comfortable" color="primary" @click="eliminarCampo(index)">
+            <v-btn
+              v-if="isEditing"
+              icon
+              variant="plain"
+              density="comfortable"
+              color="primary"
+              @click="eliminarCampo(index)"
+            >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
           </div>
@@ -62,8 +83,16 @@
     </v-card-text>
     <v-card-actions>
       <v-spacer></v-spacer>
-      <v-btn variant="outlined" color="primary" text @click="cancelar">Cancelar</v-btn>
-      <v-btn v-if="isEditing" variant="flat" color="primary" @click="guardarEstructura">Modificar</v-btn>
+      <v-btn variant="outlined" color="primary" text @click="cancelar"
+        >Cancelar</v-btn
+      >
+      <v-btn
+        v-if="isEditing"
+        variant="flat"
+        color="primary"
+        @click="guardarEstructura"
+        >Modificar</v-btn
+      >
     </v-card-actions>
   </v-card>
 </template>
@@ -84,6 +113,12 @@ const estructura = ref({ ...props.estructuraData });
 const tiposDeDato = ref([""]);
 
 onMounted(() => {
+  estructura.value.mapeo = estructura.value.mapeo.map((item) => {
+    return {
+      ...item,
+      deshabilitado: true,
+    };
+  });
   peticionAPI("campos/tipos", "GET")
     .then((data) => {
       tiposDeDato.value = Object.values(data);
@@ -104,7 +139,18 @@ const habilitarEdicion = () => {
 };
 
 const guardarEstructura = () => {
-  peticionAPI(`/campos/estructuras/${estructura.value.id}/`, "PUT", estructura.value)
+ 
+  estructura.value.mapeo = estructura.value.mapeo.map(
+    ({ deshabilitado, ...resto }) => {
+      return resto;
+    }
+  );
+
+  peticionAPI(
+    `/campos/estructuras/${estructura.value.id}/`,
+    "PUT",
+    estructura.value
+  )
     .then((data) => {
       Swal.fire({
         title: "¡Modificada!",
@@ -139,11 +185,11 @@ const cancelar = () => {
 .campos__field {
   max-width: 50%;
 }
-.select__tipos{
+.select__tipos {
   padding: 5px;
   cursor: pointer;
 }
-.select__tipos:hover{
+.select__tipos:hover {
   background-color: var(--color-claro);
 }
 </style>
