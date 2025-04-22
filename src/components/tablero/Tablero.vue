@@ -332,6 +332,7 @@ const datosFiltrados = computed(() => {
 });
 
 const aplicarFiltro = (data) => {
+  paginacion.page = 1
   filtros.value = Object.fromEntries(
     Object.entries(data).filter(
       ([, value]) => value !== null && value !== undefined && value !== ""

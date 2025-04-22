@@ -19,9 +19,11 @@
         ></v-textarea>
         <v-file-input
           label="Cargar Imagen"
+          outlined
           @change="cargarImagen"
           variant="outlined"
           density="comfortable"
+          accept=".jpg,.jpeg,.png,.webp,.svg"
         ></v-file-input>
         <div v-if="imagenUrl" class="mt-4 text-center">
           <v-img
