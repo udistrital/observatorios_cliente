@@ -1,12 +1,12 @@
 <template>
   <div
     class="contenedor-grilla vista__primaria"
-    ref="contenedor"
-  >
-    <!-- :style="{
+    ref="miElemento"
+    :style="{
       '--tamano-celdas': tamanoCeldas,
       '--tamano-filas': tamanoFilas,
-    }" -->
+    }"
+  >
     <button @click="agregarItem">Crear Grafico</button>
 
     <div v-for="indiceFila in filas" :key="indiceFila" class="fila">
@@ -25,6 +25,7 @@
           :grafico-id="buscarGrafico(indiceColumna, indiceFila)?.id"
           :tipo="buscarGrafico(indiceColumna, indiceFila)?.configuracion?.tipo"
           :nombre-grafica="buscarGrafico(indiceColumna, indiceFila)?.nombre"
+          :tamanowidth="resultado"
         />
       </div>
     </div>
@@ -45,22 +46,28 @@ const router = useRouter();
 const tamanoCeldas = ref(1);
 const tamanoFilas = ref(1);
 const filas = ref(3);
-const columnas = ref(3);
+const columnas = ref(2);
 const swapy = ref(null);
 const contenedor = ref();
 
-onMounted(() => {
-  if (contenedor.value) {
-    swapy.value = createSwapy(contenedor.value);
-    swapy.value.onSwap((evento) => {
-      console.log("Intercambio detectado:", evento);
-    });
-  }
-});
 
-onUnmounted(() => {
-  swapy.value?.destroy();
-});
+// Definir una referencia para el resultado
+const resultado = ref(0);
+    const miElemento = ref(null);
+
+    // Función para calcular el ancho
+    const calcularAncho = () => {
+      const ancho = miElemento.value.offsetWidth;
+      resultado.value = (ancho - 100) / filas;
+      console.log(resultado.value, '-----------');
+    };
+
+    // Usar onMounted para ejecutar el cálculo después de montar el componente
+    // onMounted(() => {
+    // });
+    
+    
+
 
 const buscarGrafico = (columna, fila) => {
   console.log(
@@ -117,9 +124,25 @@ const obtenerGraficos = async () => {
   }
 };
 
+
+
 onMounted(() => {
   obtenerGraficos();
   console.log(graficos.value);
+  calcularAncho();
+  if (contenedor.value) {
+    swapy.value = createSwapy(contenedor.value);
+    swapy.value.onSwap((evento) => {
+      console.log("Intercambio detectado:", evento);
+    });
+  }
+});
+    
+// onMounted(() => {
+// });
+
+onUnmounted(() => {
+  swapy.value?.destroy();
 });
 const crearGrafica = (columna, fila) => {
   router.push({
@@ -127,6 +150,8 @@ const crearGrafica = (columna, fila) => {
     params: { panel: panelId, columna, fila },
   });
 };
+
+
 </script>
   
   <style scoped>
@@ -135,22 +160,27 @@ const crearGrafica = (columna, fila) => {
   flex-direction: column;
   grid-template-columns: repeat(var(--tamano-celdas), 1fr);
   grid-template-rows: repeat(var(--tamano-filas), 1fr);
-  max-width: 100%;
+  /* max-width: 50% !important; */
   height: 100%;
+  overflow: auto;
   /* margin: 5%; */
   gap: 5px;
+  /* background-color: seagreen; */
+  
 }
 
 .fila {
   display: flex;
   height: calc(100% / var(--tamano-filas));
   gap: 5px;
+  /* background-color: tomato; */
 }
 
 .celda {
   width: calc(100% / var(--tamano-celdas));
   height: 100%;
   border-radius: 16px;
+  background-color: rgb(234, 234, 234);
 }
 
 .item {

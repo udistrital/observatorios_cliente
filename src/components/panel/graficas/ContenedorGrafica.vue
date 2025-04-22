@@ -7,9 +7,9 @@
       </div>
   
       <div v-else class="grafico-datos">
-        <PieChart v-if="tipo == 'pie'" :data="datosGrafica.data" :title="nombreGrafica" />
-        <BarChart v-if="tipo == 'barras'" :data="datosGrafica.data" :title="nombreGrafica"/>
-        <LineChart v-if="tipo == 'linea'" :data="datosGrafica.data" :title="nombreGrafica" :metadata="datosGrafica.grafico_metadata"/>
+        <PieChart v-if="tipo == 'pie'" :data="datosGrafica.data" :title="nombreGrafica" :width="tamanowidth"/>
+        <BarChart v-if="tipo == 'barras'" :data="datosGrafica.data" :title="nombreGrafica" :width="tamanowidth" />
+        <LineChart v-if="tipo == 'linea'" :data="datosGrafica.data" :title="nombreGrafica" :metadata="datosGrafica.grafico_metadata" :width="tamanowidth"/>
       </div>
     </div>
   </template>
@@ -38,6 +38,10 @@
       type: String,
       default: 'Gráfico',
     },	
+    tamanowidth: {
+      type: Number,
+      default: 400,
+    },	
   });
   
   const cargando = ref(true);
@@ -57,10 +61,11 @@
   });
   </script>
   
+    <!-- border: 1px solid #ccc;  -->
   <style scoped>
   .grafico-contenedor {
-    /* border: 1px solid #ccc; */
     padding: 10px;
+    background-color:"green";
   }
   .loader {
     color: #888;
