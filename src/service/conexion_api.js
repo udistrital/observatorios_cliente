@@ -1,7 +1,8 @@
 import axios from "axios";
 import Swal from 'sweetalert2';
 // import API_DIR from "../../.env";
-const _API_DIR = 'http://localhost:8000/api/v1';
+// const _API_DIR = 'http://localhost:8000/api/v1';
+// const _API_DIR = 'http://observatoriospruebas.portaloas.udistrital.edu.co:8080/api/v1';
 // Crear instancia de Axios con la URL base del API desde .env
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_DIR,

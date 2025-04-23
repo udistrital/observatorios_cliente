@@ -75,7 +75,6 @@ const obtenerDatosEstructura = () => {
 onMounted(() => {
     armarFormulario();
     obtenerDatosEstructura();
-
 });
 
 const guardarCambios = () => {
