@@ -1,4 +1,5 @@
 <template>
+  <!-- <div class="vista__primaria"></div> -->
   <div
     class="contenedor-grilla vista__primaria"
     ref="miElemento"
@@ -7,7 +8,14 @@
       '--tamano-filas': tamanoFilas,
     }"
   >
-    <button @click="agregarItem">Crear Grafico</button>
+    <div class="cabecera">
+      <h1 class="titulo__cabecera">{{ panelStore?.panel.nombre }}</h1>
+      <v-spacer />
+      <!-- <v-btn color="primary" prepend-icon="mdi-plus" @click="agregarGrafica"
+          >Añadir Grafica</v-btn
+        > -->
+    </div>
+    <!-- <button @click="agregarItem">Crear Grafico</button> -->
 
     <div v-for="indiceFila in filas" :key="indiceFila" class="fila">
       <div
@@ -16,17 +24,44 @@
         :data-swapy-slot="`${indiceColumna}_${indiceFila}`"
         class="celda"
         :id="`${indiceColumna}_${indiceFila}`"
-        @click="crearGrafica(indiceColumna, indiceFila)"
       >
-        <!-- Si hay un gráfico en esa posición, renderiza el componente -->
-        <ContenedorGrafica
+        <!-- <div class="" v-if="!buscarGrafico(indiceColumna, indiceFila)"></div> -->
+        <v-card
           v-if="buscarGrafico(indiceColumna, indiceFila)"
-          :dashboard-id="panelStore.panel.id"
-          :grafico-id="buscarGrafico(indiceColumna, indiceFila)?.id"
-          :tipo="buscarGrafico(indiceColumna, indiceFila)?.configuracion?.tipo"
-          :nombre-grafica="buscarGrafico(indiceColumna, indiceFila)?.nombre"
-          :tamanowidth="resultado"
-        />
+          class="nueva-grafica"
+          @mouseup="isHovering = true"
+        >
+          <ContenedorGrafica
+            :dashboard-id="panelStore.panel.id"
+            :grafico-id="buscarGrafico(indiceColumna, indiceFila)?.id"
+            :tipo="
+              buscarGrafico(indiceColumna, indiceFila)?.configuracion?.tipo
+            "
+            :nombre-grafica="buscarGrafico(indiceColumna, indiceFila)?.nombre"
+            :tamanowidth="resultado"
+          />
+        </v-card>
+        <div
+          class="generico"
+          v-else
+          @click="crearGrafica(indiceColumna, indiceFila)"
+        >
+          <v-card class="nueva-grafica" @mouseup="isHovering = true">
+            <!-- <v-btn
+              class="ma-2"
+              color="blue-lighten-2"
+              icon="mdi-plus-circle-outline"
+              variant="text"
+            ></v-btn> -->
+            <v-icon
+              class="nueva__grafica-icon"
+              color="grey-lighten-1"
+              icon="mdi-plus-circle-outline"
+              size="150"
+            ></v-icon>
+            <p class="nueva__grafica-text">Agregar Gráfica</p>
+          </v-card>
+        </div>
       </div>
     </div>
   </div>
@@ -39,35 +74,37 @@ import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import { usePanelStore } from "@/stores/panelStore";
 import ContenedorGrafica from "./graficas/contenedorGrafica.vue";
+import { useObservatorioStore } from "@/stores/observatorioStore";
+// import { usePanelStore } from '@/stores/panelStore';
 
+// const panelStore = usePanelStore();
+const observatorioStore = useObservatorioStore();
 const panelStore = usePanelStore();
 const panelId = panelStore.panel.id;
 const router = useRouter();
 const tamanoCeldas = ref(1);
 const tamanoFilas = ref(1);
 const filas = ref(3);
-const columnas = ref(2);
+const columnas = ref(3);
 const swapy = ref(null);
 const contenedor = ref();
-
+const isHovering = ref(false);
 
 // Definir una referencia para el resultado
 const resultado = ref(0);
-    const miElemento = ref(null);
+const miElemento = ref(null);
 
-    // Función para calcular el ancho
-    const calcularAncho = () => {
-      const ancho = miElemento.value.offsetWidth;
-      resultado.value = (ancho - 100) / filas;
-      console.log(resultado.value, '-----------');
-    };
+// Función para calcular el ancho
+const calcularAncho = () => {
+  const ancho = miElemento.value.offsetWidth;
+  // resultado.value = (ancho - 100) / filas;
+  resultado.value = (ancho - 1000) / filas;
+  console.log(resultado.value, "-----------");
+};
 
-    // Usar onMounted para ejecutar el cálculo después de montar el componente
-    // onMounted(() => {
-    // });
-    
-    
-
+// Usar onMounted para ejecutar el cálculo después de montar el componente
+// onMounted(() => {
+// });
 
 const buscarGrafico = (columna, fila) => {
   console.log(
@@ -124,8 +161,6 @@ const obtenerGraficos = async () => {
   }
 };
 
-
-
 onMounted(() => {
   obtenerGraficos();
   console.log(graficos.value);
@@ -137,7 +172,7 @@ onMounted(() => {
     });
   }
 });
-    
+
 // onMounted(() => {
 // });
 
@@ -146,12 +181,11 @@ onUnmounted(() => {
 });
 const crearGrafica = (columna, fila) => {
   router.push({
-    name: "panelGraficas",
+    path: `graficas/${panelId}/${columna}/${fila}`,
+    // path: /:observatorio_id/panel/graficas/,`/${observatorioStore.observatorio?.observatorio_id}/tablero`
     params: { panel: panelId, columna, fila },
   });
 };
-
-
 </script>
   
   <style scoped>
@@ -166,21 +200,22 @@ const crearGrafica = (columna, fila) => {
   /* margin: 5%; */
   gap: 5px;
   /* background-color: seagreen; */
-  
 }
 
 .fila {
   display: flex;
   height: calc(100% / var(--tamano-filas));
   gap: 5px;
+  margin: 5px;
   /* background-color: tomato; */
 }
 
 .celda {
   width: calc(100% / var(--tamano-celdas));
   height: 100%;
-  border-radius: 16px;
-  background-color: rgb(234, 234, 234);
+  /* border-radius: 16px;
+  background-color: rgb(234, 234, 234); */
+  margin: 5px;
 }
 
 .item {
@@ -194,6 +229,35 @@ const crearGrafica = (columna, fila) => {
   height: 100% !important;
   background-color: rgb(243, 63, 213);
   border: 1px solid black;
+}
+.generico {
+  display: flex;
+  min-height: calc(90vw / 3);
+  cursor: pointer;
+}
+.nueva-grafica {
+  min-height: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: 16px;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+  /* box-shadow: 0px 5px 5px -3px var(--v-shadow-key-umbra-opacity, rgba(0, 0, 0, 0.2)),
+    0px 2px 2px 1px var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.14)),
+    0px 3px 14px 2px var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.12)) !important; */
+}
+.nueva-grafica:hover {
+  box-shadow: 0px 8px 10px -5px var(--v-shadow-key-umbra-opacity, rgba(0, 0, 0, 0.2)),
+    0px 16px 24px 2px var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.14)),
+    0px 6px 30px 5px var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.12)) !important;
+}
+.nueva__grafica-icon {
+}
+.nueva__grafica-text {
+  color: #bdbdbd;
+  font-size: 24px;
+  font-weight: bold;
 }
 </style>
   

@@ -209,7 +209,8 @@ import PieChart from "./PieChart.vue";
 import BarChart from "./BarChart.vue";
 import LineChart from "./LineChart.vue";
 import { usePanelStore } from '@/stores/panelStore';
-
+// import { useRouter } from "vue-router";
+const router = useRouter();
 const props = defineProps({
   columna: Number,
   fila: Number,
@@ -396,6 +397,9 @@ const guardarGrafica = () => {
         },
         buttonsStyling: false,
       });
+      setTimeout(() => {
+        router.go(-1)
+      }, 2000);
     })
     .catch((error) => console.error(error));
 

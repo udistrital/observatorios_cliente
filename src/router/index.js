@@ -34,7 +34,7 @@ const routes = [
     // ]
   },
   {
-    path: "/panel/graficas/:panel/:columna/:fila",
+    path: "/:observatorio_id/panel/graficas/:panel/:columna/:fila",
     name: "panelGraficas",
     props: true,
     component: () => import("../components/panel/Graficas.vue"),
@@ -43,15 +43,15 @@ const routes = [
     // ]
   },
   {
-    path: "/panel/principal",
+    path: "/:observatorio_id/panel/principal",
     name: "panelPrincipal",
     component: () => import("../components/panel/PanelVistaPrincipal.vue"),
     
   },
-  {
-    path: "/:pathMatch(.*)*",
-    redirect: "/espacios",
-  },
+  // {
+  //   path: "/:pathMatch(.*)*",
+  //   redirect: "/espacios",
+  // },
 ];
 
 const router = createRouter({
