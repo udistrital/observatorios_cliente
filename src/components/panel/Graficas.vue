@@ -4,9 +4,9 @@
       <div class="cabecera">
         <h1 class="titulo__cabecera">{{panelStore?.panel.nombre}}</h1>
         <v-spacer />
-        <v-btn color="primary" prepend-icon="mdi-plus" @click="agregarGrafica"
+        <!-- <v-btn color="primary" prepend-icon="mdi-plus" @click="agregarGrafica"
           >Añadir Grafica</v-btn
-        >
+        > -->
       </div>
       <div class="cuerpo">
         <CrearGraficas :columna="columna" :fila="fila" :dashboard="panelStore.panel.dashboard" />

@@ -1,13 +1,12 @@
 <template>
   <div class="main__creargrafica">
-    <div class="creargrafica__container">
+    <v-card elevation="8" class="creargrafica__container">
       <div class="muestra__grafica" v-if="verificar">
         <PieChart v-if="tipoVisualizacion == 'pie'" :data="datosGrafica.data" :title="nombreGrafica" />
         <BarChart v-if="tipoVisualizacion == 'barras'" :data="datosGrafica.data" :title="nombreGrafica"/>
         <LineChart v-if="tipoVisualizacion == 'linea'" :data="datosGrafica.data" :title="nombreGrafica" :metadata="datosGrafica.grafico_metadata"/>
-        
       </div>
-    </div>
+    </v-card>
     <div class="creargrafica__formulario">
       <v-card>
         <v-card-text>
@@ -189,8 +188,8 @@
           <v-card-actions v-if="configuracionGrafica?.datos_requeridos">
           </v-card-actions>
             <v-card-actions style="display: flex; justify-content: flex-end; gap: 10px;">
-            <v-btn variant="flat" color="primary" @click="crearConfiguracion">Visualizar</v-btn>
-            <v-btn variant="flat" color="secondary" @click="guardarGrafica">Guardar</v-btn>
+            <v-btn variant="outlined" color="primary" @click="crearConfiguracion">Visualizar</v-btn>
+            <v-btn variant="flat" color="primary" @click="guardarGrafica">Guardar</v-btn>
             </v-card-actions>
         </v-card-text>
       </v-card>
