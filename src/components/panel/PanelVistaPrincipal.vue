@@ -1,5 +1,6 @@
 <template>
   <!-- <div class="vista__primaria"></div> -->
+
   <div
     class="contenedor-grilla vista__primaria"
     ref="miElemento"
@@ -11,6 +12,21 @@
     <div class="cabecera">
       <h1 class="titulo__cabecera">{{ panelStore?.panel.nombre }}</h1>
       <v-spacer />
+      <!-- <v-btn color="red" @click="desactivarSwapy" v-if="swapyActivo"
+        >Bloquear movimiento</v-btn
+      >
+      <v-btn color="green" @click="activarSwapy" v-else
+        >Permitir movimiento</v-btn
+      > -->
+      <!-- :color="swapyActivo ? 'red' : 'green'"  -->
+      <v-btn
+        @click="toggleSwapy"
+        :variant="swapyActivo ? 'flat' : 'outlined'"
+        color="primary"
+      >
+        {{ swapyActivo ? "Guardar" : "Modificar Panel" }}
+      </v-btn>
+
       <!-- <v-btn color="primary" prepend-icon="mdi-plus" @click="agregarGrafica"
           >Añadir Grafica</v-btn
         > -->
@@ -25,42 +41,47 @@
         class="celda"
         :id="`${indiceColumna}_${indiceFila}`"
       >
-        <!-- <div class="" v-if="!buscarGrafico(indiceColumna, indiceFila)"></div> -->
-        <v-card
-          v-if="buscarGrafico(indiceColumna, indiceFila)"
-          class="nueva-grafica"
-          @mouseup="isHovering = true"
-        >
-          <ContenedorGrafica
-            :dashboard-id="panelStore.panel.id"
-            :grafico-id="buscarGrafico(indiceColumna, indiceFila)?.id"
-            :tipo="
-              buscarGrafico(indiceColumna, indiceFila)?.configuracion?.tipo
-            "
-            :nombre-grafica="buscarGrafico(indiceColumna, indiceFila)?.nombre"
-            :tamanowidth="resultado"
-          />
-        </v-card>
         <div
-          class="generico"
-          v-else
-          @click="crearGrafica(indiceColumna, indiceFila)"
+          :data-swapy-item="`${indiceColumna}_${indiceFila}`"
+          style="height: 100%; width: 100%"
         >
-          <v-card class="nueva-grafica" @mouseup="isHovering = true">
-            <!-- <v-btn
-              class="ma-2"
-              color="blue-lighten-2"
-              icon="mdi-plus-circle-outline"
-              variant="text"
-            ></v-btn> -->
-            <v-icon
-              class="nueva__grafica-icon"
-              color="grey-lighten-1"
-              icon="mdi-plus-circle-outline"
-              size="150"
-            ></v-icon>
-            <p class="nueva__grafica-text">Agregar Gráfica</p>
+          <v-card
+            v-if="buscarGrafico(indiceColumna, indiceFila)"
+            class="nueva-grafica"
+            @mouseup="isHovering = true"
+          >
+            <div v-if="swapyActivo" class="modificar__grafica">
+              <v-btn @click="toggleSwapy" color="primary">
+                Modificar Gráfica
+              </v-btn>
+            </div>
+            <v-spacer/>
+            <ContenedorGrafica
+              :dashboard-id="panelStore.panel.id"
+              :grafico-id="buscarGrafico(indiceColumna, indiceFila)?.id"
+              :tipo="
+                buscarGrafico(indiceColumna, indiceFila)?.configuracion?.tipo
+              "
+              :nombre-grafica="buscarGrafico(indiceColumna, indiceFila)?.nombre"
+              :tamanowidth="resultado"
+            />
           </v-card>
+
+          <div
+            class="generico"
+            v-else
+            @click="crearGrafica(indiceColumna, indiceFila)"
+          >
+            <v-card class="nueva-grafica" @mouseup="isHovering = true">
+              <v-icon
+                class="nueva__grafica-icon"
+                color="grey-lighten-1"
+                icon="mdi-plus-circle-outline"
+                size="150"
+              ></v-icon>
+              <p class="nueva__grafica-text">Agregar Gráfica</p>
+            </v-card>
+          </div>
         </div>
       </div>
     </div>
@@ -73,7 +94,7 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import { usePanelStore } from "@/stores/panelStore";
-import ContenedorGrafica from "./graficas/contenedorGrafica.vue";
+import ContenedorGrafica from "./graficas/ContenedorGrafica.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 // import { usePanelStore } from '@/stores/panelStore';
 
@@ -89,8 +110,9 @@ const columnas = ref(3);
 const swapy = ref(null);
 const contenedor = ref();
 const isHovering = ref(false);
+const swapyActivo = ref(false);
+const nuevoOrden = ref([]);
 
-// Definir una referencia para el resultado
 const resultado = ref(0);
 const miElemento = ref(null);
 
@@ -106,14 +128,82 @@ const calcularAncho = () => {
 // onMounted(() => {
 // });
 
+// const desactivarSwapy = () => {
+//   if (swapy.value) {
+//     swapy.value.destroy();
+//     swapy.value = null;
+//     swapyActivo.value = false;
+//     console.log("Swapy desactivado");
+//   }
+// };
+
+// const activarSwapy = () => {
+//   if (miElemento.value && !swapy.value) {
+//     swapy.value = createSwapy(miElemento.value);
+//     swapy.value.onSwap((evento) => {
+//       console.log("Intercambio detectado:", evento);
+//     });
+//     swapyActivo.value = true;
+//     console.log("Swapy activado");
+//   }
+// };
+
+const toggleSwapy = () => {
+  if (swapyActivo.value) {
+    // Está activo, entonces lo desactivamos
+    if (swapy.value) {
+      swapy.value.destroy();
+      swapy.value = null;
+      modificarPanel();
+    }
+    swapyActivo.value = false;
+    console.log("Swapy desactivado");
+  } else {
+    // Está desactivado, entonces lo activamos
+    if (miElemento.value) {
+      swapy.value = createSwapy(miElemento.value);
+      swapy.value.onSwap((evento) => {
+        console.log("Intercambio detectado:", evento.newSlotItemMap.asArray);
+        nuevoOrden.value = evento.newSlotItemMap.asArray;
+      });
+    }
+    swapyActivo.value = true;
+    console.log("Swapy activado");
+  }
+};
+
+const modificarPanel = () => {
+  peticionAPI(`dashboards/${panelStore.panel.id}/`, "PUT", {
+    orden: nuevoOrden.value,
+  })
+    .then((data) => {
+      Swal.fire({
+        title: "¡Activado!",
+        text: "El panel se ha sido reactivado correctamente.",
+        icon: "success",
+        width: "300px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+      setTimeout(() => {
+        traerPaneles();
+      }, 1000);
+    })
+    .catch((error) => console.error(error));
+};
+
 const buscarGrafico = (columna, fila) => {
-  console.log(
-    graficos.value.find(
-      (grafico) => grafico.columna === columna && grafico.fila === fila
-    ),
-    fila,
-    columna
-  );
+  // console.log(
+  //   graficos.value.find(
+  //     (grafico) => grafico.columna === columna && grafico.fila === fila
+  //   ),
+  //   fila,
+  //   columna
+  // );
   return graficos.value.find(
     (grafico) => grafico.columna === columna && grafico.fila === fila
   );
@@ -163,14 +253,20 @@ const obtenerGraficos = async () => {
 
 onMounted(() => {
   obtenerGraficos();
-  console.log(graficos.value);
+  // console.log(graficos.value);
   calcularAncho();
-  if (contenedor.value) {
-    swapy.value = createSwapy(contenedor.value);
-    swapy.value.onSwap((evento) => {
-      console.log("Intercambio detectado:", evento);
-    });
-  }
+  // if (contenedor.value) {
+  //   swapy.value = createSwapy(contenedor.value);
+  //   swapy.value.onSwap((evento) => {
+  //     console.log("Intercambio detectado:", evento);
+  //   });
+  // }
+  // if (miElemento.value) {
+  //   swapy.value = createSwapy(miElemento.value);
+  //   swapy.value.onSwap((evento) => {
+  //     console.log("Intercambio detectado:", evento);
+  //   });
+  // }
 });
 
 // onMounted(() => {
@@ -258,6 +354,15 @@ const crearGrafica = (columna, fila) => {
   color: #bdbdbd;
   font-size: 24px;
   font-weight: bold;
+}
+.cabecera {
+  margin: auto;
+  width: 98%;
+}
+.modificar__grafica{
+  /* background-color: red; */
+  width: 100%;
+  padding: 10px;
 }
 </style>
   
