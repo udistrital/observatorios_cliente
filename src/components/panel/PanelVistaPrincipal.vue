@@ -153,7 +153,7 @@ const calcularAncho = () => {
 
 
 const editarGrafica = (grafica) => {
-    graficaStore.setGrafspoica(grafica)
+    graficaStore.setGrafica(grafica)
     router.push(`/${observatorioStore.observatorio?.id}/panel/graficas/${panelStore.panel?.id}/${grafica.columna}/${grafica.fila}`);
 }
 
