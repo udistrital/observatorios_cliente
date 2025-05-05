@@ -199,7 +199,7 @@
 
 <script setup>
 // export default {};
-import { ref, computed, onMounted, reactive } from "vue";
+import { ref, computed, onMounted, reactive, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import Swal from "sweetalert2";
@@ -208,6 +208,7 @@ import PieChart from "./PieChart.vue";
 import BarChart from "./BarChart.vue";
 import LineChart from "./LineChart.vue";
 import { usePanelStore } from '@/stores/panelStore';
+import { useGraficaStore } from "@/stores/graficaStore";
 // import { useRouter } from "vue-router";
 const router = useRouter();
 const props = defineProps({
@@ -216,7 +217,7 @@ const props = defineProps({
   panel: String,
 });
 
-
+const graficaStore = useGraficaStore();
 const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const tipoGrafica = ref("");
@@ -297,7 +298,6 @@ const crearConfiguracion = () => {
       obligatorios: {},
       opcionales : {}
     }
-
     let subcampos = configuracionOperacion.value[element];
     if (subcampos?.obligatorios) {
       for (const subcampo of subcampos.obligatorios) {
@@ -381,8 +381,9 @@ const guardarGrafica = () => {
   configuracion.descripcion = "Desc";
 
   const panelId = panelStore.panel?.id
-
-  peticionAPI(`/graficos/${panelId}/`, "POST", configuracion)
+  const graficaId = graficaStore.grafica?.id
+  if (graficaStore.grafica){
+    peticionAPI(`/graficos/${panelId}/${graficaId}/`, "PUT", configuracion)
     .then((data) => {
       Swal.fire({
         title: "¡Guardado!",
@@ -401,13 +402,60 @@ const guardarGrafica = () => {
       }, 2000);
     })
     .catch((error) => console.error(error));
+  }
+  else {
+    peticionAPI(`/graficos/${panelId}/`, "POST", configuracion)
+    .then((data) => {
+      Swal.fire({
+        title: "¡Guardado!",
+        text: "La gráfica se guardó correctamente.",
+        icon: "success",
+        width: "300px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+      setTimeout(() => {
+        router.go(-1)
+      }, 2000);
+    })
+    .catch((error) => console.error(error));
+  }
+
+  
 
 
 }
 
+onUnmounted(() => {
+  graficaStore.clearGrafica();  
+});
+
 onMounted(() => {
   traerEstructuras();
-  console.log(props.columna, props.fila, props.panel);
+  if (graficaStore.grafica){
+    console.log("Grafica", graficaStore.grafica)
+    nombreGrafica.value = graficaStore.grafica.nombre
+    tipoGrafica.value = graficaStore.grafica.configuracion.tipo
+    estructuraSeleccionada.value = graficaStore.grafica.estructura
+    traerConfiguracion()
+
+    for (const key of Object.keys(graficaStore.grafica.configuracion)) {
+      if (key !== "tipo") {
+        console.log(key)
+        formValues.value[key] = graficaStore.grafica.configuracion[key].operacion;
+        campoConfigSeleccionado.value[key] = graficaStore.grafica.configuracion[key].campo;
+        traerCamposSugeridos(key)
+      }
+    }
+
+    setTimeout(() => {
+      crearConfiguracion();
+    }, 500);
+  }
 });
 </script>
 

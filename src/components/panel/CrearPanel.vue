@@ -17,6 +17,14 @@
           density="comfortable"
           required
         ></v-textarea>
+        <v-text-field
+          v-model="columnas"
+          type="number"
+          label="Columnas"
+          :min="1"
+          :max="4"
+          outlined
+        ></v-text-field>
       </v-form>
     </v-card-text>
     <v-card-actions>
@@ -45,13 +53,15 @@ const emit = defineEmits(["cerrar", "crear"]);
 
 const nombrePanel = ref("");
 const descripcion = ref("");
+const columnas = ref(1)
 
 
 const crearPanel = () => {
   const panel = {
     nombre: nombrePanel.value,
     descripcion: descripcion.value,
-    observatorio: observatorioStore.observatorio?.id
+    observatorio: observatorioStore.observatorio?.id,
+    columnas: columnas.value
   };
   peticionAPI("dashboards/", "POST", panel)
     .then((data) => {

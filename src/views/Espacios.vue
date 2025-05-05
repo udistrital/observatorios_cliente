@@ -74,8 +74,8 @@ onMounted(() => {
   overflow-x: hidden;
 }
 .espacio {
-  height: 130px;
-  width: 130px;
+  height: 150px;
+  width: 150px;
   border-radius: 8px;
   background-color: #ffffff;
   display: flex;
@@ -87,7 +87,8 @@ onMounted(() => {
 }
 .espacio__img img {
   height: 60px;
-  object-fit: cover;
+  width: 60px;
+  /* object-fit: cover; */
   border-radius: 50%;
 }
 .espacio__titulo {
