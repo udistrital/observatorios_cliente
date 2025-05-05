@@ -244,7 +244,8 @@ const dynamicMenuItems = computed(() => {
 }
 .dawer__logo-espacio img {
   height: 45px;
-  object-fit: cover;
+  width: 45px;
+  /* object-fit: cover; */
 }
 .dawer__logo-espacio {
   border-bottom: 2px solid rgb(189, 189, 189);
