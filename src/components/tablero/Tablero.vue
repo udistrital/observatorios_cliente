@@ -79,6 +79,12 @@
         :loading="cargando"
         items-per-page-text="Elementos por página:"
         item-value="name"
+        :items-per-page-options="[
+          {title: '10' , value: 10},
+          {title: '25' , value: 25},
+          {title: '50' , value: 50},
+          {title: '100' , value: 100}
+        ]"
         @update:page="actualizarPagina"
         @update:items-per-page="actualizarItemsPorPagina"
         @update:sort-by="actualizarOrden"
@@ -326,6 +332,7 @@ const datosFiltrados = computed(() => {
 });
 
 const aplicarFiltro = (data) => {
+  paginacion.page = 1
   filtros.value = Object.fromEntries(
     Object.entries(data).filter(
       ([, value]) => value !== null && value !== undefined && value !== ""
@@ -342,7 +349,7 @@ const limpiarFiltro = () => {
 };
 const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET", null, {
-    observatorio: observatorioStore.observatorio?.id,
+    observatorio: observatorioStore.observatorio?.observatorio_id,
   })
     .then((data) => {
       estructuras.value = data;
@@ -457,6 +464,7 @@ const cerrarModal = (data) => {
   _gestionRegistro.value = false;
   _agregarRegistro.value = false;
   _agregarFilro.value = false;
+  _cargarRegistro.value = false;
 };
 const agregarFiltro = () => {
   _agregarFilro.value = true;

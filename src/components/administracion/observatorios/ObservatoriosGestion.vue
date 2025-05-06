@@ -30,6 +30,7 @@
           @change="cargarImagen"
           variant="outlined"
           density="comfortable"
+          accept=".jpg,.jpeg,.png,.webp,.svg"
         />
       </v-form>
       <div v-if="imagenUrl" class="mt-4 text-center">
@@ -133,7 +134,7 @@ const guardarObservatorio = () => {
   if (imagen.value) {
     formData.append("imagen", imagen.value);
   }
-  peticionAPI(`/observatorios/${props.observatorio.id}/`, "PUT", formData)
+  peticionAPI(`/observatorios/${props.observatorio.observatorio_id}/`, "PUT", formData)
     .then((data) => {
       Swal.fire({
         title: "¡Actualizado!",

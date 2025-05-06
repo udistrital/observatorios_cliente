@@ -1,14 +1,20 @@
 <template>
   <div>
+    <!-- <v-navigation-drawer
+    > -->
+    <!-- permanent
+      temporary -->
+    <!-- :width="isHovering ? 200 : 64" -->
     <v-navigation-drawer
       class="floating-drawer"
-      permanent
-      temporary
-      :width="isHovering ? 200 : 64"
       @mouseenter="isHovering = true"
       @mouseleave="isHovering = false"
       color="light"
       v-if="verNavbar"
+      expand-on-hover
+      rail
+      :rail-width="64"
+      :width="250"
     >
       <v-list>
         <div
@@ -19,27 +25,27 @@
               : 'dawer__espacio-unhovering',
           ]"
         >
-          <!-- v-if="route.path.includes('administracion/')" -->
           <figure class="dawer__logo-espacio">
-            <!-- <img src="../assets/img/logo-admin.png" alt="Logo" /> -->
-            <img :src="imagenSrc" alt="Logo" />
-            <span class="dawer__titulo-espacio" v-show="isHovering">{{
-              tituloEspacio
-            }}</span>
+            <div class="dawer__img-espacio">
+              <img :src="imagenSrc" alt="Logo" />
+            </div>
+            <span class="dawer__titulo-espacio" v-show="isHovering">
+              {{ tituloEspacio }}
+            </span>
           </figure>
         </div>
         <v-list-item
-          v-for="(item, index) in filteredMenuItems"
+          v-for="(item, index) in dynamicMenuItems"
           :key="index"
           link
           :to="item.direccion"
-          :class="{ 'active-item': route.path === item.direccion }"
+          :class="{ 'active-item': route.path.includes(item.direccion) }"
         >
           <div class="dawer__item">
             <v-icon class="mr-2 dawer__icon">{{ item.icono }}</v-icon>
-            <span class="dawer__texto-item" v-show="isHovering">{{
-              item.texto
-            }}</span>
+            <span class="dawer__texto-item" v-show="isHovering">
+              {{ item.texto }}
+            </span>
           </div>
         </v-list-item>
       </v-list>
@@ -77,39 +83,29 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watchEffect } from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import logoAdmin from "@/assets/img/logo-admin.png";
 import logoDefault from "@/assets/img/logo.png";
 import { useObservatorioStore } from "@/stores/observatorioStore";
-const isHovering = ref(false);
-// const menuItems = [
-//   { texto: "Inicio", icono: "mdi-home", direccion: "/espacios" },
-//   {
-//     texto: "Observatorios",
-//     icono: "mdi-eye",
-//     direccion: "/administracion/observatorios",
-//     admin: true,
-//   },
-//   {
-//     texto: "Observatorios Externos",
-//     icono: " mdi-glasses",
-//     direccion: "/administracion/observatorios-externos",
-//     admin: true,
-//   },
-// ];
 
-const rutasNavegacion = {};
+const isHovering = ref(false);
 const route = useRoute();
+const observatorioStore = useObservatorioStore();
+
+const observatorioId = computed(() => {
+  return (
+    route.params.observatorio_id || observatorioStore.observatorio?.id || ""
+  );
+});
+
 const rutasNavbar = ["/", "/espacios"];
 const verNavbar = computed(() => !rutasNavbar.includes(route.path));
-const imagenBase64 = ref("");
-const observatorioStore = useObservatorioStore();
 
 const imagenSrc = computed(() => {
   return route.path.includes("administracion/")
-    ? logoAdmin 
-    : observatorioStore.observatorio?.imagen || "";
+    ? logoAdmin
+    : observatorioStore.observatorio?.imagen || logoDefault;
 });
 
 const tituloEspacio = computed(() => {
@@ -132,18 +128,6 @@ const menuItems = [
     direccion: "/administracion/observatorios",
     admin: true,
   },
-  // {
-  //   texto: "Observatorios Externos",
-  //   icono: " mdi-glasses",
-  //   direccion: "/administracion/observatorios-externos",
-  //   admin: true,
-  // },
-  // {
-  //   texto: "Estructuras",
-  //   icono: "mdi-source-branch",
-  //   direccion: "/estructuras",
-  //   admin: false,
-  // },
   {
     texto: "Estructuras",
     icono: "mdi-graph-outline",
@@ -156,12 +140,6 @@ const menuItems = [
     direccion: "/tablero",
     admin: false,
   },
-  // {
-  //   texto: "Tablero",
-  //   icono: "mdi-file-document-outline",
-  //   direccion: "/panel",
-  //   admin: false,
-  // },
   {
     texto: "Panel",
     icono: "mdi-view-dashboard",
@@ -170,11 +148,28 @@ const menuItems = [
   },
 ];
 
-const filteredMenuItems = computed(() => {
+const dynamicMenuItems = computed(() => {
   const esAdmin = route.path.includes("administracion/");
-  return menuItems.filter(
+
+  // Primero filtramos los items según la condición original:
+  // Si el item es general, se muestra; de lo contrario, se muestran
+  // aquellos que son admin sólo en rutas de administración y viceversa.
+  const itemsFiltrados = menuItems.filter(
     (item) => item.general || (esAdmin ? item.admin : !item.admin)
   );
+
+  // Luego, mapeamos los items filtrados para actualizar la dirección de
+  // aquellos que deben incluir el observatorio_id.
+  return itemsFiltrados.map((item) => {
+    const rutasConParametro = ["/estructuras", "/tablero", "/panel"];
+    if (observatorioId.value && rutasConParametro.includes(item.direccion)) {
+      return {
+        ...item,
+        direccion: `/${observatorioId.value}${item.direccion}`,
+      };
+    }
+    return item;
+  });
 });
 </script>
 
@@ -226,8 +221,7 @@ const filteredMenuItems = computed(() => {
   color: var(--color-fuerte);
 }
 .dawer__espacio {
-  height: 100%;
-  height: 85px;
+  height: 56px;
   display: flex;
   align-items: center;
   width: 90%;
@@ -242,12 +236,19 @@ const filteredMenuItems = computed(() => {
 .dawer__titulo-espacio {
   font-size: 18px;
   font-weight: bolder;
-  margin-left: 5px;
+  /* margin-left: 10px; */
   color: var(--texto-medio-color);
+}
+.dawer__img-espacio {
+  min-width: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 .dawer__logo-espacio img {
   height: 45px;
-  object-fit: cover;
+  width: 45px;
+  /* object-fit: cover; */
 }
 .dawer__logo-espacio {
   /* border-bottom: 2px solid rgb(189, 189, 189); */
@@ -269,5 +270,10 @@ const filteredMenuItems = computed(() => {
 }
 .active-item {
   border-left: 5px var(--color-acentuado) solid;
+  padding-left: -5px;
+}
+
+.floating-drawer.v-navigation-drawer--rail {
+  width: 64px !important;
 }
 </style>
