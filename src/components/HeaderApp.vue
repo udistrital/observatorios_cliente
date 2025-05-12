@@ -221,7 +221,7 @@ const dynamicMenuItems = computed(() => {
   color: var(--color-fuerte);
 }
 .dawer__espacio {
-  height: 56px;
+  height: 85px;
   display: flex;
   align-items: center;
   width: 90%;

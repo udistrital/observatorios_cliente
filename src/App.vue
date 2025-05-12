@@ -2,7 +2,7 @@
   <v-app>
     <ng-uui-oas ref="oas"></ng-uui-oas>
     <ng-uui-notioas ref="notioas"></ng-uui-notioas>
-    <!-- <header-app /> -->
+    <header-app />
     <div class="main">
       <router-view></router-view>
     </div>
@@ -11,64 +11,83 @@
 </template>
 
 <script setup>
-import FooterApp from "./components/FooterApp.vue";
 import HeaderApp from "./components/HeaderApp.vue";
-import { useRoute } from "vue-router";
-import { ref, onMounted, nextTick } from "vue";
+import { ref, watchEffect } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { environment } from './eviroments';
-// import { useUserService } from '@/services/userService'; // Ajusta la ruta si es necesario
+import { useUserService } from '@/service/userService';
+// import { useNotificaciones } from '@/services/notificaciones'; // Si quieres usarlo después
 
-const route = useRoute();
 const oas = ref(null);
 const notioas = ref(null);
-// const userService = useUserService();
+const route = useRoute();
+const router = useRouter();
+const userService = useUserService();
+// const notificacionesService = useNotificaciones(); // si se necesita luego
+const loadRouting = ref(false);
 
-onMounted(() => {
-  nextTick(() => {
-    // Asigna environment
-    if (oas.value) {
-      oas.value.environment = environment;
+// Esperar a que oas esté listo realmente
+watchEffect(() => {
+  if (oas.value) {
+    console.log('✅ <ng-uui-oas> disponible:', oas.value);
 
-      // Listener local en el componente
-      oas.value.addEventListener('menu', (event) => {
-        const customEvent = event;
-        const menu = customEvent.detail;
+    oas.value.environment = environment;
+    console.log('🌍 Environment asignado a oas:', environment);
 
-        console.log('🔥 Listener LOCAL → Evento menu recibido:', customEvent);
-        console.log('🧾 LOCAL → Detalle del menu:', menu);
+    // 🎯 Escuchar evento MENU (objetivo principal)
 
-        if (Array.isArray(menu)) {
-          // userService.updatePermisos(menu);
-        } else {
-          console.warn('❌ LOCAL → El "menu" recibido no es un array:', typeof menu, menu);
-        }
-      });
-    }
+    const base64Data = localStorage.getItem('menu');
+    const jsonString = atob(base64Data);
+    const jsonObject = JSON.parse(jsonString);
+    console.log(jsonObject);
 
-    // Listener GLOBAL para verificar propagación
-    window.addEventListener('menu', (event) => {
-      const menu = (event).detail;
-      console.log('🌍 Listener GLOBAL → Evento menu capturado:', menu);
+
+    oas.value.addEventListener('menu', (event) => {
+      const menu = event.detail;
+      console.log('📋 Evento [menu] recibido con:', menu);
+
+      if (Array.isArray(menu)) {
+        userService.updatePermisos(menu);
+        console.log('✅ Permisos actualizados:', menu);
+      } else {
+        console.warn('❌ "menu" no es un array:', typeof menu, menu);
+      }
     });
 
-    // Simulación manual del evento (solo para pruebas)
-    setTimeout(() => {
-      console.log('🚀 Disparando evento simulado...');
-      oas.value?.dispatchEvent(new CustomEvent('menu', {
-        detail: ['permiso1', 'permiso2'],
-        bubbles: true,
-        composed: true
-      }));
-    }, 2000); // lo dispara 2 segundos después del montaje
-  });
-});
-</script>
+    // Opcionales si decides usarlos
+    oas.value.addEventListener('user', (event) => {
+      const detail = event.detail;
+      console.log('👤 Evento [user] recibido:', detail);
+      if (detail) {
+        loadRouting.value = true;
+        userService.updateUser(detail);
+      }
+    });
 
+    oas.value.addEventListener('option', (event) => {
+      const detail = event.detail;
+      console.log('📁 Evento [option] recibido:', detail);
+      if (detail?.Url) {
+        router.push(detail.Url);
+        console.log('🚀 Navegación a:', detail.Url);
+      }
+    });
+
+    oas.value.addEventListener('logout', (event) => {
+      console.log('🚪 Evento [logout] recibido:', event.detail);
+    });
+  } else {
+    console.warn('❗ Esperando a que <ng-uui-oas> esté disponible...');
+  }
+});
+
+// Si quieres escuchar notioas más adelante, puedes copiar esta misma lógica con watchEffect también
+</script>
 <style scoped>
 .main {
   background-color: var(--fondo-principal);
-  height: calc(100vh - 64px - 64px);
+  height: calc(100vh - 80px - 85px);
   overflow-y: auto;
-  margin-top: 64px;
+  margin-top: 90px;
 }
 </style>
