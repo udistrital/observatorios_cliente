@@ -17,7 +17,9 @@ import { useRoute, useRouter } from 'vue-router';
 import { environment } from './eviroments';
 import { useUserService } from '@/service/userService';
 // import { useNotificaciones } from '@/services/notificaciones'; // Si quieres usarlo después
+import { useUserStore } from '@/stores/userStore';
 
+const userStore = useUserStore();
 const oas = ref(null);
 const notioas = ref(null);
 const route = useRoute();
@@ -34,14 +36,26 @@ watchEffect(() => {
     oas.value.environment = environment;
     console.log('🌍 Environment asignado a oas:', environment);
 
-    // 🎯 Escuchar evento MENU (objetivo principal)
-
+    // 🔁 Obtener el menú desde localStorage si existe
     const base64Data = localStorage.getItem('menu');
-    const jsonString = atob(base64Data);
-    const jsonObject = JSON.parse(jsonString);
-    console.log(jsonObject);
+    if (base64Data) {
+      try {
+        const jsonString = atob(base64Data);
+        const jsonObject = JSON.parse(jsonString);
+        console.log('📦 Menú desde localStorage:', jsonObject);
 
+        if (Array.isArray(jsonObject)) {
+          userService.updatePermisos(jsonObject);
+          console.log('✅ Permisos actualizados desde localStorage');
+        } else {
+          console.warn('❌ Menú no es un array válido:', jsonObject);
+        }
+      } catch (e) {
+        console.error('❌ Error decodificando menú:', e);
+      }
+    }
 
+    // 🎯 Evento: MENU
     oas.value.addEventListener('menu', (event) => {
       const menu = event.detail;
       console.log('📋 Evento [menu] recibido con:', menu);
@@ -54,16 +68,32 @@ watchEffect(() => {
       }
     });
 
-    // Opcionales si decides usarlos
-    oas.value.addEventListener('user', (event) => {
+    // 🎯 Evento: USER (mejora aplicada aquí)
+    const handleUser = (event) => {
       const detail = event.detail;
       console.log('👤 Evento [user] recibido:', detail);
+      userStore.setUser(detail.user);
       if (detail) {
         loadRouting.value = true;
         userService.updateUser(detail);
       }
-    });
+    };
 
+    // Escuchar evento si se lanza
+    oas.value.addEventListener('user', handleUser);
+
+    // Intentar obtener usuario directamente si ya inició sesión
+    setTimeout(() => {
+      const currentUser = oas.value?.user;
+      if (currentUser) {
+        console.log('👤 Usuario disponible como propiedad:', currentUser);
+        handleUser({ detail: currentUser });
+      } else {
+        console.log('⏳ Usuario aún no disponible desde propiedad');
+      }
+    }, 300);
+
+    // 🎯 Evento: OPTION
     oas.value.addEventListener('option', (event) => {
       const detail = event.detail;
       console.log('📁 Evento [option] recibido:', detail);
@@ -73,9 +103,11 @@ watchEffect(() => {
       }
     });
 
+    // 🎯 Evento: LOGOUT
     oas.value.addEventListener('logout', (event) => {
       console.log('🚪 Evento [logout] recibido:', event.detail);
     });
+
   } else {
     console.warn('❗ Esperando a que <ng-uui-oas> esté disponible...');
   }

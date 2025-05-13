@@ -132,7 +132,9 @@ import CrearPanel from "./CrearPanel.vue";
 import PanelGestion from "./PanelGestion.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import { usePanelStore } from '@/stores/panelStore';
+import { useUserStore } from '@/stores/userStore';
 
+const userStore = useUserStore();
 const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const router = useRouter();
@@ -298,6 +300,7 @@ const diriguirsePanel = (item) => {
 };
 onMounted(() => {
   traerPaneles();
+  console.log('User desde panel', userStore.user);
 });
 </script>
 
