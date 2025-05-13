@@ -48,10 +48,10 @@ const routes = [
     component: () => import("../components/panel/PanelVistaPrincipal.vue"),
     
   },
-  // {
-  //   path: "/:pathMatch(.*)*",
-  //   redirect: "/espacios",
-  // },
+  {
+    path: "/:pathMatch(.*)*",
+    redirect: "/espacios",
+  },
 ];
 
 const router = createRouter({
