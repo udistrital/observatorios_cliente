@@ -221,8 +221,8 @@ const reactivarPanel = async (item) => {
     peticionAPI(`dashboards/${id}/`, "PUT", { activo: true })
       .then((data) => {
         Swal.fire({
-          title: "¡Activado!",
-          text: "El panel se ha sido reactivado correctamente.",
+          title: "¡Guardado!",
+          text: "El panel se ha actualizado correctamente.",
           icon: "success",
           width: "300px",
           customClass: {
@@ -291,6 +291,7 @@ const diriguirsePanel = (item) => {
     nombre:      item.raw.nombre,
     descripcion: item.raw.descripcion,
     observatorio: item.raw.observatorio,
+    columnas: item.raw.columnas
   });
 
   router.push(`panel/principal`);

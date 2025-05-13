@@ -51,8 +51,32 @@
             @mouseup="isHovering = true"
           >
             <div v-if="swapyActivo" class="modificar__grafica">
-              <v-btn @click="toggleSwapy" color="primary">
+              <!-- <v-btn @click="toggleSwapy" color="primary">
                 Modificar Gráfica
+              </v-btn> -->
+              <v-btn
+              variant="text"
+              icon
+              size="small"
+              color="primary"
+              title="Editar Grafica"
+              @click="editarGrafica(
+                buscarGrafico(indiceColumna, indiceFila))
+                "
+              >
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+              <v-btn
+                variant="text"
+                icon
+                size="small"
+                color="primary"
+                title="Eliminar Grafica"
+                @click="eliminarGrafica(
+                  buscarGrafico(indiceColumna, indiceFila).id
+                )"
+              >
+                <v-icon>mdi-trash-can</v-icon>
               </v-btn>
             </div>
             <v-spacer/>
@@ -94,19 +118,22 @@ import { onMounted, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import { usePanelStore } from "@/stores/panelStore";
+import { useGraficaStore } from "@/stores/graficaStore";
 import ContenedorGrafica from "./graficas/ContenedorGrafica.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import Swal from "sweetalert2";
 // import { usePanelStore } from '@/stores/panelStore';
 
 // const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const panelStore = usePanelStore();
+const graficaStore = useGraficaStore();
 const panelId = panelStore.panel.id;
 const router = useRouter();
 const tamanoCeldas = ref(1);
 const tamanoFilas = ref(1);
 const filas = ref(3);
-const columnas = ref(3);
+const columnas = panelStore.panel?.columnas? ref(panelStore.panel.columnas): ref(3);
 const swapy = ref(null);
 const contenedor = ref();
 const isHovering = ref(false);
@@ -123,6 +150,54 @@ const calcularAncho = () => {
   resultado.value = (ancho - 1000) / filas;
   console.log(resultado.value, "-----------");
 };
+
+
+const editarGrafica = (grafica) => {
+    graficaStore.setGrafica(grafica)
+    router.push(`/${observatorioStore.observatorio?.id}/panel/graficas/${panelStore.panel?.id}/${grafica.columna}/${grafica.fila}`);
+}
+
+const eliminarGrafica = (graficaId) => {
+  const panelId = panelStore.panel?.id;
+
+  Swal.fire({
+    title: "¿Estás seguro?",
+    text: "Esta acción eliminará la gráfica permanentemente.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Sí, eliminar",
+    cancelButtonText: "Cancelar",
+    width: "300px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  }).then((result) => {
+    if (result.isConfirmed) {
+      peticionAPI(`/graficos/${panelId}/${graficaId}/`, "DELETE").then((data) => {
+        Swal.fire({
+          title: "¡Eliminado!",
+          text: "La gráfica se eliminó correctamente.",
+          icon: "success",
+          width: "300px",
+          customClass: {
+            popup: "popup-personalizado",
+            title: "titulo-alerta-personalizado",
+            confirmButton: "confirmacion-alerta-personalizado",
+          },
+          buttonsStyling: false,
+        });
+
+        setTimeout(() => {
+          location.reload();  // 👈 Esto recarga toda la página
+        }, 2000);
+      }).catch((error) => console.error(error));
+    }
+  });
+}
 
 // Usar onMounted para ejecutar el cálculo después de montar el componente
 // onMounted(() => {
@@ -244,6 +319,7 @@ const graficos = ref([]);
 
 const obtenerGraficos = async () => {
   try {
+    console.log(panelStore.panel)
     const response = await peticionAPI(`/graficos/${panelStore.panel.id}`);
     graficos.value = response;
   } catch (error) {
@@ -361,6 +437,8 @@ const crearGrafica = (columna, fila) => {
 }
 .modificar__grafica{
   /* background-color: red; */
+display: flex;
+justify-content: flex-end;
   width: 100%;
   padding: 10px;
 }

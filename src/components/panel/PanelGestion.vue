@@ -21,6 +21,15 @@
           density="comfortable"
           required
         ></v-textarea>
+        <v-text-field
+          :disabled="!isEditing"
+          v-model="panel.columnas"
+          type="number"
+          label="Columnas"
+          :min="1"
+          :max="4"
+          outlined
+        ></v-text-field>
       </v-form>
     </v-card-text>
     <v-card-actions>
