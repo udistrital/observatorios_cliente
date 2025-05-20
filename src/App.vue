@@ -12,12 +12,12 @@
 
 <script setup>
 import HeaderApp from "./components/HeaderApp.vue";
-import { ref, watchEffect } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { environment } from './eviroments';
-import { useUserService } from '@/service/userService';
+import { ref, watchEffect } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { environment } from "./eviroments";
+import { useUserService } from "@/service/userService";
 // import { useNotificaciones } from '@/services/notificaciones'; // Si quieres usarlo después
-import { useUserStore } from '@/stores/userStore';
+import { useUserStore } from "@/stores/userStore";
 
 const userStore = useUserStore();
 const oas = ref(null);
@@ -31,38 +31,19 @@ const loadRouting = ref(false);
 // Esperar a que oas esté listo realmente
 watchEffect(() => {
   if (oas.value) {
-    console.log('✅ <ng-uui-oas> disponible:', oas.value);
+    console.log("✅ <ng-uui-oas> disponible:", oas.value);
 
     oas.value.environment = environment;
-    console.log('🌍 Environment asignado a oas:', environment);
-
-    // 🔁 Obtener el menú desde localStorage si existe
-    const base64Data = localStorage.getItem('menu');
-    if (base64Data) {
-      try {
-        const jsonString = atob(base64Data);
-        const jsonObject = JSON.parse(jsonString);
-        console.log('📦 Menú desde localStorage:', jsonObject);
-
-        if (Array.isArray(jsonObject)) {
-          userService.updatePermisos(jsonObject);
-          console.log('✅ Permisos actualizados desde localStorage');
-        } else {
-          console.warn('❌ Menú no es un array válido:', jsonObject);
-        }
-      } catch (e) {
-        console.error('❌ Error decodificando menú:', e);
-      }
-    }
+    console.log("🌍 Environment asignado a oas:", environment);
 
     // 🎯 Evento: MENU
-    oas.value.addEventListener('menu', (event) => {
+    oas.value.addEventListener("menu", (event) => {
       const menu = event.detail;
-      console.log('📋 Evento [menu] recibido con:', menu);
+      console.log("📋 Evento [menu] recibido con:", menu);
 
       if (Array.isArray(menu)) {
         userService.updatePermisos(menu);
-        console.log('✅ Permisos actualizados:', menu);
+        console.log("✅ Permisos actualizados:", menu);
       } else {
         console.warn('❌ "menu" no es un array:', typeof menu, menu);
       }
@@ -71,7 +52,7 @@ watchEffect(() => {
     // 🎯 Evento: USER (mejora aplicada aquí)
     const handleUser = (event) => {
       const detail = event.detail;
-      console.log('👤 Evento [user] recibido:', detail);
+      console.log("👤 Evento [user] recibido:", detail);
       userStore.setUser(detail.user);
       if (detail) {
         loadRouting.value = true;
@@ -80,36 +61,59 @@ watchEffect(() => {
     };
 
     // Escuchar evento si se lanza
-    oas.value.addEventListener('user', handleUser);
+    oas.value.addEventListener("user", handleUser);
 
     // Intentar obtener usuario directamente si ya inició sesión
     setTimeout(() => {
       const currentUser = oas.value?.user;
       if (currentUser) {
-        console.log('👤 Usuario disponible como propiedad:', currentUser);
+        console.log("👤 Usuario disponible como propiedad:", currentUser);
         handleUser({ detail: currentUser });
       } else {
-        console.log('⏳ Usuario aún no disponible desde propiedad');
+        console.log("⏳ Usuario aún no disponible desde propiedad");
       }
     }, 300);
 
     // 🎯 Evento: OPTION
-    oas.value.addEventListener('option', (event) => {
+    oas.value.addEventListener("option", (event) => {
       const detail = event.detail;
-      console.log('📁 Evento [option] recibido:', detail);
+      console.log("📁 Evento [option] recibido:", detail);
       if (detail?.Url) {
         router.push(detail.Url);
-        console.log('🚀 Navegación a:', detail.Url);
+        console.log("🚀 Navegación a:", detail.Url);
       }
     });
 
-    // 🎯 Evento: LOGOUT
-    oas.value.addEventListener('logout', (event) => {
-      console.log('🚪 Evento [logout] recibido:', event.detail);
-    });
+    // 🔁 Obtener el menú desde localStorage si existe
+    const currentUser = oas.value?.user;
+    if (currentUser) {
+      const base64Data = localStorage.getItem("menu");
+      if (base64Data) {
+        try {
+          const jsonString = atob(base64Data);
+          const jsonObject = JSON.parse(jsonString);
+          console.log("📦 Menú desde localStorage:", jsonObject);
 
+          if (Array.isArray(jsonObject)) {
+            userService.updatePermisos(jsonObject);
+            console.log("✅ Permisos actualizados desde localStorage");
+          } else {
+            console.warn("❌ Menú no es un array válido:", jsonObject);
+          }
+        } catch (e) {
+          console.error("❌ Error decodificando menú:", e);
+        }
+      } else {
+        router.go();
+      }
+    }
+
+    // 🎯 Evento: LOGOUT
+    oas.value.addEventListener("logout", (event) => {
+      console.log("🚪 Evento [logout] recibido:", event.detail);
+    });
   } else {
-    console.warn('❗ Esperando a que <ng-uui-oas> esté disponible...');
+    console.warn("❗ Esperando a que <ng-uui-oas> esté disponible...");
   }
 });
 

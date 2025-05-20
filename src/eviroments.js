@@ -3,7 +3,7 @@ export const environment = {
   entorno: 'test',
   autenticacion: true,
   notificaciones: false,
-  menuApps: true,
+  menuApps: false,
   appname: 'Observatorios',
   appMenu: 'Observatorios',
   SINTOMAS_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/sintomas_crud/v1/',

@@ -83,7 +83,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import logoAdmin from "@/assets/img/logo-admin.png";
 import logoDefault from "@/assets/img/logo.png";
@@ -147,6 +147,35 @@ const menuItems = [
     admin: false,
   },
 ];
+
+watchEffect(() => {
+  // if (oas.value) {
+  //   console.log('✅ <ng-uui-oas> disponible:', oas.value);
+
+  //   oas.value.environment = environment;
+  //   console.log('🌍 Environment asignado a oas:', environment);
+console.log('trata entrar');
+
+  //   // 🔁 Obtener el menú desde localStorage si existe
+    const base64Data = localStorage.getItem('menu');
+    if (base64Data) {
+      try {
+        const jsonString = atob(base64Data);
+        const jsonObject = JSON.parse(jsonString);
+        console.log('📦 Menú desde localStorage desde el heard:', jsonObject);
+
+        if (Array.isArray(jsonObject)) {
+          userService.updatePermisos(jsonObject);
+          console.log('✅ Permisos actualizados desde localStorage');
+        } else {
+          console.warn('❌ Menú no es un array válido:', jsonObject);
+        }
+      } catch (e) {
+        console.error('❌ Error decodificando menú:', e);
+      }
+    }
+  // }
+})
 
 const dynamicMenuItems = computed(() => {
   const esAdmin = route.path.includes("administracion/");

@@ -1,6 +1,6 @@
 <template>
   <div class="main-espacios">
-    <div class="espacio elevation-5" @click="verAdministracion">
+    <div class="espacio elevation-5" @click="verAdministracion" v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')">
       <div class="espacio__item"></div>
       <figure class="espacio__img">
         <img src="../assets/img/logo-admin.png" alt="administracion" />
@@ -28,11 +28,14 @@ import espaciosData from "../data_prueba.json";
 import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import { useUserStore } from "@/stores/userStore";
 
+const userStore = useUserStore();
 const observatorioStore = useObservatorioStore();
 const router = useRouter();
 const espacios = ref([]);
 const observatorios = ref();
+const roleUsuario = ref('')
 
 const verAdministracion = () => {
   router.push("/administracion/observatorios");
@@ -62,6 +65,7 @@ const diriguirseObservatorio = (item) => {
 onMounted(() => {
   espacios.value = espaciosData.espacios;
   traerObservatorios();
+  roleUsuario.value = userStore.user.role
 });
 </script>
 
