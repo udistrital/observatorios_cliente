@@ -119,7 +119,8 @@ const chartOptions = computed(() => ({
     enabled: true,
     formatter: (val, opts) => {
       const total = opts.w.globals.seriesTotals.reduce((a, b) => a + b, 0);
-      const percentage = ((val / total) * 100).toFixed(1);
+      console.log(opts.w.globals.seriesTotals,"Total: ", total, "Val: ",val);
+      const percentage = (val).toFixed(1);
       return `${percentage}%`;
     },
     style: {
