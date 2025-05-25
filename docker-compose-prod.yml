@@ -7,4 +7,4 @@ services:
       dockerfile: Dockerfile
     container_name: observatorio-frontend
     ports:
-      - "5173:5173"  # Puerto externo 5173 -> interno 80 (nginx)
+      - "4200:4200"  # Puerto externo 4200 -> interno 80 (nginx)
