@@ -1,6 +1,10 @@
 <template>
   <div class="main-espacios">
-    <div class="espacio elevation-5" @click="verAdministracion" v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')">
+    <div
+      class="espacio elevation-5"
+      @click="verAdministracion"
+      v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
+    >
       <div class="espacio__item"></div>
       <figure class="espacio__img">
         <img src="../assets/img/logo-admin.png" alt="administracion" />
@@ -23,7 +27,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import espaciosData from "../data_prueba.json";
 import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
@@ -35,7 +39,7 @@ const observatorioStore = useObservatorioStore();
 const router = useRouter();
 const espacios = ref([]);
 const observatorios = ref();
-const roleUsuario = ref('')
+const roleUsuario = ref([""]);
 
 const verAdministracion = () => {
   router.push("/administracion/observatorios");
@@ -46,9 +50,10 @@ const traerObservatorios = () => {
   peticionAPI("observatorios/", "GET")
     .then((data) => {
       espacios.value = data;
-      localStorage.setItem('observatorios_espacios', JSON.stringify(espacios.value))
-      console.log(espacios.value );
-      
+      localStorage.setItem(
+        "observatorios_espacios",
+        JSON.stringify(espacios.value)
+      );
     })
     .catch((error) => console.error(error));
 };
@@ -60,12 +65,25 @@ const diriguirseObservatorio = (item) => {
     nombre: item.nombre,
     imagen: item.imagen,
   });
-  router.push(`/${item.observatorio_id}/estructuras`);
+  if (roleUsuario.value.includes('ADMIN_OBSERVATORIOS')) {
+    
+    router.push(`/${item.observatorio_id}/estructuras`);
+  }else{
+    router.push(`/${item.observatorio_id}/panel`);
+  }
 };
+watch(
+  () => userStore.user?.role,
+  (nuevoRol) => {
+    if (nuevoRol?.length) {
+      roleUsuario.value = nuevoRol;
+    }
+  },
+  { immediate: true }
+);
 onMounted(() => {
   espacios.value = espaciosData.espacios;
   traerObservatorios();
-  roleUsuario.value = userStore.user.role
 });
 </script>
 

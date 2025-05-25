@@ -34,25 +34,12 @@ watchEffect(() => {
     console.log("✅ <ng-uui-oas> disponible:", oas.value);
 
     oas.value.environment = environment;
-    console.log("🌍 Environment asignado a oas:", environment);
-
-    // 🎯 Evento: MENU
-    oas.value.addEventListener("menu", (event) => {
-      const menu = event.detail;
-      console.log("📋 Evento [menu] recibido con:", menu);
-
-      if (Array.isArray(menu)) {
-        userService.updatePermisos(menu);
-        console.log("✅ Permisos actualizados:", menu);
-      } else {
-        console.warn('❌ "menu" no es un array:', typeof menu, menu);
-      }
-    });
+    console.log("🌍 Environment asignado a oas:");
 
     // 🎯 Evento: USER (mejora aplicada aquí)
     const handleUser = (event) => {
       const detail = event.detail;
-      console.log("👤 Evento [user] recibido:", detail);
+      console.log("👤 Evento [user] recibido:");
       userStore.setUser(detail.user);
       if (detail) {
         loadRouting.value = true;
@@ -67,7 +54,7 @@ watchEffect(() => {
     setTimeout(() => {
       const currentUser = oas.value?.user;
       if (currentUser) {
-        console.log("👤 Usuario disponible como propiedad:", currentUser);
+        console.log("👤 Usuario disponible como propiedad:");
         handleUser({ detail: currentUser });
       } else {
         console.log("⏳ Usuario aún no disponible desde propiedad");
@@ -77,34 +64,54 @@ watchEffect(() => {
     // 🎯 Evento: OPTION
     oas.value.addEventListener("option", (event) => {
       const detail = event.detail;
-      console.log("📁 Evento [option] recibido:", detail);
+      console.log("📁 Evento [option] recibido:");
       if (detail?.Url) {
         router.push(detail.Url);
         console.log("🚀 Navegación a:", detail.Url);
       }
     });
+    // 🎯 Evento: MENU
+    // oas.value.addEventListener("menu", (event) => {
+    //   const menu = event.detail;
+    //   console.log("📋 Evento [menu] recibido con:", menu);
 
-    // 🔁 Obtener el menú desde localStorage si existe
-    const currentUser = oas.value?.user;
-    if (currentUser) {
-      const base64Data = localStorage.getItem("menu");
-      if (base64Data) {
-        try {
-          const jsonString = atob(base64Data);
-          const jsonObject = JSON.parse(jsonString);
-          console.log("📦 Menú desde localStorage:", jsonObject);
+    //   if (Array.isArray(menu)) {
+    //     userService.updatePermisos(menu);
+    //     console.log("✅ Permisos actualizados:", menu);
+    //   } else {
+    //     console.warn('❌ "menu" no es un array:', typeof menu, menu);
+    //   }
+    // });
+    const handleMenu = (event) => {
+      const detail = event.detail;
+      console.log("📋 Evento [menu] recibido con:");
 
-          if (Array.isArray(jsonObject)) {
-            userService.updatePermisos(jsonObject);
-            console.log("✅ Permisos actualizados desde localStorage");
-          } else {
-            console.warn("❌ Menú no es un array válido:", jsonObject);
-          }
-        } catch (e) {
-          console.error("❌ Error decodificando menú:", e);
-        }
+      if (Array.isArray(detail)) {
+        userService.updatePermisos(detail);
+        console.log("✅ Permisos actualizados:");
       } else {
-        router.go();
+        console.warn('❌ "menu" no es un array:', typeof detail, detail);
+      }
+    };
+
+    // Escuchar evento si se lanza
+    oas.value.addEventListener("menu", handleMenu);
+    // 🔁 Obtener el menú desde localStorage si existe
+    const base64Data = localStorage.getItem("menu");
+    if (base64Data) {
+      try {
+        const jsonString = atob(base64Data);
+        const jsonObject = JSON.parse(jsonString);
+        console.log("📦 Menú desde localStorage:");
+
+        if (Array.isArray(jsonObject)) {
+          userService.updatePermisos(jsonObject);
+          console.log("✅ Permisos actualizados desde localStorage");
+        } else {
+          console.warn("❌ Menú no es un array válido:", jsonObject);
+        }
+      } catch (e) {
+        console.error("❌ Error decodificando menú:", e);
       }
     }
 

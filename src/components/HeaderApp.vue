@@ -34,20 +34,25 @@
             </span>
           </figure>
         </div>
-        <v-list-item
+        <div class=""
           v-for="(item, index) in dynamicMenuItems"
           :key="index"
+        >
+
+        <v-list-item
           link
           :to="item.direccion"
           :class="{ 'active-item': route.path.includes(item.direccion) }"
+          v-if="item.generalUSers || roleUsuario.includes('ADMIN_OBSERVATORIOS')"
         >
-          <div class="dawer__item">
+          <div class="dawer__item" >
             <v-icon class="mr-2 dawer__icon">{{ item.icono }}</v-icon>
             <span class="dawer__texto-item" v-show="isHovering">
               {{ item.texto }}
             </span>
           </div>
         </v-list-item>
+        </div>
       </v-list>
     </v-navigation-drawer>
     <!-- <v-app-bar color="white" dense fixed class="fixed-app-bar">
@@ -83,15 +88,21 @@
 </template>
 
 <script setup>
-import { computed, ref, watchEffect } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import logoAdmin from "@/assets/img/logo-admin.png";
 import logoDefault from "@/assets/img/logo.png";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import { useUserService } from "@/service/userService";
+import { useUserStore } from "@/stores/userStore";
 
+const userStore = useUserStore();
+const userService = useUserService();
 const isHovering = ref(false);
 const route = useRoute();
 const observatorioStore = useObservatorioStore();
+const roleUsuario = ref("");
+
 
 const observatorioId = computed(() => {
   return (
@@ -119,50 +130,52 @@ const menuItems = [
     texto: "Inicio",
     icono: "mdi-home",
     direccion: "/espacios",
-    admin: false,
+    admin: true,
     general: true,
+    generalUSers: true,
   },
   {
     texto: "Observatorios",
     icono: "mdi-eye",
     direccion: "/administracion/observatorios",
     admin: true,
+    general: false,
   },
   {
     texto: "Estructuras",
     icono: "mdi-graph-outline",
     direccion: "/estructuras",
     admin: false,
+    general: true,
   },
   {
     texto: "Tablero",
     icono: "mdi-chart-box-outline",
     direccion: "/tablero",
     admin: false,
+    general: true,
   },
   {
     texto: "Panel",
     icono: "mdi-view-dashboard",
     direccion: "/panel",
     admin: false,
+    general: true,
+    generalUSers: true,
   },
 ];
 
-watchEffect(() => {
-  // if (oas.value) {
-  //   console.log('✅ <ng-uui-oas> disponible:', oas.value);
+watch(verNavbar, (newValue) => {
+  if (newValue === true) {
+    roleUsuario.value = userStore.user.role;
+    console.log('🔔 verNavbar cambió a true, procesando menú');
 
-  //   oas.value.environment = environment;
-  //   console.log('🌍 Environment asignado a oas:', environment);
-console.log('trata entrar');
-
-  //   // 🔁 Obtener el menú desde localStorage si existe
     const base64Data = localStorage.getItem('menu');
     if (base64Data) {
       try {
         const jsonString = atob(base64Data);
         const jsonObject = JSON.parse(jsonString);
-        console.log('📦 Menú desde localStorage desde el heard:', jsonObject);
+        console.log('📦 Menú desde localStorage:');
 
         if (Array.isArray(jsonObject)) {
           userService.updatePermisos(jsonObject);
@@ -174,21 +187,14 @@ console.log('trata entrar');
         console.error('❌ Error decodificando menú:', e);
       }
     }
-  // }
-})
+  }
+});
 
 const dynamicMenuItems = computed(() => {
   const esAdmin = route.path.includes("administracion/");
 
-  // Primero filtramos los items según la condición original:
-  // Si el item es general, se muestra; de lo contrario, se muestran
-  // aquellos que son admin sólo en rutas de administración y viceversa.
-  const itemsFiltrados = menuItems.filter(
-    (item) => item.general || (esAdmin ? item.admin : !item.admin)
-  );
+  const itemsFiltrados = menuItems.filter(item => esAdmin ? item.admin : item.general);
 
-  // Luego, mapeamos los items filtrados para actualizar la dirección de
-  // aquellos que deben incluir el observatorio_id.
   return itemsFiltrados.map((item) => {
     const rutasConParametro = ["/estructuras", "/tablero", "/panel"];
     if (observatorioId.value && rutasConParametro.includes(item.direccion)) {
@@ -200,6 +206,9 @@ const dynamicMenuItems = computed(() => {
     return item;
   });
 });
+onMounted(() => {
+  roleUsuario.value = userStore.user?.role;
+})
 </script>
 
 <style scoped>

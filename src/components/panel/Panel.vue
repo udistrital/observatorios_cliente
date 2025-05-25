@@ -46,62 +46,64 @@
         </template>
 
         <template v-slot:[`item.acciones`]="{ item }">
-          <v-btn
-            variant="text"
-            icon
-            size="small"
-            @click="verPanel(item)"
-            color="primary"
-            title="Ver panel"
-            v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
-          >
-            <v-icon>mdi-eye</v-icon>
-          </v-btn>
-          <v-btn
-            variant="text"
-            icon
-            size="small"
-            @click="editarPanel(item)"
-            color="primary"
-            title="Editar panel"
-            v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
-          >
-            <v-icon>mdi-pencil</v-icon>
-          </v-btn>
-          <div v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')" class="">
+          <div class="accionesContainer">
             <v-btn
-              v-if="item.columns.activo"
               variant="text"
               icon
               size="small"
-              @click="eliminarPanel(item)"
+              @click="verPanel(item)"
               color="primary"
-              title="Eliminar panel"
+              title="Ver panel"
+              v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
             >
-              <v-icon>mdi-trash-can</v-icon>
+              <v-icon>mdi-eye</v-icon>
             </v-btn>
             <v-btn
-              v-else
               variant="text"
               icon
               size="small"
-              @click="reactivarPanel(item)"
+              @click="editarPanel(item)"
               color="primary"
-              title="Reactivar panel"
+              title="Editar panel"
+              v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
             >
-              <v-icon> mdi-sync</v-icon>
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <div v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')" class="">
+              <v-btn
+                v-if="item.columns.activo"
+                variant="text"
+                icon
+                size="small"
+                @click="eliminarPanel(item)"
+                color="primary"
+                title="Eliminar panel"
+              >
+                <v-icon>mdi-trash-can</v-icon>
+              </v-btn>
+              <v-btn
+                v-else
+                variant="text"
+                icon
+                size="small"
+                @click="reactivarPanel(item)"
+                color="primary"
+                title="Reactivar panel"
+              >
+                <v-icon> mdi-sync</v-icon>
+              </v-btn>
+            </div>
+            <v-btn
+              variant="text"
+              icon
+              size="small"
+              @click="diriguirsePanel(item)"
+              color="primary"
+              title="Ir al panel"
+            >
+              <v-icon>mdi-arrow-top-right-thick</v-icon>
             </v-btn>
           </div>
-          <v-btn
-            variant="text"
-            icon
-            size="small"
-            @click="diriguirsePanel(item)"
-            color="primary"
-            title="Ir al panel"
-          >
-            <v-icon>mdi-arrow-top-right-thick</v-icon>
-          </v-btn>
         </template>
       </v-data-table>
     </v-card>
@@ -309,7 +311,6 @@ const diriguirsePanel = (item) => {
 };
 onMounted(() => {
   traerPaneles();
-  console.log("User desde panel", userStore.user);
   roleUsuario.value = userStore.user.role;
 });
 </script>
@@ -318,5 +319,9 @@ onMounted(() => {
 .paneles {
   width: 90%;
   margin: 40px auto;
+}
+.accionesContainer{
+  display: flex;
+  justify-content: center;
 }
 </style>
