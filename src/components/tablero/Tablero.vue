@@ -246,6 +246,7 @@ const _filtroActivo = ref(false);
 const _modo = ref(false);
 const datosRegistro = ref([]);
 const filtros = ref({});
+const camposBool = ref([]);
 
 const cargando = ref(false);
 const paginacion = reactive({
@@ -265,6 +266,11 @@ const traerDatos = async (estructura) => {
   estructuraSeleccionada.value = estructuraActiva;
   camposFormulario.value = estructuraActiva.mapeo;
   idEstructura.value = estructuraActiva.id;
+
+  
+  camposBool.value = estructuraActiva.mapeo.filter(
+    (campo) => campo.tipo === "boolean"
+  );
 
   headers.value = estructuraActiva.mapeo.map((item) => ({
     title: item.nombre,
@@ -297,6 +303,17 @@ const traerDatos = async (estructura) => {
       }
     );
     datos.value = response.results;
+    
+    camposBool.value.forEach((campo) => {
+      datos.value.forEach((item) => {
+        if (item[campo.nombre] === true) {
+          item[campo.nombre] = "true";
+        } else if (item[campo.nombre] === false) {
+          item[campo.nombre] = "false";
+        }
+      });
+    });
+
     paginacion.totalItems = Number(response.count) || 0;
     await nextTick();
   } catch (error) {
