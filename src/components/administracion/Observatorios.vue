@@ -102,6 +102,7 @@
       scrollable
       max-width="500px"
       transition="dialog-transition"
+      max-height="70vh"
     >
       <crear-observatorio @cerrar="cerrarModal" />
     </v-dialog>
@@ -110,6 +111,7 @@
       scrollable
       max-width="500px"
       transition="dialog-transition"
+      max-height="80vh"
     >
       <ObservatoriosGestion
         :observatorio="datosObservatorio"

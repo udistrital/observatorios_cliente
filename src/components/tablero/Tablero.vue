@@ -146,7 +146,7 @@
     v-model="_cargarRegistro"
     scrollable
     max-width="500px"
-    max-height="90vh"
+    max-height="70vh"
     transition="dialog-transition"
   >
     <CargarArchivo
@@ -159,7 +159,7 @@
     v-model="_agregarRegistro"
     scrollable
     max-width="500px"
-    max-height="90vh"
+    max-height="70vh"
     transition="dialog-transition"
   >
     <AgregarRegistro
@@ -172,7 +172,7 @@
     v-model="_gestionRegistro"
     scrollable
     max-width="500px"
-    max-height="90vh"
+    max-height="70vh"
     transition="dialog-transition"
   >
     <RegistroGestion
@@ -186,7 +186,7 @@
     v-model="_agregarFilro"
     scrollable
     max-width="500px"
-    max-height="90vh"
+    max-height="70vh"
     transition="dialog-transition"
   >
     <FiltrarDatos

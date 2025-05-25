@@ -111,7 +111,7 @@
       v-model="_crearPanel"
       scrollable
       max-width="500px"
-      max-height="90vh"
+      max-height="70vh"
       transition="dialog-transition"
     >
       <CrearPanel @cerrar="cerrarModal" />
@@ -120,7 +120,7 @@
       v-model="_gestionPanel"
       scrollable
       max-width="500px"
-      max-height="90vh"
+      max-height="70vh"
       transition="dialog-transition"
     >
       <PanelGestion
