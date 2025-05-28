@@ -23,6 +23,7 @@
         @click="toggleSwapy"
         :variant="swapyActivo ? 'flat' : 'outlined'"
         color="primary"
+        v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
       >
         {{ swapyActivo ? "Guardar" : "Modificar Panel" }}
       </v-btn>
@@ -90,10 +91,11 @@
               :tamanowidth="resultado"
             />
           </v-card>
+          <div class="" v-else >
 
           <div
             class="generico"
-            v-else
+            v-if="swapyActivo"
             @click="crearGrafica(indiceColumna, indiceFila)"
           >
             <v-card class="nueva-grafica" @mouseup="isHovering = true">
@@ -105,6 +107,7 @@
               ></v-icon>
               <p class="nueva__grafica-text">Agregar Gráfica</p>
             </v-card>
+          </div>
           </div>
         </div>
       </div>
@@ -122,9 +125,9 @@ import { useGraficaStore } from "@/stores/graficaStore";
 import ContenedorGrafica from "./graficas/ContenedorGrafica.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import Swal from "sweetalert2";
-// import { usePanelStore } from '@/stores/panelStore';
+import { useUserStore } from "@/stores/userStore";
 
-// const panelStore = usePanelStore();
+const userStore = useUserStore();
 const observatorioStore = useObservatorioStore();
 const panelStore = usePanelStore();
 const graficaStore = useGraficaStore();
@@ -139,7 +142,7 @@ const contenedor = ref();
 const isHovering = ref(false);
 const swapyActivo = ref(false);
 const nuevoOrden = ref([]);
-
+const roleUsuario = ref('')
 const resultado = ref(0);
 const miElemento = ref(null);
 
@@ -328,6 +331,9 @@ const obtenerGraficos = async () => {
 };
 
 onMounted(() => {
+
+  console.log(userStore.user.role, '---user');
+  roleUsuario.value = userStore.user.role
   obtenerGraficos();
   // console.log(graficos.value);
   calcularAncho();
