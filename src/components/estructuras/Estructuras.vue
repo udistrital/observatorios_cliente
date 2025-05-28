@@ -101,7 +101,7 @@
       v-model="_crearEstructura"
       scrollable
       max-width="500px"
-      max-height="90vh"
+      max-height="70vh"
       transition="dialog-transition"
     >
       <CrearEstructura @cerrar="cerrarModal" />
@@ -110,7 +110,7 @@
       v-model="_gestionEstructura"
       scrollable
       max-width="500px"
-      max-height="90vh"
+      max-height="70vh"
       transition="dialog-transition"
     >
       <EstructuraGestion

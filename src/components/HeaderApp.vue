@@ -34,23 +34,28 @@
             </span>
           </figure>
         </div>
-        <v-list-item
+        <div class=""
           v-for="(item, index) in dynamicMenuItems"
           :key="index"
+        >
+
+        <v-list-item
           link
           :to="item.direccion"
           :class="{ 'active-item': route.path.includes(item.direccion) }"
+          v-if="item.generalUSers || roleUsuario.includes('ADMIN_OBSERVATORIOS')"
         >
-          <div class="dawer__item">
+          <div class="dawer__item" >
             <v-icon class="mr-2 dawer__icon">{{ item.icono }}</v-icon>
             <span class="dawer__texto-item" v-show="isHovering">
               {{ item.texto }}
             </span>
           </div>
         </v-list-item>
+        </div>
       </v-list>
     </v-navigation-drawer>
-    <v-app-bar color="white" dense fixed class="fixed-app-bar">
+    <!-- <v-app-bar color="white" dense fixed class="fixed-app-bar">
       <v-spacer />
       <div class="header__logo">
         <figure class="header__logo-image">
@@ -78,20 +83,26 @@
           <span class="header__info-text">correo@correo.com</span>
         </div>
       </div>
-    </v-app-bar>
+    </v-app-bar> -->
   </div>
 </template>
 
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import logoAdmin from "@/assets/img/logo-admin.png";
 import logoDefault from "@/assets/img/logo.png";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import { useUserService } from "@/service/userService";
+import { useUserStore } from "@/stores/userStore";
 
+const userStore = useUserStore();
+const userService = useUserService();
 const isHovering = ref(false);
 const route = useRoute();
 const observatorioStore = useObservatorioStore();
+const roleUsuario = ref("");
+
 
 const observatorioId = computed(() => {
   return (
@@ -119,47 +130,71 @@ const menuItems = [
     texto: "Inicio",
     icono: "mdi-home",
     direccion: "/espacios",
-    admin: false,
+    admin: true,
     general: true,
+    generalUSers: true,
   },
   {
     texto: "Observatorios",
     icono: "mdi-eye",
     direccion: "/administracion/observatorios",
     admin: true,
+    general: false,
   },
   {
     texto: "Estructuras",
     icono: "mdi-graph-outline",
     direccion: "/estructuras",
     admin: false,
+    general: true,
   },
   {
     texto: "Tablero",
     icono: "mdi-chart-box-outline",
     direccion: "/tablero",
     admin: false,
+    general: true,
   },
   {
     texto: "Panel",
     icono: "mdi-view-dashboard",
     direccion: "/panel",
     admin: false,
+    general: true,
+    generalUSers: true,
   },
 ];
+
+watch(verNavbar, (newValue) => {
+  if (newValue === true) {
+    roleUsuario.value = userStore.user.role;
+    console.log('🔔 verNavbar cambió a true, procesando menú');
+
+    const base64Data = localStorage.getItem('menu');
+    if (base64Data) {
+      try {
+        const jsonString = atob(base64Data);
+        const jsonObject = JSON.parse(jsonString);
+        console.log('📦 Menú desde localStorage:');
+
+        if (Array.isArray(jsonObject)) {
+          userService.updatePermisos(jsonObject);
+          console.log('✅ Permisos actualizados desde localStorage');
+        } else {
+          console.warn('❌ Menú no es un array válido:', jsonObject);
+        }
+      } catch (e) {
+        console.error('❌ Error decodificando menú:', e);
+      }
+    }
+  }
+});
 
 const dynamicMenuItems = computed(() => {
   const esAdmin = route.path.includes("administracion/");
 
-  // Primero filtramos los items según la condición original:
-  // Si el item es general, se muestra; de lo contrario, se muestran
-  // aquellos que son admin sólo en rutas de administración y viceversa.
-  const itemsFiltrados = menuItems.filter(
-    (item) => item.general || (esAdmin ? item.admin : !item.admin)
-  );
+  const itemsFiltrados = menuItems.filter(item => esAdmin ? item.admin : item.general);
 
-  // Luego, mapeamos los items filtrados para actualizar la dirección de
-  // aquellos que deben incluir el observatorio_id.
   return itemsFiltrados.map((item) => {
     const rutasConParametro = ["/estructuras", "/tablero", "/panel"];
     if (observatorioId.value && rutasConParametro.includes(item.direccion)) {
@@ -171,6 +206,9 @@ const dynamicMenuItems = computed(() => {
     return item;
   });
 });
+onMounted(() => {
+  roleUsuario.value = userStore.user?.role;
+})
 </script>
 
 <style scoped>
@@ -179,7 +217,7 @@ const dynamicMenuItems = computed(() => {
   top: 0;
   left: 0;
   height: 100vh;
-  z-index: 1300;
+  z-index: 0;
   box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.2);
   transition: width 0.3s ease-in-out;
   background-color: brown;
@@ -188,7 +226,7 @@ const dynamicMenuItems = computed(() => {
   position: fixed;
   width: 100%;
   left: 0;
-  z-index: 1200;
+  /* z-index: 1200; */
 }
 .header__logo-image img {
   height: 50px;
@@ -221,8 +259,11 @@ const dynamicMenuItems = computed(() => {
   color: var(--color-fuerte);
 }
 .dawer__espacio {
-  height: 56px;
+  height: 85px;
   display: flex;
+  align-items: center;
+  width: 90%;
+  border-bottom: 2px solid rgb(189, 189, 189);
 }
 .dawer__espacio-hovering {
   margin-left: 8px;
@@ -248,7 +289,7 @@ const dynamicMenuItems = computed(() => {
   /* object-fit: cover; */
 }
 .dawer__logo-espacio {
-  border-bottom: 2px solid rgb(189, 189, 189);
+  /* border-bottom: 2px solid rgb(189, 189, 189); */
   width: 90%;
   height: 56px;
   display: flex;

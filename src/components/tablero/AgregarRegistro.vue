@@ -20,7 +20,7 @@
     <v-card-actions>
       <v-spacer></v-spacer>
       <v-btn variant="outlined" color="primary" text @click="cancelar"
-        >Cancelar</v-btn
+        >Cerrar</v-btn
       >
       <v-btn variant="flat" color="primary" @click="crearEstructura"
         >Crear</v-btn
