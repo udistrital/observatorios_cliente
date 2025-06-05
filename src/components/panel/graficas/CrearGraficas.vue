@@ -5,6 +5,8 @@
         <PieChart v-if="tipoVisualizacion == 'pie'" :data="datosGrafica.data" :title="nombreGrafica" />
         <BarChart v-if="tipoVisualizacion == 'barras'" :data="datosGrafica.data" :title="nombreGrafica"/>
         <LineChart v-if="tipoVisualizacion == 'linea'" :data="datosGrafica.data" :title="nombreGrafica" :metadata="datosGrafica.grafico_metadata"/>
+        <MultiLineChart v-if="tipoVisualizacion == 'multiple_linea'" :data="datosGrafica.data" :title="nombreGrafica" :metadata="datosGrafica.grafico_metadata"/>
+        <HeatMap v-if="tipoVisualizacion == 'heatmap'" :data="datosGrafica.data" :title="nombreGrafica" :metadata="datosGrafica.grafico_metadata"/>
       </div>
     </v-card>
     <div class="creargrafica__formulario">
@@ -207,6 +209,8 @@ import { useObservatorioStore } from "@/stores/observatorioStore";
 import PieChart from "./PieChart.vue";
 import BarChart from "./BarChart.vue";
 import LineChart from "./LineChart.vue";
+import MultiLineChart from "./MultiLineChart.vue";
+import HeatMap from "./HeatMap.vue";
 import { usePanelStore } from '@/stores/panelStore';
 import { useGraficaStore } from "@/stores/graficaStore";
 // import { useRouter } from "vue-router";
@@ -240,6 +244,14 @@ const tiposGrafica = [
   {
     label: "Línea",
     value: "linea"
+  },
+  {
+    label: "Multilinea",
+    value: "multiple_linea"
+  },
+  {
+    label: "Matriz de calor",
+    value: "heatmap"
   }
 ];
 
