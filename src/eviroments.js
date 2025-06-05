@@ -15,7 +15,7 @@ export const environment = {
   NOTIFICACIONES_CRUD: "https://autenticacion.portaloas.udistrital.edu.co/apioas/notificaciones_crud/",
   TOKEN: {
     AUTORIZATION_URL: 'https://autenticacion.portaloas.udistrital.edu.co/oauth2/authorize',
-    CLIENTE_ID: 'G80k5fLBp9FJ3fDh9zN2IKrXwgYa',
+    CLIENTE_ID: 'e36v1MPQk2jbz9KM4SmKhk8Cyw0a',
     RESPONSE_TYPE: 'id_token token',
     SCOPE: 'openid email',
     REDIRECT_URL: 'https://pruebasobservatorios.portaloas.udistrital.edu.co/espacios',
