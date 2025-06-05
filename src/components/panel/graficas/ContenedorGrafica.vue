@@ -26,6 +26,20 @@
         :metadata="datosGrafica.grafico_metadata"
         :width="tamanowidth"
       />
+      <MultiLineChart
+        v-if="tipo == 'multiple_linea'"
+        :data="datosGrafica.data"
+        :title="nombreGrafica"
+        :metadata="datosGrafica.grafico_metadata"
+        :width="tamanowidth"
+      />
+      <HeatMap
+        v-if="tipo == 'heatmap'"
+        :data="datosGrafica.data"
+        :title="nombreGrafica"
+        :metadata="datosGrafica.grafico_metadata"
+        :width="tamanowidth">
+      </HeatMap>
     </div>
   </div>
 </template>
@@ -36,6 +50,8 @@ import peticionAPI from "@/service/conexion_api";
 import PieChart from "./PieChart.vue";
 import BarChart from "./BarChart.vue";
 import LineChart from "./LineChart.vue";
+import MultiLineChart from "./MultiLineChart.vue";
+import HeatMap from "./HeatMap.vue";
 
 const props = defineProps({
   dashboardId: {
