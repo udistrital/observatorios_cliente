@@ -1,6 +1,9 @@
 import axios from "axios";
-import Swal from 'sweetalert2';
+import Swal from "sweetalert2";
 import { environment } from "../eviroments";
+import { useUserStore } from "@/stores/userStore";
+
+// const userStore = useUserStore();
 // import API_DIR from "../../.env";
 // const _API_DIR = 'http://localhost:8000/api/v1';
 // const _API_DIR = 'http://observatoriospruebas.portaloas.udistrital.edu.co:8080/api/v1';
@@ -20,8 +23,17 @@ const api = axios.create({
  * @param {Object|FormData} data - Datos a enviar (puede ser un objeto JSON o FormData)
  * @returns {Promise} - Retorna la promesa de la petición
  */
-const peticionAPI = async (path, method = "GET", data = null, params = null) => {
+const peticionAPI = async (
+  path,
+  method = "GET",
+  data = null,
+  params = null
+) => {
   try {
+    const userStore = useUserStore();
+
+    const token = localStorage.getItem("access_token");
+
     const config = {
       method,
       url: path,
@@ -29,6 +41,10 @@ const peticionAPI = async (path, method = "GET", data = null, params = null) => 
       params,
     };
 
+    // Si hay token, lo añadimos a los headers
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
     if (data instanceof FormData) {
       config.headers["Content-Type"] = "multipart/form-data";
     }
@@ -40,12 +56,13 @@ const peticionAPI = async (path, method = "GET", data = null, params = null) => 
     const response = await api(config);
     return response.data;
   } catch (error) {
-
     console.error("Error en la petición:", error.response || error);
     Swal.fire({
-      icon: 'error',
-      title: 'Error',
-      text: error?.response?.data?.detail || 'Ocurrió un error al procesar la solicitud.',
+      icon: "error",
+      title: "Error",
+      text:
+        error?.response?.data?.detail ||
+        "Ocurrió un error al procesar la solicitud.",
       customClass: {
         popup: "popup-personalizado",
         title: "titulo-alerta-personalizado",

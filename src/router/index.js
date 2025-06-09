@@ -4,6 +4,11 @@ import { useUserStore } from "@/stores/userStore";
 
 const routes = [
   {
+    path: "/",
+    name: "root",
+    component: () => import("../views/Home.vue"),
+  },
+  {
     path: "/espacios",
     name: "espacios",
     component: () => import("../views/Espacios.vue"),
@@ -69,17 +74,15 @@ router.beforeEach(async (to, from, next) => {
 
   let intentos = 0;
   while (!userStore.user?.role && intentos < 10) {
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     intentos++;
   }
 
   const roleUsuario = userStore.user?.role || [];
 
   // Rutas permitidas para usuarios sin el rol
-  const rutasPermitidas = ["espacios"];
+  const rutasPermitidas = ["espacios", "root"];
   const esRutaPanel = to.path.includes("/panel");
-
-
 
   // Redirigir si no tiene rol y no es ruta permitida
   if (
