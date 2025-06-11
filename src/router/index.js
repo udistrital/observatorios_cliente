@@ -85,7 +85,7 @@ router.beforeEach(async (to, from, next) => {
   const esRutaPanel = to.path.includes("/panel");
 
   if (to.path === "/") {
-    console.log("Esperando por el access_token...");
+    // console.log("Esperando por el access_token...");
     
     let intentosToken = 0;
     let accessToken = localStorage.getItem("access_token");
@@ -94,7 +94,7 @@ router.beforeEach(async (to, from, next) => {
       await new Promise((resolve) => setTimeout(resolve, 50));
       accessToken = localStorage.getItem("access_token");
       intentosToken++;
-      console.log(intentosToken);
+      // console.log(intentosToken);
       
     }
 
