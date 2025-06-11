@@ -84,6 +84,27 @@ router.beforeEach(async (to, from, next) => {
   const rutasPermitidas = ["espacios", "root"];
   const esRutaPanel = to.path.includes("/panel");
 
+  if (to.path === "/") {
+    console.log("Esperando por el access_token...");
+    
+    let intentosToken = 0;
+    let accessToken = localStorage.getItem("access_token");
+    
+    while (!accessToken && intentosToken < 20) {  // máximo 20 intentos (1 segundo en total)
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      accessToken = localStorage.getItem("access_token");
+      intentosToken++;
+      console.log(intentosToken);
+      
+    }
+
+    if (accessToken) {
+      return next({ name: "espacios" });
+    }
+  }
+
+
+
   // Redirigir si no tiene rol y no es ruta permitida
   if (
     !roleUsuario.includes("ADMIN_OBSERVATORIOS") &&
