@@ -48,7 +48,7 @@ const traerConfiguracion = () => {
     .catch((error) => console.error(error));
 };
 const traerCamposSugeridos = (campoTipo) => {
-  peticionAPI("constructor_graficos/campos_sugeridos", "GET", null, {
+  peticionAPI("constructor_graficos/campos_sugeridos/", "GET", null, {
     estructura: estructuraSeleccionada.value,
     operacion: formValues.value[campoTipo],
   })
