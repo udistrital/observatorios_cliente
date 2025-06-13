@@ -260,7 +260,7 @@ const tipoVisualizacion = ref('')
 const capitalize = (text) => text.charAt(0).toUpperCase() + text.slice(1);
 
 const traerConfiguracion = () => {
-  peticionAPI("constructor_graficos/configuracion_grafico/", "GET", null, {
+  peticionAPI("constructor_graficos/configuracion_grafico", "GET", null, {
     tipo: tipoGrafica.value,
   })
     .then((data) => {
@@ -269,7 +269,7 @@ const traerConfiguracion = () => {
     .catch((error) => console.error(error));
 };
 const traerCamposSugeridos = (campoTipo) => {
-  peticionAPI("constructor_graficos/campos_sugeridos/", "GET", null, {
+  peticionAPI("constructor_graficos/campos_sugeridos", "GET", null, {
     estructura: estructuraSeleccionada.value,
     operacion: formValues.value[campoTipo],
   })
@@ -331,7 +331,7 @@ const crearConfiguracion = () => {
 
   }
 
-  peticionAPI("/constructor_graficos/probar_configuracion/", "POST", configuracion)
+  peticionAPI("/constructor_graficos/probar_configuracion", "POST", configuracion)
     .then((data) => {
       datosGrafica.value = data
       verificar.value = true
