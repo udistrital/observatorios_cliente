@@ -292,7 +292,7 @@ const traerDatos = async (estructura) => {
   datos.value = [];
   try {
     const response = await peticionAPI(
-      `datos/${estructuraActiva.id}`,
+      `datos/${estructuraActiva.id}/`,
       "GET",
       null,
       {

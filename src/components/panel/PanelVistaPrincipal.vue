@@ -323,7 +323,7 @@ const graficos = ref([]);
 const obtenerGraficos = async () => {
   try {
     console.log(panelStore.panel)
-    const response = await peticionAPI(`/graficos/${panelStore.panel.id}`);
+    const response = await peticionAPI(`/graficos/${panelStore.panel.id}/`);
     graficos.value = response;
   } catch (error) {
     console.error("Error al obtener los gráficos:", error);
