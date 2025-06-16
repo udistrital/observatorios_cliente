@@ -4,7 +4,7 @@ export const environment = {
   autenticacion: true,
   notificaciones: false,
   menuApps: false,
-  appname: 'Observatorios',
+  appname: 'observatorios',
   appMenu: 'Observatorios',
   ASSETS_SERVICE: "https://assets.portaloas.udistrital.edu.co/",
   NOTIFICACION_MID: "https://pruebasapi.intranetoas.udistrital.edu.co:8527/v1/",
