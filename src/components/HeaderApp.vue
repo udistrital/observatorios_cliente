@@ -207,7 +207,9 @@ const dynamicMenuItems = computed(() => {
   });
 });
 onMounted(() => {
+  console.log("🧩 dynamicMenuItems:", dynamicMenuItems.value);
   roleUsuario.value = userStore.user?.role;
+  console.log("🧩 roleUsuario:", roleUsuario.value);
 })
 </script>
 

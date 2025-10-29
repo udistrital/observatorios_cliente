@@ -17,6 +17,7 @@ export function useUserService() {
   }
 
   function updatePermisos(data) {
+    console.log("updatePermisos:", data);
     permisos.value = data;
   }
 

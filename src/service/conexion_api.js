@@ -5,12 +5,12 @@ import { useUserStore } from "@/stores/userStore";
 
 // const userStore = useUserStore();
 // import API_DIR from "../../.env";
-// const _API_DIR = 'http://localhost:8000/api/v1';
+ const _API_DIR = 'http://localhost:8000/api/v1';
 // const _API_DIR = 'http://observatoriospruebas.portaloas.udistrital.edu.co:8080/api/v1';
 // Crear instancia de Axios con la URL base del API desde .env
 const api = axios.create({
-  baseURL: environment.MAIN_BACKEND,
-  // baseURL: _API_DIR,
+  //baseURL: environment.MAIN_BACKEND,
+   baseURL: _API_DIR,
   headers: {
     "Content-Type": "application/json",
   },
