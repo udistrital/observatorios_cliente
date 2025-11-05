@@ -199,18 +199,20 @@ const crearPanel = () => {
 const verPanel = (item) => {
   _gestionPanel.value = true;
   _modo.value = false;
-  datosPanel.value = item.raw;
+  datosPanel.value = item;
 };
 
 const editarPanel = (item) => {
+  console.log("item :", item);
   _gestionPanel.value = true;
   _modo.value = true;
-  datosPanel.value = item.raw;
+  datosPanel.value = item;
+  console.log("datosPanel.value :", datosPanel.value);
 };
 
 const reactivarPanel = async (item) => {
-  let id = item.raw.id;
-  let nombre = item.raw.nombre;
+  let id = item.id;
+  let nombre = item.nombre;
   const resultado = await Swal.fire({
     title: "Reactivar Panel",
     html: `¿Desea reactivar el panel <b> ${nombre} </b> ?`,
@@ -253,8 +255,10 @@ const reactivarPanel = async (item) => {
   }
 };
 const eliminarPanel = async (item) => {
-  let id = item.raw.id;
-  let nombre = item.raw.nombre;
+  let id = item.id;
+  let nombre = item.nombre;
+  console.log("id :", id);
+  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Deshabilitar Panel",
@@ -305,7 +309,7 @@ const diriguirsePanel = (item) => {
   console.log("item.raw.observatorio :", item.observatorio);
   console.log("item.raw.columnas :", item.columnas);
   panelStore.setPanel({
-    id: item.raw.id,
+    id: item.id,
     nombre: item.nombre,
     descripcion: item.descripcion,
     observatorio: item.observatorio,
