@@ -6,6 +6,7 @@ steps:
   - name: install dependencies
     image: node:18
     commands:
+      - nvm use 18
       - npm install
     when:
       branch:
@@ -26,6 +27,7 @@ steps:
   - name: build project
     image: node:18
     commands:
+      - nvm use 18
       - npm run build
     when:
       branch:
