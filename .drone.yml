@@ -6,9 +6,8 @@ steps:
   - name: install dependencies
     image: node:18
     commands:
-      - node -v
       - npm install
-      - npm list vuetify
+      - npm list --depth=0
     when:
       branch:
         - release/**
@@ -28,7 +27,6 @@ steps:
   - name: build project
     image: node:18
     commands:
-      - node -v
       - npm run build
     when:
       branch:
