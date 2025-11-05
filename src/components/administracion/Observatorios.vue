@@ -35,8 +35,8 @@
           <v-skeleton-loader type="table" />
         </template>
         <template v-slot:[`item.activo`]="{ item }">
-          <v-chip :color="item.activo ? 'green' : 'red'" dark>
-            {{ item.activo ? "Activo" : "Inactivo" }}
+          <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
+            {{ item.columns.activo ? "Activo" : "Inactivo" }}
           </v-chip>
         </template>
 
@@ -62,7 +62,7 @@
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
           <v-btn
-            v-if="item.activo"
+            v-if="item.columns.activo"
             variant="text"
             icon
             size="small"
@@ -90,7 +90,7 @@
             @click="diriguirseObservatorio(item)"
             color="primary"
             title="Ir al observatorio"
-            v-if="item.activo"
+            v-if="item.columns.activo"
           >
             <v-icon>mdi-arrow-top-right-thick</v-icon>
           </v-btn>
@@ -182,29 +182,29 @@ const crearObservario = () => {
 };
 
 const verObservatorio = (item) => {
-  console.log("item :", item);
+  console.log("item.raw :", item.raw);
   _gestionObservatorio.value = true;
   _modo.value = false;
-  datosObservatorio.value = item;
+  datosObservatorio.value = item.raw;
   console.log("_gestionObservatorio.value :", _gestionObservatorio.value);
   console.log("_modo.value :", _modo.value);
   console.log("datosObservatorio.value :", datosObservatorio.value);
 };
 
 const editarObservatorio = (item) => {
-  console.log("item :", item);
+  console.log("item.raw :", item.raw);
   _gestionObservatorio.value = true;
   _modo.value = true;
-  datosObservatorio.value = item;
+  datosObservatorio.value = item.raw;
   console.log("_gestionObservatorio.value :", _gestionObservatorio.value);
   console.log("_modo.value :", _modo.value);
   console.log("datosObservatorio.value :", datosObservatorio.value);
 };
 
 const reactivarObservatorio = async (item) => {
-  console.log("item :", item);
-  let id = item.observatorio_id;
-  let nombre = item.nombre;
+  console.log("item.raw :", item.raw);
+  let id = item.raw.observatorio_id;
+  let nombre = item.raw.nombre;
 
   console.log("id :", id);
   console.log("nombre :", nombre);
@@ -253,10 +253,10 @@ const reactivarObservatorio = async (item) => {
   }
 };
 const eliminarObservatorio = async (item) => {
-  console.log("item :", item);
+  console.log("item.raw :", item.raw);
 
-  let id = item.observatorio_id;
-  let nombre = item.nombre;
+  let id = item.raw.observatorio_id;
+  let nombre = item.raw.nombre;
 
   console.log("id :", id);
   console.log("nombre :", nombre);
@@ -304,18 +304,18 @@ const eliminarObservatorio = async (item) => {
 };
 
 const diriguirseObservatorio = (item) => {
-  console.log("item :", item);
-  console.log("item.id :", item.id);
-  console.log("item.observatorio_id :", item.observatorio_id);
-  console.log("item.nombre :", item.nombre);
-  console.log("item.imagen :", item.imagen);
+  console.log("item :", item.raw);
+  console.log("item.raw.id :", item.raw.id);
+  console.log("item.raw.observatorio_id :", item.raw.observatorio_id);
+  console.log("item.raw.nombre :", item.raw.nombre);
+  console.log("item.raw.imagen :", item.raw.imagen);
   observatorioStore.setObservatorio({
-    id: item.id,
-    observatorio_id: item.observatorio_id,
-    nombre: item.nombre,
-    imagen: item.imagen,
+    id: item.raw.id,
+    observatorio_id: item.raw.observatorio_id,
+    nombre: item.raw.nombre,
+    imagen: item.raw.imagen,
   });
-  router.push(`/${item.observatorio_id}/estructuras`);
+  router.push(`/${item.raw.observatorio_id}/estructuras`);
 };
 onMounted(() => {
   traerObservatorios();

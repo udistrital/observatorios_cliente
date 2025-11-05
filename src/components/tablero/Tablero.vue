@@ -417,7 +417,7 @@ const limpiarEstructura = async () => {
 };
 const eliminarRegistro = async (item) => {
   console.log("item item :", item);
-  let id = item.id;
+  let id = item.raw.id;
   console.log("id id :", id);
   const resultado = await Swal.fire({
     title: "Eliminar Registro",
@@ -470,7 +470,7 @@ const verRegistro = (item) => {
   console.log("item item :", item);
   _gestionRegistro.value = true;
   _modo.value = true;
-  datosRegistro.value = item;
+  datosRegistro.value = item.raw;
   console.log("_gestionRegistro.value :", _gestionRegistro.value);
   console.log("_modo.value :", _modo.value);
   console.log("datosRegistro.value :", datosRegistro.value);
@@ -479,7 +479,7 @@ const editarRegistro = (item) => {
   console.log("item item :", item);
   _gestionRegistro.value = true;
   _modo.value = false;
-  datosRegistro.value = item;
+  datosRegistro.value = item.raw;
   console.log("_gestionRegistro.value :", _gestionRegistro.value);
   console.log("_modo.value :", _modo.value);
   console.log("datosRegistro.value :", datosRegistro.value);
