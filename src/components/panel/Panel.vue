@@ -40,8 +40,8 @@
           <v-skeleton-loader type="table" />
         </template>
         <template v-slot:[`item.activo`]="{ item }">
-          <v-chip :color="item.activo ? 'green' : 'red'" dark>
-            {{ item.activo ? "Activo" : "Inactivo" }}
+          <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
+            {{ item.columns.activo ? "Activo" : "Inactivo" }}
           </v-chip>
         </template>
 
@@ -71,7 +71,7 @@
             </v-btn>
             <div v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')" class="">
               <v-btn
-                v-if="item.activo"
+                v-if="item.columns.activo"
                 variant="text"
                 icon
                 size="small"
@@ -199,20 +199,20 @@ const crearPanel = () => {
 const verPanel = (item) => {
   _gestionPanel.value = true;
   _modo.value = false;
-  datosPanel.value = item;
+  datosPanel.value = item.raw;
 };
 
 const editarPanel = (item) => {
-  console.log("item :", item);
+  console.log("item :", item.raw);
   _gestionPanel.value = true;
   _modo.value = true;
-  datosPanel.value = item;
+  datosPanel.value = item.raw;
   console.log("datosPanel.value :", datosPanel.value);
 };
 
 const reactivarPanel = async (item) => {
-  let id = item.id;
-  let nombre = item.nombre;
+  let id = item.raw.id;
+  let nombre = item.raw.nombre;
   const resultado = await Swal.fire({
     title: "Reactivar Panel",
     html: `¿Desea reactivar el panel <b> ${nombre} </b> ?`,
@@ -255,8 +255,8 @@ const reactivarPanel = async (item) => {
   }
 };
 const eliminarPanel = async (item) => {
-  let id = item.id;
-  let nombre = item.nombre;
+  let id = item.raw.id;
+  let nombre = item.raw.nombre;
   console.log("id :", id);
   console.log("nombre :", nombre);
 
@@ -302,18 +302,18 @@ const eliminarPanel = async (item) => {
   }
 };
 const diriguirsePanel = (item) => {
-  console.log("item :", item);
-  console.log("item.raw.id :", item.id);
-  console.log("item.raw.nombre :", item.nombre);
-  console.log("item.raw.descripcion :", item.descripcion);
-  console.log("item.raw.observatorio :", item.observatorio);
-  console.log("item.raw.columnas :", item.columnas);
+  console.log("item.raw :", item.raw);
+  console.log("item.raw.id :", item.raw.id);
+  console.log("item.raw.nombre :", item.raw.nombre);
+  console.log("item.raw.descripcion :", item.raw.descripcion);
+  console.log("item.raw.observatorio :", item.raw.observatorio);
+  console.log("item.raw.columnas :", item.raw.columnas);
   panelStore.setPanel({
-    id: item.id,
-    nombre: item.nombre,
-    descripcion: item.descripcion,
-    observatorio: item.observatorio,
-    columnas: item.columnas,
+    id: item.raw.id,
+    nombre: item.raw.nombre,
+    descripcion: item.raw.descripcion,
+    observatorio: item.raw.observatorio,
+    columnas: item.raw.columnas,
   });
 
   router.push(`panel/principal`);
