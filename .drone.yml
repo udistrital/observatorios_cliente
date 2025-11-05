@@ -7,8 +7,8 @@ steps:
     image: node:18
     commands:
       - node -v
-      - npm list vuetify
       - npm install
+      - npm list vuetify
     when:
       branch:
         - release/**
