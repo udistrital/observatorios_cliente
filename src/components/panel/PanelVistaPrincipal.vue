@@ -282,6 +282,7 @@ const buscarGrafico = (columna, fila) => {
   //   fila,
   //   columna
   // );
+  console.log("ingreso a principal, columna:", columna, "fila:", fila);
   return graficos.value.find(
     (grafico) => grafico.columna === columna && grafico.fila === fila
   );

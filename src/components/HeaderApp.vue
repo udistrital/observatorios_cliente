@@ -1,10 +1,5 @@
 <template>
   <div>
-    <!-- <v-navigation-drawer
-    > -->
-    <!-- permanent
-      temporary -->
-    <!-- :width="isHovering ? 200 : 64" -->
     <v-navigation-drawer
       class="floating-drawer"
       @mouseenter="isHovering = true"
@@ -207,7 +202,9 @@ const dynamicMenuItems = computed(() => {
   });
 });
 onMounted(() => {
+  console.log("🧩 dynamicMenuItems:", dynamicMenuItems.value);
   roleUsuario.value = userStore.user?.role;
+  console.log("🧩 roleUsuario:", roleUsuario.value);
 })
 </script>
 

@@ -35,9 +35,9 @@
       <template #loading>
           <v-skeleton-loader type="table" />
         </template>
-        <template v-slot:[`item.activo`]="{ item }">
-          <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
-            {{ item.columns.activo ? "Activo" : "Inactivo" }}
+        <template v-slot:item.activo="{ item }">
+          <v-chip :color="item.activo ? 'green' : 'red'" dark>
+            {{ item.activo ? "Activo" : "Inactivo" }}
           </v-chip>
         </template>
 
@@ -63,7 +63,7 @@
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
           <v-btn
-            v-if="item.columns.activo"
+            v-if="item.activo"
             variant="text"
             icon
             size="small"
@@ -162,6 +162,7 @@ const traerEstructuras = () => {
   cargando.value = true;
   peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
   .then((data) => {
+    console.log("data que llega :", data);
     estructuras.value = data;
     cargando.value = false;
     })
@@ -181,20 +182,27 @@ const crearEstructura = () => {
 };
 
 const verEstructura = (item) => {
+  console.log("verEstructura :", item);
   _gestionEstructura.value = true;
   _modo.value = false;
-  datosEstructura.value = item.raw;
+  datosEstructura.value = item;
+  console.log("_gestionEstructura.value :", _gestionEstructura.value);
+  console.log("_modo.value :", _modo.value);
+  console.log("datosEstructura.value :", datosEstructura.value);
 };
 
 const editarEstructura = (item) => {
   _gestionEstructura.value = true;
   _modo.value = true;
-  datosEstructura.value = item.raw;
+  datosEstructura.value = item;
+  console.log("_gestionEstructura.value :", _gestionEstructura.value);
+  console.log("_modo.value :", _modo.value);
+  console.log("datosEstructura.value :", datosEstructura.value);
 };
 
 const reactivarEstructura = async (item) => {
-  let id = item.raw.id;
-  let nombre = item.raw.nombre;
+  let id = item.id;
+  let nombre = item.nombre;
   const resultado = await Swal.fire({
     title: "Reactivar Estructura",
     html: `¿Desea reactivar la estructura <b> ${nombre} </b> ?`,
@@ -237,8 +245,13 @@ const reactivarEstructura = async (item) => {
   }
 };
 const eliminarEstructura = async (item) => {
-  let id = item.raw.id;
-  let nombre = item.raw.nombre;
+  console.log("item item :", item);
+
+  let id = item.id;
+  let nombre = item.nombre;
+
+  console.log("id :", id);
+  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Deshabilitar Estructura",
@@ -283,9 +296,9 @@ const eliminarEstructura = async (item) => {
 };
 const diriguirseEstructura = (item) => {
   estructuraStore.setEstructura({
-    id: item.raw.id,
-    nombre: item.raw.nombre,
-    mapeo: item.raw.mapeo,
+    id: item.id,
+    nombre: item.nombre,
+    mapeo: item.mapeo,
   });
   router.push(`/${observatorioStore.observatorio?.observatorio_id}/tablero`);
 };
