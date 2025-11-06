@@ -437,10 +437,11 @@ const eliminarRegistro = async (item) => {
   });
 
   if (resultado.isConfirmed) {
-    const data = { confirmacion: true };
+    //const data = { confirmacion: true };
 
     peticionAPI(`/datos/${idEstructura.value}/${id}/`, "DELETE")
       .then((data) => {
+        console.log("data que llega:", data);
         Swal.fire({
           title: "¡Eliminado!",
           text: "El elemento ha sido eliminado correctamente.",
