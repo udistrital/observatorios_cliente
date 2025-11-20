@@ -29,6 +29,4 @@ export const environment = {
   NOTIFICACION_MID_WS: "wss://pruebasapi.intranetoas.udistrital.edu.co:8527/v1/ws",
   NOTIFICACIONES_CRUD: "https://autenticacion.portaloas.udistrital.edu.co/apioas/notificaciones_crud/",
   MAIN_BACKEND: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/observatorio_crud/v1',
-  //MAIN_BACKEND: 'http://localhost:8000/api/v1',
-  MAIN_BACKEND: 'https://pruebasapi.intranetoas.udistrital.edu.co/observatorios_crud/api/v1',
 };
