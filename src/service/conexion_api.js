@@ -56,10 +56,16 @@ const peticionAPI = async (
     const response = await api(config);
     console.log("response COMPLETO:", response);
 
-    if (method === "DELETE" && response.status === 204) {
-      console.log("response STATUS:", response.status);
+    if (method === "DELETE"  && response.status === 200) {
+      console.log("response COMPLETO delete :", response);
+      console.log("response STATUS delete:", response.status);
       return response.status;
     }
+
+    /*if (method === "DELETE" && response.status === 204) {
+      console.log("response STATUS:", response.status);
+      return response.status;
+    }*/
 
     return response.data;
   } catch (error) {
