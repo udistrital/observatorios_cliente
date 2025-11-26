@@ -182,20 +182,32 @@ const crearObservario = () => {
 };
 
 const verObservatorio = (item) => {
+  console.log("item.raw :", item.raw);
   _gestionObservatorio.value = true;
   _modo.value = false;
   datosObservatorio.value = item.raw;
+  console.log("_gestionObservatorio.value :", _gestionObservatorio.value);
+  console.log("_modo.value :", _modo.value);
+  console.log("datosObservatorio.value :", datosObservatorio.value);
 };
 
 const editarObservatorio = (item) => {
+  console.log("item.raw :", item.raw);
   _gestionObservatorio.value = true;
   _modo.value = true;
   datosObservatorio.value = item.raw;
+  console.log("_gestionObservatorio.value :", _gestionObservatorio.value);
+  console.log("_modo.value :", _modo.value);
+  console.log("datosObservatorio.value :", datosObservatorio.value);
 };
 
 const reactivarObservatorio = async (item) => {
+  console.log("item.raw :", item.raw);
   let id = item.raw.observatorio_id;
   let nombre = item.raw.nombre;
+
+  console.log("id :", id);
+  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Reactivar Observatorio",
@@ -241,8 +253,13 @@ const reactivarObservatorio = async (item) => {
   }
 };
 const eliminarObservatorio = async (item) => {
+  console.log("item.raw :", item.raw);
+
   let id = item.raw.observatorio_id;
   let nombre = item.raw.nombre;
+
+  console.log("id :", id);
+  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Deshabilitar Observatorio",
@@ -287,6 +304,11 @@ const eliminarObservatorio = async (item) => {
 };
 
 const diriguirseObservatorio = (item) => {
+  console.log("item :", item.raw);
+  console.log("item.raw.id :", item.raw.id);
+  console.log("item.raw.observatorio_id :", item.raw.observatorio_id);
+  console.log("item.raw.nombre :", item.raw.nombre);
+  console.log("item.raw.imagen :", item.raw.imagen);
   observatorioStore.setObservatorio({
     id: item.raw.id,
     observatorio_id: item.raw.observatorio_id,

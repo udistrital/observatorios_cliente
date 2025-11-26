@@ -83,7 +83,7 @@ const datosGrafica = ref({});
 onMounted(async () => {
   try {
     const response = await peticionAPI(
-      `/graficos/${props.dashboardId}/${props.graficoId}/construir`
+      `/graficos/${props.dashboardId}/${props.graficoId}/construir/`
     );
     datosGrafica.value = response;
   } catch (err) {

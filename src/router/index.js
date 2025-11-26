@@ -4,6 +4,11 @@ import { useUserStore } from "@/stores/userStore";
 
 const routes = [
   {
+    path: "/",
+    name: "root",
+    component: () => import("../views/Home.vue"),
+  },
+  {
     path: "/espacios",
     name: "espacios",
     component: () => import("../views/Espacios.vue"),
@@ -51,6 +56,11 @@ const routes = [
     component: () => import("../components/panel/PanelVistaPrincipal.vue"),
   },
   {
+    path: "/:observatorio_id/caracteristica",
+    name: "caracteristicaPrincipal",
+    component: () => import("../components/panel/CaracteristicaPrincipal.vue"),
+  },
+  {
     path: "/:pathMatch(.*)*",
     redirect: "/espacios",
   },
@@ -69,15 +79,34 @@ router.beforeEach(async (to, from, next) => {
 
   let intentos = 0;
   while (!userStore.user?.role && intentos < 10) {
-    await new Promise(resolve => setTimeout(resolve, 50));
+    await new Promise((resolve) => setTimeout(resolve, 50));
     intentos++;
   }
 
   const roleUsuario = userStore.user?.role || [];
 
   // Rutas permitidas para usuarios sin el rol
-  const rutasPermitidas = ["espacios"];
+  const rutasPermitidas = ["espacios", "root", "caracteristicaPrincipal"];
   const esRutaPanel = to.path.includes("/panel");
+
+  if (to.path === "/") {
+    // console.log("Esperando por el access_token...");
+    
+    let intentosToken = 0;
+    let accessToken = localStorage.getItem("access_token");
+    
+    while (!accessToken && intentosToken < 20) {  // máximo 20 intentos (1 segundo en total)
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      accessToken = localStorage.getItem("access_token");
+      intentosToken++;
+      // console.log(intentosToken);
+      
+    }
+
+    if (accessToken) {
+      return next({ name: "espacios" });
+    }
+  }
 
 
 

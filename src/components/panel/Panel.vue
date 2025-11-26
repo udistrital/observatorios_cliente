@@ -1,7 +1,14 @@
 <template>
+  <div class="intro">
+    <h1>{{ observatorioStore.observatorio?.nombre }}</h1>
+    <div class="intro-box">
+      <p>{{ observatorioStore.observatorio?.descripcion }}</p>
+    </div>
+  </div>
+
   <div class="paneles">
     <div class="cabecera">
-      <h1 class="titulo__cabecera">Paneles</h1>
+      <!-- <h1 class="titulo__cabecera">Paneles</h1> -->
       <v-spacer />
       <v-btn
         v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
@@ -14,7 +21,7 @@
     <v-card>
       <div class="cabecera__tabla">
         <v-card-title class="d-flex justify-space-between align-center">
-          <span class="text-h5">Paneles</span>
+          <span class="text-h5">Características</span>
         </v-card-title>
         <v-spacer />
 
@@ -203,9 +210,11 @@ const verPanel = (item) => {
 };
 
 const editarPanel = (item) => {
+  console.log("item :", item.raw);
   _gestionPanel.value = true;
   _modo.value = true;
   datosPanel.value = item.raw;
+  console.log("datosPanel.value :", datosPanel.value);
 };
 
 const reactivarPanel = async (item) => {
@@ -255,6 +264,8 @@ const reactivarPanel = async (item) => {
 const eliminarPanel = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
+  console.log("id :", id);
+  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Deshabilitar Panel",
@@ -298,16 +309,23 @@ const eliminarPanel = async (item) => {
   }
 };
 const diriguirsePanel = (item) => {
-  console.log(item);
+  console.log("item.raw :", item.raw);
+  console.log("item.raw.id :", item.raw.id);
+  console.log("item.raw.nombre :", item.raw.nombre);
+  console.log("item.raw.descripcion :", item.raw.descripcion);
+  console.log("item.raw.observatorio :", item.raw.observatorio);
+  console.log("item.raw.columnas :", item.raw.columnas);
   panelStore.setPanel({
     id: item.raw.id,
-    nombre: item.raw.nombre,
+    nombreCaracteristica: item.raw.nombre,
     descripcion: item.raw.descripcion,
+    nombreFactor: observatorioStore.observatorio.nombre,
     observatorio: item.raw.observatorio,
     columnas: item.raw.columnas,
   });
-
-  router.push(`panel/principal`);
+  //ESTABA ESTA 
+  //router.push(`panel/principal`);
+  router.push(`/${observatorioStore.observatorio?.observatorio_id}/caracteristica`);
 };
 onMounted(() => {
   traerPaneles();
@@ -316,9 +334,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.intro {
+  background-color: #335f97;
+  color: #ffffff;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.intro h1 {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+.intro-box {
+  background-color: #ffffff;
+  color: black;
+  border: 2px solid black;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
 .paneles {
   width: 90%;
-  margin: 40px auto;
+  margin: 1px auto;
 }
 .accionesContainer{
   display: flex;

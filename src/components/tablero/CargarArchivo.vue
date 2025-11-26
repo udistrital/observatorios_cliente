@@ -128,6 +128,10 @@ const guardarArchivo = async () => {
   const registro = new FormData();
   registro.append("archivo", archivo.value[0]);
   registro.append("formato", formato.value);
+
+  console.log("registro :", registro);
+  console.log("archivo.value[0] :", archivo.value[0]);
+  console.log("formato.value :", formato.value);
   
   peticionAPI(`datos/${props.idEstructura}/`, "POST", registro)
     .then((data) => {

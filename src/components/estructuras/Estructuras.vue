@@ -1,16 +1,26 @@
 <template>
+  <div class="intro">
+    <h1>{{ observatorioStore.observatorio?.nombre }}</h1>
+    <div class="intro-box">
+      <p>Una institución de alta calidad se reconoce por tener unos valores declarados y un proyecto educativo institucional, o lo que haga sus veces, socializados y apropiados por la
+        comunidad. Es el referente fundamental para el desarrollo de las labores formativas, académicas, docentes, científicas, culturales y de extensión, en todo su ámbito de
+        influencia y en las modalidades que la institución determine. A su vez, cuenta con un proceso institucional participativo de valoración y actualización sistemática, en el cual se
+        evidencia la inclusión de los diferentes estamentos y actores que intervienen en el desarrollo y/o gestión de la institución y/o del programa académico.</p>
+    </div>
+  </div>
+
   <div class="estructuras">
     <div class="cabecera">
-      <h1 class="titulo__cabecera">Estructuras</h1>
+      <h1 class="titulo__cabecera">Características</h1>
       <v-spacer />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="crearEstructura"
-        >Crear Estructura</v-btn
+        >Crear Característica</v-btn
       >
     </div>
     <v-card>
       <div class="cabecera__tabla">
         <v-card-title class="d-flex justify-space-between align-center">
-          <span class="text-h5">Estructuras</span>
+          <span class="text-h5">Características</span>
         </v-card-title>
         <v-spacer />
 
@@ -35,7 +45,7 @@
       <template #loading>
           <v-skeleton-loader type="table" />
         </template>
-        <template v-slot:[`item.activo`]="{ item }">
+        <template v-slot:item.activo="{ item }">
           <v-chip :color="item.columns.activo ? 'green' : 'red'" dark>
             {{ item.columns.activo ? "Activo" : "Inactivo" }}
           </v-chip>
@@ -48,7 +58,7 @@
             size="small"
             @click="verEstructura(item)"
             color="primary"
-            title="Ver estructura"
+            title="Ver característica"
           >
             <v-icon>mdi-eye</v-icon>
           </v-btn>
@@ -58,7 +68,7 @@
             size="small"
             @click="editarEstructura(item)"
             color="primary"
-            title="Editar estructura"
+            title="Editar característica"
           >
             <v-icon>mdi-pencil</v-icon>
           </v-btn>
@@ -69,7 +79,7 @@
             size="small"
             @click="eliminarEstructura(item)"
             color="primary"
-            title="Eliminar estructura"
+            title="Eliminar característica"
           >
             <v-icon>mdi-trash-can</v-icon>
           </v-btn>
@@ -80,7 +90,7 @@
             size="small"
             @click="reactivarEstructura(item)"
             color="primary"
-            title="Reactivar estructura"
+            title="Reactivar característica"
           >
             <v-icon> mdi-sync</v-icon>
           </v-btn>
@@ -90,7 +100,7 @@
             size="small"
             @click="diriguirseEstructura(item)"
             color="primary"
-            title="Ir a la estructura"
+            title="Ir a la característica"
           >
             <v-icon>mdi-arrow-top-right-thick</v-icon>
           </v-btn>
@@ -162,6 +172,7 @@ const traerEstructuras = () => {
   cargando.value = true;
   peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
   .then((data) => {
+    console.log("data que llega :", data);
     estructuras.value = data;
     cargando.value = false;
     })
@@ -181,15 +192,22 @@ const crearEstructura = () => {
 };
 
 const verEstructura = (item) => {
+  console.log("verEstructura :", item.raw);
   _gestionEstructura.value = true;
   _modo.value = false;
   datosEstructura.value = item.raw;
+  console.log("_gestionEstructura.value :", _gestionEstructura.value);
+  console.log("_modo.value :", _modo.value);
+  console.log("datosEstructura.value :", datosEstructura.value);
 };
 
 const editarEstructura = (item) => {
   _gestionEstructura.value = true;
   _modo.value = true;
   datosEstructura.value = item.raw;
+  console.log("_gestionEstructura.value :", _gestionEstructura.value);
+  console.log("_modo.value :", _modo.value);
+  console.log("datosEstructura.value :", datosEstructura.value);
 };
 
 const reactivarEstructura = async (item) => {
@@ -237,8 +255,13 @@ const reactivarEstructura = async (item) => {
   }
 };
 const eliminarEstructura = async (item) => {
+  console.log("item.raw :", item.raw);
+
   let id = item.raw.id;
   let nombre = item.raw.nombre;
+
+  console.log("id :", id);
+  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Deshabilitar Estructura",
@@ -295,6 +318,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.intro {
+  background-color: #335f97;
+  color: #ffffff;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.intro h1 {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+.intro-box {
+  background-color: #ffffff;
+  color: black;
+  border: 2px solid black;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+.intro-box p{
+  font-size: 14px;
+}
 .estructuras {
   width: 90%;
   margin: 40px auto;

@@ -1,6 +1,5 @@
 <template>
   <!-- <div class="vista__primaria"></div> -->
-
   <div
     class="contenedor-grilla vista__primaria"
     ref="miElemento"
@@ -10,7 +9,7 @@
     }"
   >
     <div class="cabecera">
-      <h1 class="titulo__cabecera">{{ panelStore?.panel.nombre }}</h1>
+      <!-- <h1 class="titulo__cabecera">{{ panelStore?.panel.nombre }}</h1> -->
       <v-spacer />
       <!-- <v-btn color="red" @click="desactivarSwapy" v-if="swapyActivo"
         >Bloquear movimiento</v-btn
@@ -282,6 +281,7 @@ const buscarGrafico = (columna, fila) => {
   //   fila,
   //   columna
   // );
+  console.log("ingreso a principal, columna:", columna, "fila:", fila);
   return graficos.value.find(
     (grafico) => grafico.columna === columna && grafico.fila === fila
   );
@@ -323,7 +323,7 @@ const graficos = ref([]);
 const obtenerGraficos = async () => {
   try {
     console.log(panelStore.panel)
-    const response = await peticionAPI(`/graficos/${panelStore.panel.id}`);
+    const response = await peticionAPI(`/graficos/${panelStore.panel.id}/`);
     graficos.value = response;
   } catch (error) {
     console.error("Error al obtener los gráficos:", error);

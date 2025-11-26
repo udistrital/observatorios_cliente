@@ -84,7 +84,7 @@ watchEffect(() => {
     // });
     const handleMenu = (event) => {
       const detail = event.detail;
-      console.log("📋 Evento [menu] recibido con:");
+      console.log("📋 Evento [menu] recibido con:", event.detail);
 
       if (Array.isArray(detail)) {
         userService.updatePermisos(detail);
@@ -102,7 +102,7 @@ watchEffect(() => {
       try {
         const jsonString = atob(base64Data);
         const jsonObject = JSON.parse(jsonString);
-        console.log("📦 Menú desde localStorage:");
+        console.log("📦 Menú desde localStorage:", jsonObject);
 
         if (Array.isArray(jsonObject)) {
           userService.updatePermisos(jsonObject);

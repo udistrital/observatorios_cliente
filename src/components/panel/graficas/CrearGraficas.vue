@@ -29,7 +29,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              width="35px"
+              width="100%"
               class="textfield__control"
             ></v-select>
             <v-select
@@ -41,7 +41,7 @@
               variant="outlined"
               density="compact"
               hide-details
-              width="35px"
+              width="100%"
               class="textfield__control"
               @update:modelValue="traerConfiguracion"
             ></v-select>
@@ -64,7 +64,7 @@
                   variant="outlined"
                   density="compact"
                   hide-details
-                  width="35px"
+                  width="100%"
                   class="textfield__control"
                   @update:modelValue="traerCamposSugeridos(campo.tipo)"
                 ></v-select>
@@ -77,7 +77,7 @@
                   variant="outlined"
                   density="compact"
                   hide-details
-                  width="35px"
+                  width="100%"
                   class="textfield__control"
                 ></v-select>
                 <div v-if="configuracionOperacion[campo.tipo]?.obligatorios.length >0 || configuracionOperacion[campo.tipo]?.opcionales.length >0">
@@ -98,7 +98,7 @@
                         variant="outlined"
                         density="compact"
                         hide-details
-                        width="35px"
+                        width="100%"
                         class="textfield__control"
                         ></v-text-field>
 
@@ -111,7 +111,7 @@
                         variant="outlined"
                         density="compact"
                         hide-details
-                        width="35px"
+                        width="100%"
                         class="textfield__control"
                       >
                       </v-text-field>
@@ -125,7 +125,7 @@
                           variant="outlined"
                           density="compact"
                           hide-details
-                          width="35px"
+                          width="100%"
                           class="textfield__control"
                       >
                       </v-checkbox>
@@ -148,7 +148,7 @@
                         variant="outlined"
                         density="compact"
                         hide-details
-                        width="35px"
+                        width="100%"
                         class="textfield__control"
                         ></v-text-field>
 
@@ -161,7 +161,7 @@
                         variant="outlined"
                         density="compact"
                         hide-details
-                        width="35px"
+                        width="100%"
                         class="textfield__control"
                       >
                       </v-text-field>
@@ -175,7 +175,7 @@
                         variant="outlined"
                         density="compact"
                         hide-details
-                        width="35px"
+                        width="100%"
                         class="textfield__control"
                       >
                       </v-checkbox>
