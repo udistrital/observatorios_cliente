@@ -56,6 +56,11 @@ const routes = [
     component: () => import("../components/panel/PanelVistaPrincipal.vue"),
   },
   {
+    path: "/:observatorio_id/caracteristica",
+    name: "caracteristicaPrincipal",
+    component: () => import("../components/panel/CaracteristicaPrincipal.vue"),
+  },
+  {
     path: "/:pathMatch(.*)*",
     redirect: "/espacios",
   },
@@ -81,7 +86,7 @@ router.beforeEach(async (to, from, next) => {
   const roleUsuario = userStore.user?.role || [];
 
   // Rutas permitidas para usuarios sin el rol
-  const rutasPermitidas = ["espacios", "root"];
+  const rutasPermitidas = ["espacios", "root", "caracteristicaPrincipal"];
   const esRutaPanel = to.path.includes("/panel");
 
   if (to.path === "/") {
