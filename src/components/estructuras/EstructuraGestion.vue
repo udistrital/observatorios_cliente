@@ -26,7 +26,7 @@
         </div>
         <div class="contenedor-campos">
           <div
-            v-for="(campo, index) in estructura.mapeo"
+            v-for="(campo, index) in campos"
             :key="index"
             class="d-flex align-center mb-2"
           >
@@ -112,7 +112,14 @@ const isEditing = ref(props.value);
 const estructura = ref({ ...props.estructuraData });
 const tiposDeDato = ref([""]);
 
-onMounted(() => {
+// 🔵 Detectar si es edición de archivos
+const esModoArchivos = ref(props.estructuraData?.tipo === "archivos");
+
+// 🔵 Campos editables (mapeo o mapeo_archivos según el modo)
+const campos = ref([]);
+
+
+/*onMounted(() => {
   estructura.value.mapeo = estructura.value.mapeo.map((item) => {
     return {
       ...item,
@@ -124,21 +131,43 @@ onMounted(() => {
       tiposDeDato.value = Object.values(data);
     })
     .catch((error) => console.error(error));
+});*/
+onMounted(() => {
+  // Cargar tipos
+  peticionAPI("campos/tipos", "GET")
+    .then((data) => (tiposDeDato.value = Object.values(data)))
+    .catch((error) => console.error(error));
+
+  // Seleccionar dataset correcto
+  const origen = esModoArchivos.value
+    ? estructura.value.mapeo_archivos
+    : estructura.value.mapeo;
+
+  campos.value = origen.map((item) => ({
+    ...item,
+    deshabilitado: true,
+  }));
 });
 
-const agregarCampo = () => {
+
+
+/*const agregarCampo = () => {
   estructura.value.mapeo.push({ nombre: "", tipo: "" });
+};*/
+const agregarCampo = () => {
+  campos.value.push({ nombre: "", tipo: "" });
 };
 
 const eliminarCampo = (index) => {
-  estructura.value.mapeo.splice(index, 1);
+  //estructura.value.mapeo.splice(index, 1);
+  campos.value.splice(index, 1);
 };
 
 const habilitarEdicion = () => {
   isEditing.value = true;
 };
 
-const guardarEstructura = () => {
+/*const guardarEstructura = () => {
  
   estructura.value.mapeo = estructura.value.mapeo.map(
     ({ deshabilitado, ...resto }) => {
@@ -169,6 +198,42 @@ const guardarEstructura = () => {
 
   emit("cerrar");
 };
+*/
+const guardarEstructura = () => {
+  const camposLimpios = campos.value.map(({ deshabilitado, ...resto }) => resto);
+
+  const payload = {};
+
+  if (esModoArchivos.value) {
+    payload.mapeo_archivos = camposLimpios;
+  } else {
+    payload.mapeo = camposLimpios;
+  }
+
+  peticionAPI(
+    `/campos/estructuras/${estructura.value.id}/`,
+    "PUT",
+    payload
+  )
+    .then(() => {
+      Swal.fire({
+        title: "¡Modificada!",
+        text: "La estructura se modificó correctamente.",
+        icon: "success",
+        width: "300px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    })
+    .catch((error) => console.error(error));
+
+  emit("cerrar");
+};
+
 
 const cancelar = () => {
   emit("cerrar");

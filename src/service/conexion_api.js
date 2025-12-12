@@ -62,11 +62,6 @@ const peticionAPI = async (
       return response.status;
     }
 
-    /*if (method === "DELETE" && response.status === 204) {
-      console.log("response STATUS:", response.status);
-      return response.status;
-    }*/
-
     return response.data;
   } catch (error) {
     console.error("Error en la petición:", error.response || error);

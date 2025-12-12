@@ -61,6 +61,11 @@ const routes = [
     component: () => import("../components/panel/CaracteristicaPrincipal.vue"),
   },
   {
+    path: "/:observatorio_id/archivos",
+    name: "archivosGestion",
+    component: () => import("../components/archivos/ArchivosGestion.vue"),
+  },
+  {
     path: "/:pathMatch(.*)*",
     redirect: "/espacios",
   },

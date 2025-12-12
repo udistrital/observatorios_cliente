@@ -51,7 +51,7 @@
           </v-chip>
         </template>
 
-        <template v-slot:[`item.acciones`]="{ item }">
+        <template v-slot:[`item.acciones_datos`]="{ item }">
           <v-btn
             variant="text"
             icon
@@ -100,9 +100,64 @@
             size="small"
             @click="diriguirseEstructura(item)"
             color="primary"
-            title="Ir a la característica"
+            title="Ir a los datos"
           >
-            <v-icon>mdi-arrow-top-right-thick</v-icon>
+            <v-icon>mdi-database</v-icon>
+          </v-btn>
+        </template>
+
+        <template v-slot:[`item.acciones_archivos`]="{ item }">
+                    <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="verEstructuraArchivos(item)"
+            color="green"
+            title="Ver característica"
+          >
+            <v-icon>mdi-eye</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="editarEstructuraArchivos(item)"
+            color="green"
+            title="Editar característica"
+          >
+            <v-icon>mdi-pencil</v-icon>
+          </v-btn>
+          <v-btn
+            v-if="item.columns.activo"
+            variant="text"
+            icon
+            size="small"
+            @click="eliminarEstructura(item)"
+            color="green"
+            title="Eliminar característica"
+          >
+            <v-icon>mdi-trash-can</v-icon>
+          </v-btn>
+          <v-btn
+            v-else
+            variant="text"
+            icon
+            size="small"
+            @click="reactivarEstructura(item)"
+            color="green"
+            title="Reactivar característica"
+          >
+            <v-icon> mdi-sync</v-icon>
+          </v-btn>
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="diriguirseArchivos(item)"
+            color="green"
+            title="Ir a los archivos"
+          >
+            <v-icon>mdi-file-document-outline</v-icon>
           </v-btn>
         </template>
       </v-data-table>
@@ -152,7 +207,8 @@ const cargando = ref(false);
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
   { title: "Estado", key: "activo", align: "center" },
-  { title: "Acciones", key: "acciones", sortable: false, align: "center" },
+  { title: "Acciones datos", key: "acciones_datos", sortable: false, align: "center" },
+  { title: "Acciones archivos", key: "acciones_archivos", sortable: false, align: "center" },
 ]);
 
 const filteredObservatories = computed(() => {
@@ -173,7 +229,11 @@ const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
   .then((data) => {
     console.log("data que llega :", data);
-    estructuras.value = data;
+    estructuras.value = data.map(item => ({
+      ...item,
+      tieneDatos: item.mapeo?.length > 0,
+      tieneArchivos: item.mapeo_archivos?.length > 0,
+    }));
     cargando.value = false;
     })
     .catch((error) => console.error(error));
@@ -201,6 +261,23 @@ const verEstructura = (item) => {
   console.log("datosEstructura.value :", datosEstructura.value);
 };
 
+const verEstructuraArchivos = (item) => {
+  console.log("verEstructuraArchivos :", item.raw);
+
+  _gestionEstructura.value = true;
+  _modo.value = false;
+
+  datosEstructura.value = {
+    ...item.raw,
+    tipo: 'archivos',
+    mapeo_archivos: item.raw.mapeo_archivos
+  };
+
+  console.log("_gestionEstructura.value :", _gestionEstructura.value);
+  console.log("_modo.value :", _modo.value);
+  console.log("datosEstructura.value :", datosEstructura.value);
+};
+
 const editarEstructura = (item) => {
   _gestionEstructura.value = true;
   _modo.value = true;
@@ -209,6 +286,22 @@ const editarEstructura = (item) => {
   console.log("_modo.value :", _modo.value);
   console.log("datosEstructura.value :", datosEstructura.value);
 };
+
+const editarEstructuraArchivos = (item) => {
+  console.log("editarEstructuraArchivos :", item.raw);
+
+  _gestionEstructura.value = true;
+  _modo.value = true;
+
+  datosEstructura.value = {
+    ...item.raw,
+    tipo: "archivos",
+    mapeo_archivos: item.raw.mapeo_archivos
+  };
+
+  console.log("datosEstructura.value :", datosEstructura.value);
+};
+
 
 const reactivarEstructura = async (item) => {
   let id = item.raw.id;
@@ -311,6 +404,17 @@ const diriguirseEstructura = (item) => {
     mapeo: item.raw.mapeo,
   });
   router.push(`/${observatorioStore.observatorio?.observatorio_id}/tablero`);
+};
+const diriguirseArchivos = (item) => {
+  console.log("diriguirseArchivos item.raw :", item.raw);
+  estructuraStore.setEstructura({
+    id: item.raw.id,
+    nombre: item.raw.nombre,
+    mapeo: item.raw.mapeo,
+    id_archivos: item.raw.id_archivos,
+    mapeo_archivos: item.raw.mapeo_archivos
+  });
+  router.push(`/${observatorioStore.observatorio?.observatorio_id}/archivos`);
 };
 onMounted(() => {
   traerEstructuras();
