@@ -1,8 +1,5 @@
 <template>
     <v-container class="archivo">
-        <div class="cabecera">
-            <h1 class="titulo__cabecera">Archivos</h1>
-        </div>
         <div class="control__container">
             <div class="textfield__contenedor">
                 <v-select
@@ -49,19 +46,6 @@
         </div>
 
         <v-card>
-            <div class="cabecera__tabla">
-                <v-card-title class="d-flex justify-space-between align-center">
-                <span class="text-h5">{{ estructuraSeleccionada?.nombre }}</span>
-                </v-card-title>
-                <v-spacer></v-spacer>
-                <v-btn
-                color="primary"
-                v-if="estructuraSeleccionada"
-                @click="agregarRegistro"
-                >
-                <v-icon left>mdi-plus</v-icon> Agregar Registro
-                </v-btn>
-            </div>
             <v-data-table-server
                 v-if="headers.length > 0"
                 v-model:items-per-page="paginacion.itemsPerPage"
@@ -95,26 +79,6 @@
                     title="Ver registro"
                 >
                     <v-icon>mdi-eye</v-icon>
-                </v-btn>
-                <v-btn
-                    variant="text"
-                    icon
-                    size="small"
-                    @click="editarRegistro(item)"
-                    color="primary"
-                    title="Editar registro"
-                >
-                    <v-icon>mdi-pencil</v-icon>
-                </v-btn>
-                <v-btn
-                    variant="text"
-                    icon
-                    size="small"
-                    @click="eliminarRegistro(item)"
-                    color="primary"
-                    title="Eliminar registro"
-                >
-                    <v-icon>mdi-trash-can</v-icon>
                 </v-btn>
                 </template>
             </v-data-table-server>
@@ -352,54 +316,40 @@ const cerrarModal = () => {
   _agregarFilro.value = false;
 };
 
-
-console.log("333");
-
-const agregarRegistro = () => {
-  _agregarRegistro.value = true;
-};
-
 const verRegistro = (item) => {
   _gestionRegistro.value = true;
   _modo.value = true;
   datosRegistro.value = item.raw;
 };
 
-const editarRegistro = (item) => {
-  _gestionRegistro.value = true;
-  _modo.value = false;
-  datosRegistro.value = item.raw;
-};
-
-const eliminarRegistro = async (item) => {
-  let id = item.raw.id;
-
-  const resultado = await Swal.fire({
-    title: "Eliminar Archivo",
-    html: `¿Desea eliminar este archivo?`,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Confirmar",
-    cancelButtonText: "Cancelar",
-  });
-
-  if (!resultado.isConfirmed) return;
+const verArchivo = async () => {
+  if (!enlaceArchivo.value) return;
 
   try {
-    await peticionAPI(
-      `datosArchivo/${idEstructura.value}/${id}/`, // ← NUEVO ENDPOINT
-      "DELETE"
+    const resp = await fetch(
+      `${gestorUrl}document/${enlaceArchivo.value}`
     );
 
-    Swal.fire("Eliminado", "Archivo eliminado correctamente", "success");
+    if (!resp.ok) {
+      throw new Error("Error consultando gestor documental");
+    }
 
-    setTimeout(() => {
-      traerDatos(estructuraSeleccionada.value);
-    }, 800);
+    const data = await resp.json();
+    const base64 = data.file;
 
-  } catch (error) {
-    console.error("❌ Error eliminando registro:", error);
-    Swal.fire("Error", "No se pudo eliminar el archivo", "error");
+    if (!base64) {
+      throw new Error("No se encontró base64 del archivo");
+    }
+
+    const blob = base64ToBlob(base64, "application/pdf");
+    const url = URL.createObjectURL(blob);
+
+    window.open(url, "_blank");
+
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (e) {
+    console.error(e);
+    Swal.fire("Error", "No se pudo abrir el archivo", "error");
   }
 };
 

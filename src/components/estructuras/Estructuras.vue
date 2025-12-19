@@ -2,10 +2,7 @@
   <div class="intro">
     <h1>{{ observatorioStore.observatorio?.nombre }}</h1>
     <div class="intro-box">
-      <p>Una institución de alta calidad se reconoce por tener unos valores declarados y un proyecto educativo institucional, o lo que haga sus veces, socializados y apropiados por la
-        comunidad. Es el referente fundamental para el desarrollo de las labores formativas, académicas, docentes, científicas, culturales y de extensión, en todo su ámbito de
-        influencia y en las modalidades que la institución determine. A su vez, cuenta con un proceso institucional participativo de valoración y actualización sistemática, en el cual se
-        evidencia la inclusión de los diferentes estamentos y actores que intervienen en el desarrollo y/o gestión de la institución y/o del programa académico.</p>
+      <p>{{ observatorioStore.observatorio?.descripcion }}</p>
     </div>
   </div>
 

@@ -331,7 +331,7 @@ const obtenerGraficos = async () => {
 };
 
 onMounted(() => {
-
+  console.log("panelStore panelStore:", panelStore.panel);
   console.log(userStore.user.role, '---user');
   roleUsuario.value = userStore.user.role
   obtenerGraficos();
@@ -356,6 +356,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   swapy.value?.destroy();
+  
 });
 const crearGrafica = (columna, fila) => {
   router.push({

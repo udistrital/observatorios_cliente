@@ -145,6 +145,7 @@ onMounted(() => {
 
   campos.value = origen.map((item) => ({
     ...item,
+    valor_anterior: item.nombre,
     deshabilitado: true,
   }));
 });
@@ -167,40 +168,22 @@ const habilitarEdicion = () => {
   isEditing.value = true;
 };
 
-/*const guardarEstructura = () => {
- 
-  estructura.value.mapeo = estructura.value.mapeo.map(
-    ({ deshabilitado, ...resto }) => {
-      return resto;
-    }
-  );
-
-  peticionAPI(
-    `/campos/estructuras/${estructura.value.id}/`,
-    "PUT",
-    estructura.value
-  )
-    .then((data) => {
-      Swal.fire({
-        title: "¡Modificada!",
-        text: "La estructura se modificó correctamente.",
-        icon: "success",
-        width: "300px",
-        customClass: {
-          popup: "popup-personalizado",
-          title: "titulo-alerta-personalizado",
-          confirmButton: "confirmacion-alerta-personalizado",
-        },
-        buttonsStyling: false,
-      });
-    })
-    .catch((error) => console.error(error));
-
-  emit("cerrar");
-};
-*/
 const guardarEstructura = () => {
-  const camposLimpios = campos.value.map(({ deshabilitado, ...resto }) => resto);
+  const camposLimpios = campos.value.map(({ deshabilitado, valor_anterior, nombre, ...resto }) => {
+    if (!valor_anterior || valor_anterior === nombre) {
+      return {
+        ...resto,
+        nombre
+      };
+    }
+
+    return {
+      ...resto,
+      nombre,
+      valor_anterior
+    };
+  });
+
 
   const payload = {};
 

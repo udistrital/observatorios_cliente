@@ -31,5 +31,6 @@ export const environment = {
   //MAIN_BACKEND: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/observatorio_crud/v1',
   //MAIN_BACKEND: 'https://pruebasapi.intranetoas.udistrital.edu.co/observatorios_crud/api/v1',
   MAIN_BACKEND: 'http://localhost:8000/api/v1',
-  OBSERVATORIOS_MID: 'http://localhost:8086/v1'
+  OBSERVATORIOS_MID: 'http://localhost:8086/v1',
+  GESTOR_DOCUMENTAL: 'http://127.0.0.1:8034/v1/'
 };

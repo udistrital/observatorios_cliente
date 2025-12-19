@@ -1,9 +1,9 @@
 <template>
     <div class="intro">
         <h1>{{ upper(panelStore?.panel.nombreFactor) }} - {{ upper(panelStore?.panel.nombreCaracteristica) }}</h1>
-        <div class="intro-box">
+        <!--<div class="intro-box">
         <p>{{ panelStore?.panel.descripcion }}</p>
-        </div>
+        </div>-->
         
     </div>
     <div class="intro">
@@ -14,19 +14,36 @@
         </div>
     </div>
 
-    <div v-if="mostrarPanel">
+    <!--<div v-if="mostrarPanel">
         <PanelVistaPrincipal />
+    </div>-->
+    <div v-if="mostrarPanel">
+        <Panel />
+    </div>
+    <div v-if="mostrarTableroDatos">
+        <TableroVista />
+    </div>
+    <div v-if="mostrarArchivos">
+        <ArchivosVista />
     </div>
 </template>
 
 <script setup>
     import { usePanelStore } from "@/stores/panelStore";
     import PanelVistaPrincipal from "@/components/panel/PanelVistaPrincipal.vue";
+    import TableroVista from "@/components/tablero/TableroVista.vue";
+    import ArchivosGestion from "@/components/archivos/ArchivosGestion.vue";
+    import ArchivosVista from "@/components/archivos/ArchivosVista.vue";
+    import Panel from "@/components/panel/PanelVista.vue";
     import { ref } from "vue";
+    import { useObservatorioStore } from "@/stores/observatorioStore";
 
+    const observatorioStore = useObservatorioStore();
     const panelStore = usePanelStore();
     console.log("componente característica principal", panelStore.panel);
     const mostrarPanel = ref(false);
+    const mostrarTableroDatos = ref(false);
+    const mostrarArchivos = ref(false);
 
     const upper = (texto) => (texto || "").toUpperCase();
 
@@ -46,7 +63,21 @@
             observatorio: panelStore?.panel.observatorio,
             columnas: panelStore?.panel.columnas,
         });
+        console.log("panelStore.panel actualizado :", panelStore.panel);
         mostrarPanel.value = true;
+        mostrarTableroDatos.value = false;
+        mostrarArchivos.value = false;
+    };
+
+    const diriguirseTablas = (item) => {
+      mostrarPanel.value = false;
+      mostrarTableroDatos.value = true;
+      mostrarArchivos.value = false;
+    };
+    const diriguirseDocumentos = (item) => {
+      mostrarPanel.value = false;
+      mostrarTableroDatos.value = false;
+      mostrarArchivos.value = true;
     };
 </script>
 

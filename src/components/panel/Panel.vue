@@ -324,8 +324,8 @@ const diriguirsePanel = (item) => {
     columnas: item.raw.columnas,
   });
   //ESTABA ESTA 
-  //router.push(`panel/principal`);
-  router.push(`/${observatorioStore.observatorio?.observatorio_id}/caracteristica`);
+  router.push(`panel/principal`);
+  //router.push(`/${observatorioStore.observatorio?.observatorio_id}/caracteristica`);
 };
 onMounted(() => {
   traerPaneles();

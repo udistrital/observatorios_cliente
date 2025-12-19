@@ -68,34 +68,6 @@ onMounted(() => {
   });
 });
 
-// Crear registro
-/*
-const crearRegistro = async () => {
-  const data = new FormData();
-  data.append("formato", "FORM");
-
-  for (const [key, value] of Object.entries(form.value)) {
-    data.append(key, value);
-  }
-
-  try {
-    await peticionAPI(`campos/archivos/${props.idEstructura}/`, "POST", data);
-
-    Swal.fire({
-      title: "¡Creado!",
-      text: "El registro fue agregado correctamente.",
-      icon: "success",
-    });
-
-    emit("cerrar");
-  } catch (e) {
-    console.error("❌ Error creando archivo:", e);
-    Swal.fire("Error", "No se pudo crear el registro", "error");
-  }
-};
-*/
-
-// Convertir archivo → Base64
 const onFileChange = (event) => {
   const file = event?.target?.files?.[0] || event?.[0];
 
@@ -114,24 +86,15 @@ const onFileChange = (event) => {
   reader.readAsDataURL(file);
 };
 
-
-// Crear registro
 const crearRegistro = async () => {
   if (!fileBase64.value) {
     return Swal.fire("Error", "Debe adjuntar un archivo", "warning");
   }
-
-  // Construir "Datos" con campos dinámicos
   const datosBody = {};
   for (const [key, value] of Object.entries(form.value)) {
     datosBody[key] = value;
   }
-
-  // Construir metadatos (si necesitas otros campos aquí se agregan)
   const metadatos = { ...datosBody };
-  //const metadatos = {};
-
-  // Construir el body FINAL EXACTO
   const body = [
     {
       "Archivo": {
@@ -146,10 +109,9 @@ const crearRegistro = async () => {
     }
   ];
 
-  console.log("🔥 Body enviado al Gestor Documental:", body);
+  console.log("🔥 Body enviado a observatorios_mid:", body);
 
   try {
-    // 1️⃣ Enviar archivo al Gestor Documental
     const resp = await fetch("http://10.80.0.173:8086/v1/documento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -157,15 +119,8 @@ const crearRegistro = async () => {
     });
 
     if (!resp.ok) {
-      throw new Error("Error en gestor documental");
+      throw new Error("Error en observatorios_mid al crear documento");
     }
-
-    // 2️⃣ Registrar datos EN TU ENDPOINT si lo deseas
-    await peticionAPI(
-      `campos/archivos/${props.idEstructura}/`,
-      "POST",
-      datosBody
-    );
 
     Swal.fire({
       title: "¡Creado!",

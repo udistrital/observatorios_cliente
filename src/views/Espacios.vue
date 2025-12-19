@@ -82,15 +82,19 @@ const traerObservatorios = () => {
 const diriguirseObservatorio = (item) => {
   observatorioStore.setObservatorio({
     id: item.id,
-    observatorio_id: item.observatorio_id,
     nombre: item.nombre,
+    descripcion: item.descripcion,
+    observatorio_id: item.observatorio_id,
     imagen: item.imagen,
   });
+  console.log("observatorio seleccionado:", observatorioStore.observatorio);
   if (roleUsuario.value.includes('ADMIN_OBSERVATORIOS')) {
-    
     router.push(`/${item.observatorio_id}/estructuras`);
   }else{
-    router.push(`/${item.observatorio_id}/panel`);
+    router.push({
+      name: "estructurasVista",
+      params: { observatorio_id: item.observatorio_id },
+    });
   }
 };
 watch(

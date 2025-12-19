@@ -1,0 +1,147 @@
+<template>
+  <div class="intro">
+    <h1>{{ observatorioStore.observatorio?.nombre }}</h1>
+    <div class="intro-box">
+      <p>{{ observatorioStore.observatorio?.descripcion }}</p>
+    </div>
+  </div>
+
+  <div class="estructuras">
+    <v-card>
+      <div class="cabecera__tabla">
+        <v-card-title class="d-flex justify-space-between align-center">
+          <span class="text-h5">Características</span>
+        </v-card-title>
+        <v-spacer />
+
+        <v-text-field
+          class="buscador__tabla"
+          v-model="search"
+          append-inner-icon="mdi-magnify"
+          label="Buscar"
+          variant="underlined"
+        />
+      </div>
+
+      <v-data-table
+        :headers="headers"
+        :items="filteredObservatories"
+        :loading="cargando"
+        item-value="id"
+        class="elevation-1"
+        no-data-text="No se encontraron datos"
+        items-per-page-text="Elementos por página:"
+      >
+      <template #loading>
+          <v-skeleton-loader type="table" />
+        </template>
+
+        <template v-slot:[`item.acciones`]="{ item }">
+          <v-btn
+            variant="text"
+            icon
+            size="small"
+            @click="diriguirseEstructura(item)"
+            color="primary"
+            title="Ir a la característica"
+          >
+            <v-icon>mdi-arrow-top-right-thick</v-icon>
+          </v-btn>
+        </template>
+      </v-data-table>
+    </v-card>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from "vue";
+import { useRouter } from "vue-router";
+import peticionAPI from "../../service/conexion_api";
+import Swal from "sweetalert2";
+import { useEstructuraStore } from "@/stores/estructuraStore";
+import { useObservatorioStore } from "@/stores/observatorioStore";
+
+const observatorioStore = useObservatorioStore();
+const estructuraStore = useEstructuraStore();
+const router = useRouter();
+const search = ref("");
+const estructuras = ref([]);
+const cargando = ref(false);
+
+const headers = ref([
+  { title: "Nombre", key: "nombre", align: "center" },
+  { title: "Acciones", key: "acciones", sortable: false, align: "center" },
+]);
+
+const filteredObservatories = computed(() => {
+  if (!search.value) return estructuras.value;
+  return estructuras.value.filter((obs) =>
+    obs.nombre.toLowerCase().includes(search.value.toLowerCase())
+  );
+});
+
+const traerEstructuras = () => {
+  cargando.value = true;
+  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
+  .then((data) => {
+    console.log("data que llega :", data);
+    estructuras.value = data.map(item => ({
+      ...item,
+      tieneDatos: item.mapeo?.length > 0,
+      tieneArchivos: item.mapeo_archivos?.length > 0,
+    }));
+    cargando.value = false;
+    })
+    .catch((error) => console.error(error));
+};
+
+const diriguirseEstructura = (item) => {
+  estructuraStore.setEstructura({
+    id: item.raw.id,
+    nombre: item.raw.nombre,
+    mapeo: item.raw.mapeo,
+  });
+  router.push({
+      name: "caracteristicaPrincipal",
+      params: { observatorio_id: item.observatorio_id },
+    });
+};
+onMounted(() => {
+  traerEstructuras();
+});
+</script>
+
+<style scoped>
+.intro {
+  background-color: #335f97;
+  color: #ffffff;
+  padding: 8px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  margin-top: 8px;
+  max-width: 90%;
+  margin-left: auto;
+  margin-right: auto;
+}
+.intro h1 {
+  text-align: center;
+  font-size: 26px;
+  margin-bottom: 10px;
+}
+.intro-box {
+  background-color: #ffffff;
+  color: black;
+  border: 2px solid black;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+.intro-box p{
+  font-size: 14px;
+}
+.estructuras {
+  width: 90%;
+  margin: 40px auto;
+}
+</style>
