@@ -215,6 +215,18 @@ console.log("222");
 
 // 🔹 1. Cargar estructuras desde el backend
 const traerEstructuras = async () => {
+  cargando.value = true;
+
+  Swal.fire({
+    title: "Cargando archivos",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
   try {
     const data = await peticionAPI("campos/estructuras/", "GET", null, {
       observatorio: observatorioStore.observatorio?.observatorio_id,
@@ -240,6 +252,9 @@ const traerEstructuras = async () => {
     }
   } catch (e) {
     console.error("❌ Error trayendo estructuras en ArchivosGestion:", e);
+  } finally {
+    cargando.value = false;
+    Swal.close();
   }
 };
 

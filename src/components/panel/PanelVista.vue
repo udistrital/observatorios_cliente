@@ -100,7 +100,7 @@ const _modo = ref(false);
 
 const datosPanel = ref({});
 
-const traerPaneles = () => {
+/*const traerPaneles = () => {
   cargando.value = true;
   peticionAPI("dashboards/", "GET", null, {
     observatorio: observatorioStore.observatorio?.id,
@@ -110,6 +110,43 @@ const traerPaneles = () => {
       cargando.value = false;
     })
     .catch((error) => console.error(error));
+};*/
+
+const traerPaneles = async () => {
+  cargando.value = true;
+
+  Swal.fire({
+    title: "Cargando paneles",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const data = await peticionAPI(
+      "dashboards/",
+      "GET",
+      null,
+      {
+        observatorio: observatorioStore.observatorio?.id,
+      }
+    );
+
+    paneles.value = data;
+  } catch (error) {
+    console.error(error);
+    Swal.fire(
+      "Error",
+      "No fue posible cargar los paneles",
+      "error"
+    );
+  } finally {
+    cargando.value = false;
+    Swal.close();
+  }
 };
 
 const diriguirsePanel = (item) => {
@@ -131,10 +168,15 @@ const diriguirsePanel = (item) => {
   router.push(`panel/principal`);
   //router.push(`/${observatorioStore.observatorio?.observatorio_id}/caracteristica`);
 };
-onMounted(() => {
+/*onMounted(() => {
   traerPaneles();
   roleUsuario.value = userStore.user.role;
+});*/
+onMounted(async () => {
+  roleUsuario.value = userStore.user.role;
+  await traerPaneles();
 });
+
 </script>
 
 <style scoped>
@@ -164,8 +206,10 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 .paneles {
-  width: 90%;
-  margin: 1px auto;
+  width: 80%;
+  margin: 40px auto;
+
+  /*margin: 40px auto;*/
 }
 .accionesContainer{
   display: flex;

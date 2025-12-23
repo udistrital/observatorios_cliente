@@ -1,6 +1,6 @@
 <template>
     <v-container class="archivo">
-        <div class="control__container">
+        <!-- <div class="control__container">
             <div class="textfield__contenedor">
                 <v-select
                     v-model="estructuraSeleccionada"
@@ -43,9 +43,28 @@
                     <v-icon left>mdi-filter-variant</v-icon>
                 </v-btn>
             </div>
-        </div>
-
+        </div> -->
+        
         <v-card>
+          <div class="cabecera__tabla">
+            <v-spacer />
+            <v-btn
+              v-if="_filtroActivo"
+              @click="limpiarFiltro"
+              color="primary"
+              variant="outlined"
+              class="mr-2"
+            >
+              <v-icon left>mdi-filter-variant-remove</v-icon>Limpiar filtro
+            </v-btn>
+            <v-btn
+              color="primary"
+              v-if="estructuraSeleccionada"
+              @click="agregarFiltro"
+            >
+              <v-icon left>mdi-filter-variant</v-icon>Filtrar datos
+            </v-btn>
+          </div>
             <v-data-table-server
                 v-if="headers.length > 0"
                 v-model:items-per-page="paginacion.itemsPerPage"
@@ -74,7 +93,7 @@
                     variant="text"
                     icon
                     size="small"
-                    @click="verRegistro(item)"
+                    @click="verArchivo(item)"
                     color="primary"
                     title="Ver registro"
                 >
@@ -129,6 +148,7 @@ import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import AgregarArchivo from "./AgregarArchivo.vue";
 import RegistroArchiGestion from "./RegistroArchiGestion.vue";
+import { environment } from "../../eviroments";
 
 
 const observatorioStore = useObservatorioStore();
@@ -168,6 +188,7 @@ const _modo = ref(false);
 const datosRegistro = ref([]);
 const filtros = ref({});
 const camposBool = ref([]);
+const gestorUrl = environment.GESTOR_DOCUMENTAL;
 
 const cargando = ref(false);
 const paginacion = reactive({
@@ -178,7 +199,7 @@ const paginacion = reactive({
 console.log("222");
 
 // 🔹 1. Cargar estructuras desde el backend
-const traerEstructuras = async () => {
+/*const traerEstructuras = async () => {
   try {
     const data = await peticionAPI("campos/estructuras/", "GET", null, {
       observatorio: observatorioStore.observatorio?.observatorio_id,
@@ -205,10 +226,61 @@ const traerEstructuras = async () => {
   } catch (e) {
     console.error("❌ Error trayendo estructuras en ArchivosGestion:", e);
   }
+};*/
+
+const traerEstructuras = async () => {
+  cargando.value = true;
+
+  Swal.fire({
+    title: "Cargando estructuras",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const data = await peticionAPI(
+      "campos/estructuras/",
+      "GET",
+      null,
+      {
+        observatorio: observatorioStore.observatorio?.observatorio_id,
+      }
+    );
+
+    console.log("📌 estructuras en ArchivosVista:", data);
+    estructuras.value = data;
+
+    // 🔁 sincronizar si viene estructura desde el store
+    if (estructuraStore.estructura) {
+      const encontrada = data.find(
+        (e) => e.id === estructuraStore.estructura.id
+      );
+
+      if (encontrada) {
+        estructuraSeleccionada.value = encontrada;
+        await traerDatos(encontrada, true); // 👈 loader SOLO aquí
+      }
+    }
+  } catch (e) {
+    console.error(e);
+    Swal.fire(
+      "Error",
+      "No fue posible cargar las estructuras",
+      "error"
+    );
+  } finally {
+    cargando.value = false;
+    Swal.close();
+  }
 };
 
+
 // 🔹 2. Traer datos de archivos para una estructura
-const traerDatos = async (estructura) => {
+/*const traerDatos = async (estructura) => {
   console.log("llamado llamado");
   console.log("👉 traerDatos() llamado con:", estructura);
 
@@ -231,13 +303,20 @@ const traerDatos = async (estructura) => {
   console.log("📁 mapeo_archivos usado:", camposFormulario.value);
   console.log("📁 idEstructura (archivos):", idEstructura.value);
 
-  headers.value = camposFormulario.value.map((item) => ({
+  headers.value = camposFormulario.value
+  .filter(
+    (item) =>
+      item.nombre !== "Hash" &&
+      item.nombre !== "hash"
+  )
+  .map((item) => ({
     title: item.nombre,
     key: item.nombre,
     value: item.nombre,
     align: "center",
     sortable: true,
   }));
+
 
   headers.value.push({
     title: "Acciones",
@@ -251,17 +330,7 @@ const traerDatos = async (estructura) => {
   datos.value = [];
 
   try {
-    /*const response = await peticionAPI(
-      `campos/archivos/${idEstructura.value}/`,
-      "GET",
-      null,
-      {
-        page: paginacion.page,
-        page_size: paginacion.itemsPerPage,
-        ordering: ordering.value,
-        ...filtros.value,
-      }
-    );*/
+
     const response = await peticionAPI(
       `datosArchivo/${idEstructura.value}/`,
       "GET",
@@ -284,7 +353,84 @@ const traerDatos = async (estructura) => {
   } finally {
     cargando.value = false;
   }
+};*/
+
+const traerDatos = async (estructura, mostrarLoader = false) => {
+  let estructuraActiva =
+    estructura || estructuraSeleccionada.value || estructuraStore.estructura;
+
+  if (!estructuraActiva) return;
+
+  estructuraStore.setEstructura(estructuraActiva);
+  estructuraSeleccionada.value = estructuraActiva;
+
+  camposFormulario.value = estructuraActiva.mapeo_archivos || [];
+  idEstructura.value = estructuraActiva.id_archivos || estructuraActiva.id;
+
+  headers.value = camposFormulario.value
+    .filter(
+      (item) =>
+        item.nombre !== "Hash" &&
+        item.nombre !== "hash"
+    )
+    .map((item) => ({
+      title: item.nombre,
+      key: item.nombre,
+      value: item.nombre,
+      align: "center",
+      sortable: true,
+    }));
+
+  headers.value.push({
+    title: "Acciones",
+    key: "acciones",
+    value: "acciones",
+    align: "center",
+    sortable: false,
+  });
+
+  if (mostrarLoader) {
+    Swal.fire({
+      title: "Cargando archivos",
+      text: "Por favor espera…",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+  }
+
+  cargando.value = true;
+  datos.value = [];
+
+  try {
+    const response = await peticionAPI(
+      `datosArchivo/${idEstructura.value}/`,
+      "GET",
+      null,
+      {
+        page: paginacion.page,
+        page_size: paginacion.itemsPerPage,
+        ordering: ordering.value,
+        ...filtros.value,
+      }
+    );
+
+    console.log("📦 Respuesta API archivos:", response);
+
+    datos.value = response.results || [];
+    paginacion.totalItems = Number(response.count) || 0;
+    await nextTick();
+  } catch (error) {
+    console.error("❌ Error al cargar archivos:", error);
+    Swal.fire("Error", "No fue posible cargar los archivos", "error");
+  } finally {
+    cargando.value = false;
+    if (mostrarLoader) Swal.close();
+  }
 };
+
 
 const actualizarPagina = (nuevaPagina) => {
   paginacion.page = nuevaPagina;
@@ -316,18 +462,33 @@ const cerrarModal = () => {
   _agregarFilro.value = false;
 };
 
-const verRegistro = (item) => {
-  _gestionRegistro.value = true;
-  _modo.value = true;
-  datosRegistro.value = item.raw;
+const base64ToBlob = (base64, type) => {
+  const bytes = atob(base64);
+  const array = new Uint8Array(bytes.length);
+
+  for (let i = 0; i < bytes.length; i++) {
+    array[i] = bytes.charCodeAt(i);
+  }
+
+  return new Blob([array], { type });
 };
 
-const verArchivo = async () => {
-  if (!enlaceArchivo.value) return;
+const verArchivo = async (item) => {
+  console.log("👉 verArchivo() llamado con:", item);
+  const enlaceArchivo =
+      item?.raw?.Enlace ||
+      item?.raw?.enlace ||
+      item?.raw?.Hash ||
+      item?.raw?.id_archivo;
+
+  if (!enlaceArchivo) {
+    Swal.fire("Aviso", "Este registro no tiene archivo asociado", "warning");
+    return;
+  }
 
   try {
     const resp = await fetch(
-      `${gestorUrl}document/${enlaceArchivo.value}`
+      `${gestorUrl}document/${enlaceArchivo}`
     );
 
     if (!resp.ok) {
@@ -352,6 +513,72 @@ const verArchivo = async () => {
     Swal.fire("Error", "No se pudo abrir el archivo", "error");
   }
 };
+
+/*const verArchivo = async (item) => {
+  console.log("👉 verArchivo() llamado con:", item);
+
+  const enlaceArchivo =
+    item?.raw?.Enlace ||
+    item?.raw?.enlace ||
+    item?.raw?.Hash ||
+    item?.raw?.id_archivo;
+
+  if (!enlaceArchivo) {
+    Swal.fire(
+      "Aviso",
+      "Este registro no tiene archivo asociado",
+      "warning"
+    );
+    return;
+  }
+
+  // 🟡 Loader bloqueante
+  Swal.fire({
+    title: "Cargando archivo",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const resp = await fetch(
+      `${gestorUrl}document/${enlaceArchivo}`
+    );
+
+    if (!resp.ok) {
+      throw new Error("Error consultando gestor documental");
+    }
+
+    const data = await resp.json();
+    const base64 = data.file;
+
+    if (!base64) {
+      throw new Error("No se encontró base64 del archivo");
+    }
+
+    const blob = base64ToBlob(base64, "application/pdf");
+    const url = URL.createObjectURL(blob);
+
+    // 📄 Abrir archivo
+    window.open(url, "_blank");
+
+    // 🧹 Liberar memoria
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (e) {
+    console.error(e);
+    Swal.fire(
+      "Error",
+      "No se pudo abrir el archivo",
+      "error"
+    );
+    return;
+  } finally {
+    Swal.close();
+  }
+};*/
 
 
 // 🔹 3. Montaje: aquí SÍ pasa algo

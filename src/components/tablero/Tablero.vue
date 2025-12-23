@@ -364,14 +364,48 @@ const limpiarFiltro = () => {
   traerDatos();
   _filtroActivo.value = false;
 };
-const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET", null, {
+const traerEstructuras = async () => {
+  cargando.value = true;
+
+  Swal.fire({
+    title: "Cargando estructuras",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const data = await peticionAPI(
+      "campos/estructuras/",
+      "GET",
+      null,
+      {
+        observatorio: observatorioStore.observatorio?.observatorio_id,
+      }
+    );
+    console.log("📌 estructuras:", data);
+    estructuras.value = data;
+  } catch (error) {
+    console.error("❌ Error cargando estructuras:", error);
+    Swal.fire(
+      "Error",
+      "No fue posible cargar las estructuras",
+      "error"
+    );
+  } finally {
+    cargando.value = false;
+    Swal.close();
+  }
+  /*peticionAPI("campos/estructuras/", "GET", null, {
     observatorio: observatorioStore.observatorio?.observatorio_id,
   })
     .then((data) => {
       estructuras.value = data;
     })
-    .catch((error) => console.error(error));
+    .catch((error) => console.error(error));*/
 };
 const limpiarEstructura = async () => {
   const resultado = await Swal.fire({

@@ -60,7 +60,9 @@ import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import { usePanelStore } from "@/stores/panelStore";
 
+const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const estructuraStore = useEstructuraStore();
 const router = useRouter();
@@ -80,7 +82,7 @@ const filteredObservatories = computed(() => {
   );
 });
 
-const traerEstructuras = () => {
+/*const traerEstructuras = () => {
   cargando.value = true;
   peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
   .then((data) => {
@@ -93,21 +95,72 @@ const traerEstructuras = () => {
     cargando.value = false;
     })
     .catch((error) => console.error(error));
+};*/
+
+const traerEstructuras = async () => {
+  cargando.value = true;
+
+  Swal.fire({
+    title: "Cargando estructuras",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const data = await peticionAPI(
+      "campos/estructuras/",
+      "GET",
+      null,
+      { observatorio: observatorioStore.observatorio?.observatorio_id }
+    );
+
+    estructuras.value = data.map((item) => ({
+      ...item,
+      tieneDatos: item.mapeo?.length > 0,
+      tieneArchivos: item.mapeo_archivos?.length > 0,
+    }));
+  } catch (error) {
+    console.error(error);
+    Swal.fire(
+      "Error",
+      "No fue posible cargar las estructuras",
+      "error"
+    );
+  } finally {
+    cargando.value = false;
+    Swal.close();
+  }
 };
 
+
 const diriguirseEstructura = (item) => {
+  console.log("item :", item);
   estructuraStore.setEstructura({
     id: item.raw.id,
     nombre: item.raw.nombre,
     mapeo: item.raw.mapeo,
   });
+  panelStore.setPanel({
+            id: item.raw.id,
+            idArchivos: item.raw.id_archivos,
+            nombreCaracteristica: item.columns.nombre,
+            nombreFactor: observatorioStore.observatorio?.nombre,
+            observatorio: item.raw.observatorio,
+        });
   router.push({
       name: "caracteristicaPrincipal",
-      params: { observatorio_id: item.observatorio_id },
+      params: { observatorio_id: item.raw.observatorio },
     });
 };
-onMounted(() => {
+/*onMounted(() => {
   traerEstructuras();
+});*/
+onMounted(async () => {
+  await traerEstructuras();
 });
 </script>
 

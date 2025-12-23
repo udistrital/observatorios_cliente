@@ -2,6 +2,7 @@
   <v-container class="tablero">
     <v-card>
       <div class="cabecera__tabla">
+        <v-spacer />
         <v-btn
           v-if="_filtroActivo"
           @click="limpiarFiltro"
@@ -194,7 +195,7 @@ const limpiarFiltro = () => {
   traerDatos();
   _filtroActivo.value = false;
 };
-const traerEstructuras = () => {
+/*const traerEstructuras = () => {
   peticionAPI("campos/estructuras/", "GET", null, {
     observatorio: observatorioStore.observatorio?.observatorio_id,
   })
@@ -202,7 +203,42 @@ const traerEstructuras = () => {
       estructuras.value = data;
     })
     .catch((error) => console.error(error));
+};*/
+
+const traerEstructuras = async () => {
+  Swal.fire({
+    title: "Cargando estructuras",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const data = await peticionAPI(
+      "campos/estructuras/",
+      "GET",
+      null,
+      {
+        observatorio: observatorioStore.observatorio?.observatorio_id,
+      }
+    );
+
+    estructuras.value = data;
+  } catch (error) {
+    console.error(error);
+    Swal.fire(
+      "Error",
+      "No fue posible cargar las estructuras",
+      "error"
+    );
+  } finally {
+    Swal.close();
+  }
 };
+
 
 const agregarFiltro = () => {
   _agregarFilro.value = true;

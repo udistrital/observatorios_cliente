@@ -8,7 +8,7 @@
     </div>
     <div class="intro">
         <div class="menu-opciones">
-            <v-btn class="opcion" @click="diriguirseGraficas(item)">Ver graficas</v-btn>
+            <v-btn class="opcion" @click="diriguirseGraficas(item)">Ver graficas del factor</v-btn>
             <v-btn class="opcion" @click="diriguirseTablas(item)">Ver tablas</v-btn>
             <v-btn class="opcion" @click="diriguirseDocumentos(item)">Ver documentos</v-btn>
         </div>
@@ -48,20 +48,12 @@
     const upper = (texto) => (texto || "").toUpperCase();
 
     const diriguirseGraficas = (item) => {
-        //console.log("item.raw :", item.raw);
-        //console.log("item.raw.id :", item.raw.id);
-        //console.log("item.raw.nombre :", item.raw.nombre);
-        //console.log("item.raw.descripcion :", item.raw.descripcion);
-        //console.log("item.raw.observatorio :", item.raw.observatorio);
-        //console.log("item.raw.columnas :", item.raw.columnas);
         panelStore.setPanel({
             id: panelStore?.panel.id,
-            nombre: panelStore?.panel.nombreCaracteristica,
+            idArchivos: panelStore?.panel.id_archivos,
             nombreCaracteristica: panelStore?.panel.nombreCaracteristica,
-            descripcion: panelStore?.panel.descripcion,
             nombreFactor: panelStore?.panel.nombreFactor,
             observatorio: panelStore?.panel.observatorio,
-            columnas: panelStore?.panel.columnas,
         });
         console.log("panelStore.panel actualizado :", panelStore.panel);
         mostrarPanel.value = true;

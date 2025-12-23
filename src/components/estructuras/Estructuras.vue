@@ -221,9 +221,46 @@ const _modo = ref(false);
 
 const datosEstructura = ref({});
 
-const traerEstructuras = () => {
+const traerEstructuras = async () => {
   cargando.value = true;
-  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
+
+  Swal.fire({
+    title: "Cargando estructuras",
+    text: "Por favor espera…",
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    },
+  });
+
+  try {
+    const data = await peticionAPI(
+      "campos/estructuras/",
+      "GET",
+      null,
+      { observatorio: observatorioStore.observatorio?.observatorio_id }
+    );
+
+    console.log("data que llega :", data);
+
+    estructuras.value = data.map((item) => ({
+      ...item,
+      tieneDatos: item.mapeo?.length > 0,
+      tieneArchivos: item.mapeo_archivos?.length > 0,
+    }));
+  } catch (error) {
+    console.error(error);
+    Swal.fire(
+      "Error",
+      "No fue posible cargar las estructuras",
+      "error"
+    );
+  } finally {
+    cargando.value = false;
+    Swal.close();
+  }
+  /*peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
   .then((data) => {
     console.log("data que llega :", data);
     estructuras.value = data.map(item => ({
@@ -233,7 +270,7 @@ const traerEstructuras = () => {
     }));
     cargando.value = false;
     })
-    .catch((error) => console.error(error));
+    .catch((error) => console.error(error));*/
 };
 
 const cerrarModal = () => {
@@ -413,8 +450,8 @@ const diriguirseArchivos = (item) => {
   });
   router.push(`/${observatorioStore.observatorio?.observatorio_id}/archivos`);
 };
-onMounted(() => {
-  traerEstructuras();
+onMounted(async () => {
+  await traerEstructuras();
 });
 </script>
 
