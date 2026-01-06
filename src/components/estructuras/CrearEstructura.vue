@@ -10,8 +10,9 @@
           density="comfortable"
           required
         ></v-text-field>
+
         <div class="subcabecera">
-          <h3 class="subtitulo-modal">Campos</h3>
+          <h3 class="subtitulo-modal">Campos de Datos</h3>
 
           <v-btn icon color="primary" density="compact" @click="agregarCampo">
             <v-icon>mdi-plus</v-icon>
@@ -70,6 +71,62 @@
             </v-btn>
           </div>
         </div>
+
+        <div class="subcabecera mt-5">
+          <h3 class="subtitulo-modal">Campos de Archivos</h3>
+          <v-btn icon color="green" density="compact" @click="agregarCampoArchivo">
+            <v-icon>mdi-plus</v-icon>
+          </v-btn>
+        </div>
+
+        <div class="contenedor-campos">
+          <div v-for="(campo, index) in camposArchivos" :key="'archivo-' + index" class="d-flex align-center mb-2">
+
+            <v-text-field
+              hide-details="true"
+              v-model="campo.nombre"
+              label="Nombre Archivo"
+              class="mr-2 campos__field"
+              variant="outlined"
+              density="comfortable"
+              required
+            ></v-text-field>
+
+             <v-select
+              v-model="campo.tipo"
+              :items="tiposDeDato"
+              item-value="nombre"
+              label="Tipo de dato"
+              placeholder="Selecciona un tipo"
+              variant="outlined"
+              density="comfortable"
+              required
+              hide-details="true"
+              class="campos__field"
+              style="width: 50%"
+            >
+              <template v-slot:item="{ props, item }">
+                <div
+                  class="select__tipos"
+                  v-bind="props"
+                  :title="item.raw.descripcion"
+                >
+                  {{ item.raw.nombre_espanol }} ({{ item.raw.nombre }})
+                </div>
+              </template>
+              <template v-slot:selection="{ item }">
+                {{ item.raw.nombre_espanol }} {{ item.raw.nombre }}
+              </template>
+            </v-select>
+
+            <v-btn icon variant="plain" density="comfortable" color="green" @click="eliminarCampoArchivo(index)">
+              <v-icon>mdi-delete</v-icon>
+            </v-btn>
+
+          </div>
+        </div>
+
+
       </v-form>
     </v-card-text>
     <v-card-actions>
@@ -100,6 +157,7 @@ const dialog = ref(props.value);
 const nombreEstructura = ref("");
 const tiposDeDato = ref([""]);
 const campos = ref([{ nombre: "", tipo: "" }]);
+const camposArchivos = ref([{ nombre: "", tipo: "" }]);
 
 const agregarCampo = () => {
   campos.value.push({ nombre: "", tipo: "" });
@@ -109,11 +167,20 @@ const eliminarCampo = (index) => {
   campos.value.splice(index, 1);
 };
 
+const agregarCampoArchivo = () => {
+  camposArchivos.value.push({ nombre: "", tipo: "" });
+};
+
+const eliminarCampoArchivo = (index) => {
+  camposArchivos.value.splice(index, 1);
+};
+
 const crearEstructura = () => {
   const estructura = {
     nombre: nombreEstructura.value,
     observatorio: observatorioStore.observatorio?.observatorio_id,
     mapeo: campos.value,
+    mapeo_archivos: camposArchivos.value
   };
 
   peticionAPI("/campos/estructuras/", "POST", estructura)

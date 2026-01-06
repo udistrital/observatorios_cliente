@@ -28,5 +28,12 @@ export const environment = {
   NOTIFICACION_MID: "https://pruebasapi.intranetoas.udistrital.edu.co:8527/v1/",
   NOTIFICACION_MID_WS: "wss://pruebasapi.intranetoas.udistrital.edu.co:8527/v1/ws",
   NOTIFICACIONES_CRUD: "https://autenticacion.portaloas.udistrital.edu.co/apioas/notificaciones_crud/",
-  MAIN_BACKEND: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/observatorio_crud/v1',
+  //MAIN_BACKEND: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/observatorio_crud/v1',
+  MAIN_BACKEND: 'https://pruebasapi.intranetoas.udistrital.edu.co/observatorios_crud/api/v1',
+  //MAIN_BACKEND: 'http://localhost:8000/api/v1',
+  //OBSERVATORIOS_MID: 'http://localhost:8086/v1',
+  //OBSERVATORIOS_MID: 'http://0.0.0.0:8086/v1',
+  OBSERVATORIOS_MID: 'https://pruebasapi.intranetoas.udistrital.edu.co/observatorios_mid/api/v1',
+  //GESTOR_DOCUMENTAL: 'http://127.0.0.1:8034/v1/'
+  GESTOR_DOCUMENTAL: 'http://pruebasapi2.intranetoas.udistrital.edu.co:8199/v1/'
 };

@@ -22,12 +22,7 @@
           density="comfortable"
           readonly
         ></v-text-field>
-        <!-- disabled -->
 
-        <!-- <v-btn color="primary" type="submit" class="mt-4">
-          <v-icon left>mdi-upload</v-icon>
-          Guardar
-        </v-btn> -->
         <v-card-actions>
           <v-spacer></v-spacer>
           <v-btn variant="outlined" color="primary" text @click="cancelar"
@@ -63,36 +58,6 @@ const armarFormulario = () => {
     campos.value[`${element.nombre}`] = "";
   }
 };
-// const crearEstructura = () => {
-//   const registro = new FormData();
-//   registro.append("formato", "FORM");
-//   let resultados = Object.keys(campos.value).map((clave) => ({
-//     clave,
-//     valor: campos.value[clave],
-//   }));
-//   for (const campo of resultados) {
-//     registro.append(campo.clave, campo.valor);
-//   }
-
-//   peticionAPI(`/datos/${props.idEstructura}/`, "POST", registro)
-//     .then((data) => {
-//       Swal.fire({
-//         title: "¡Creado!",
-//         text: "El registro se creó correctamente.",
-//         icon: "success",
-//         width: "300px",
-//         customClass: {
-//           popup: "popup-personalizado",
-//           title: "titulo-alerta-personalizado",
-//           confirmButton: "confirmacion-alerta-personalizado",
-//         },
-//         buttonsStyling: false,
-//       });
-//     })
-//     .catch((error) => console.error(error));
-
-//   emit("cerrar", { id: props.idEstructura });
-// };
 
 const archivo = ref(null);
 const formato = ref("");
@@ -129,10 +94,6 @@ const guardarArchivo = async () => {
   registro.append("archivo", archivo.value[0]);
   registro.append("formato", formato.value);
 
-  console.log("registro :", registro);
-  console.log("archivo.value[0] :", archivo.value[0]);
-  console.log("formato.value :", formato.value);
-  
   peticionAPI(`datos/${props.idEstructura}/`, "POST", registro)
     .then((data) => {
       Swal.fire({
@@ -150,7 +111,6 @@ const guardarArchivo = async () => {
     })
     .catch((error) => {
       console.error(error);
-      // Swal.fire("Error", "Ocurrió un error al subir el archivo", "error");
     });
 
   emit("cerrar", { id: props.idEstructura });

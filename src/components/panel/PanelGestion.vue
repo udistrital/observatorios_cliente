@@ -64,7 +64,6 @@ const panel = ref({ ...props.panelData });
 const tiposDeDato = ref([""]);
 
 onMounted(() => {
-  // console.log(props);
 });
 
 const agregarCampo = () => {

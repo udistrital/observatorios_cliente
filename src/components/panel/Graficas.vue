@@ -4,9 +4,6 @@
       <div class="cabecera">
         <h1 class="titulo__cabecera">{{panelStore?.panel.nombre}}</h1>
         <v-spacer />
-        <!-- <v-btn color="primary" prepend-icon="mdi-plus" @click="agregarGrafica"
-          >Añadir Grafica</v-btn
-        > -->
       </div>
       <div class="cuerpo">
         <CrearGraficas :columna="columna" :fila="fila" :dashboard="panelStore.panel.dashboard" />
@@ -32,15 +29,10 @@ onMounted(() => {
   columna.value = parseInt(route.params.columna) || 0;
   fila.value = parseInt(route.params.fila) || 0;
   panel.value = route.params.panel || "";
-
-  console.log("Columna: ", columna.value, "Fila: ", fila.value, "Panel: ", panel.value);
 });
 
 const panelStore = usePanelStore();
 
-const agregarGrafica = () => {
-
-}
 </script>
 
 <style scoped>

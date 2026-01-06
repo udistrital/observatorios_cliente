@@ -43,18 +43,17 @@
   });
   
   const series = computed(() => {
-    // Se espera un array de objetos: [{ name: 'Serie 1', data: [10, 20, 30] }, ...]
     return [
       {
         "name" : props.metadata?.metrica,
         "data" : props.data?.metrica}
     ];
   });
-  
+
   const categories = computed(() => {
     return  props.data?.etiquetas;
   });
-  
+
   const chartOptions = computed(() => ({
     chart: {
       type: "line",
@@ -157,6 +156,5 @@
     const dataIndex = config.dataPointIndex;
     const label = categories.value[dataIndex];
     const value = series.value[seriesIndex]?.data?.[dataIndex];
-    console.log(`Click en: ${label} (${value})`);
   };
   </script>

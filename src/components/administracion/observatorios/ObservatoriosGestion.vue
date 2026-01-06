@@ -146,7 +146,6 @@ const guardarObservatorio = () => {
           title: "titulo-alerta-personalizado",
           confirmButton: "confirmacion-alerta-personalizado",
         },
-        // buttonsStyling: false,
         showConfirmButton: false,
         timer: 1500
       });

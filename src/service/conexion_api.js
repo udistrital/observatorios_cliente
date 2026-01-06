@@ -3,14 +3,8 @@ import Swal from "sweetalert2";
 import { environment } from "../eviroments";
 import { useUserStore } from "@/stores/userStore";
 
-// const userStore = useUserStore();
-// import API_DIR from "../../.env";
-// const _API_DIR = 'http://localhost:8000/api/v1';
-// const _API_DIR = 'http://observatoriospruebas.portaloas.udistrital.edu.co:8080/api/v1';
-// Crear instancia de Axios con la URL base del API desde .env
 const api = axios.create({
   baseURL: environment.MAIN_BACKEND,
-  // baseURL: _API_DIR,
   headers: {
     "Content-Type": "application/json",
   },
@@ -41,7 +35,6 @@ const peticionAPI = async (
       params,
     };
 
-    // Si hay token, lo añadimos a los headers
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }
@@ -54,18 +47,10 @@ const peticionAPI = async (
     }
 
     const response = await api(config);
-    console.log("response COMPLETO:", response);
 
     if (method === "DELETE"  && response.status === 200) {
-      console.log("response COMPLETO delete :", response);
-      console.log("response STATUS delete:", response.status);
       return response.status;
     }
-
-    /*if (method === "DELETE" && response.status === 204) {
-      console.log("response STATUS:", response.status);
-      return response.status;
-    }*/
 
     return response.data;
   } catch (error) {

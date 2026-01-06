@@ -26,7 +26,7 @@
         </div>
         <div class="contenedor-campos">
           <div
-            v-for="(campo, index) in estructura.mapeo"
+            v-for="(campo, index) in campos"
             :key="index"
             class="d-flex align-center mb-2"
           >
@@ -112,26 +112,32 @@ const isEditing = ref(props.value);
 const estructura = ref({ ...props.estructuraData });
 const tiposDeDato = ref([""]);
 
+const esModoArchivos = ref(props.estructuraData?.tipo === "archivos");
+
+const campos = ref([]);
+
 onMounted(() => {
-  estructura.value.mapeo = estructura.value.mapeo.map((item) => {
-    return {
-      ...item,
-      deshabilitado: true,
-    };
-  });
   peticionAPI("campos/tipos", "GET")
-    .then((data) => {
-      tiposDeDato.value = Object.values(data);
-    })
+    .then((data) => (tiposDeDato.value = Object.values(data)))
     .catch((error) => console.error(error));
+
+  const origen = esModoArchivos.value
+    ? estructura.value.mapeo_archivos
+    : estructura.value.mapeo;
+
+  campos.value = origen.map((item) => ({
+    ...item,
+    valor_anterior: item.nombre,
+    deshabilitado: true,
+  }));
 });
 
 const agregarCampo = () => {
-  estructura.value.mapeo.push({ nombre: "", tipo: "" });
+  campos.value.push({ nombre: "", tipo: "" });
 };
 
 const eliminarCampo = (index) => {
-  estructura.value.mapeo.splice(index, 1);
+  campos.value.splice(index, 1);
 };
 
 const habilitarEdicion = () => {
@@ -139,19 +145,36 @@ const habilitarEdicion = () => {
 };
 
 const guardarEstructura = () => {
- 
-  estructura.value.mapeo = estructura.value.mapeo.map(
-    ({ deshabilitado, ...resto }) => {
-      return resto;
+  const camposLimpios = campos.value.map(({ deshabilitado, valor_anterior, nombre, ...resto }) => {
+    if (!valor_anterior || valor_anterior === nombre) {
+      return {
+        ...resto,
+        nombre
+      };
     }
-  );
+
+    return {
+      ...resto,
+      nombre,
+      valor_anterior
+    };
+  });
+
+
+  const payload = {};
+
+  if (esModoArchivos.value) {
+    payload.mapeo_archivos = camposLimpios;
+  } else {
+    payload.mapeo = camposLimpios;
+  }
 
   peticionAPI(
     `/campos/estructuras/${estructura.value.id}/`,
     "PUT",
-    estructura.value
+    payload
   )
-    .then((data) => {
+    .then(() => {
       Swal.fire({
         title: "¡Modificada!",
         text: "La estructura se modificó correctamente.",
@@ -169,6 +192,7 @@ const guardarEstructura = () => {
 
   emit("cerrar");
 };
+
 
 const cancelar = () => {
   emit("cerrar");

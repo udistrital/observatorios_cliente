@@ -58,7 +58,6 @@ const fetchOperationTypes = async () => {
     const response = await peticionAPI('/constructor_graficos/tipo_operaciones/')
     .then((response) => {
         operationTypes.value = response['operaciones'];
-        console.log(operationTypes.value);
     });
     
     

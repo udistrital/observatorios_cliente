@@ -119,5 +119,4 @@ const cancelar = () => {
 </script>
 
 <style>
-/* Personalización si se requiere */
 </style>

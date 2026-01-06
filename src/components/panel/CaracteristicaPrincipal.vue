@@ -1,52 +1,66 @@
 <template>
     <div class="intro">
         <h1>{{ upper(panelStore?.panel.nombreFactor) }} - {{ upper(panelStore?.panel.nombreCaracteristica) }}</h1>
-        <div class="intro-box">
-        <p>{{ panelStore?.panel.descripcion }}</p>
-        </div>
-        
     </div>
     <div class="intro">
         <div class="menu-opciones">
-            <v-btn class="opcion" @click="diriguirseGraficas(item)">Ver graficas</v-btn>
+            <v-btn class="opcion" @click="diriguirseGraficas(item)">Ver graficas del factor</v-btn>
             <v-btn class="opcion" @click="diriguirseTablas(item)">Ver tablas</v-btn>
             <v-btn class="opcion" @click="diriguirseDocumentos(item)">Ver documentos</v-btn>
         </div>
     </div>
 
     <div v-if="mostrarPanel">
-        <PanelVistaPrincipal />
+        <Panel />
+    </div>
+    <div v-if="mostrarTableroDatos">
+        <TableroVista />
+    </div>
+    <div v-if="mostrarArchivos">
+        <ArchivosVista />
     </div>
 </template>
 
 <script setup>
     import { usePanelStore } from "@/stores/panelStore";
     import PanelVistaPrincipal from "@/components/panel/PanelVistaPrincipal.vue";
+    import TableroVista from "@/components/tablero/TableroVista.vue";
+    import ArchivosGestion from "@/components/archivos/ArchivosGestion.vue";
+    import ArchivosVista from "@/components/archivos/ArchivosVista.vue";
+    import Panel from "@/components/panel/PanelVista.vue";
     import { ref } from "vue";
+    import { useObservatorioStore } from "@/stores/observatorioStore";
 
+    const observatorioStore = useObservatorioStore();
     const panelStore = usePanelStore();
-    console.log("componente característica principal", panelStore.panel);
     const mostrarPanel = ref(false);
+    const mostrarTableroDatos = ref(false);
+    const mostrarArchivos = ref(false);
 
     const upper = (texto) => (texto || "").toUpperCase();
 
     const diriguirseGraficas = (item) => {
-        //console.log("item.raw :", item.raw);
-        //console.log("item.raw.id :", item.raw.id);
-        //console.log("item.raw.nombre :", item.raw.nombre);
-        //console.log("item.raw.descripcion :", item.raw.descripcion);
-        //console.log("item.raw.observatorio :", item.raw.observatorio);
-        //console.log("item.raw.columnas :", item.raw.columnas);
         panelStore.setPanel({
             id: panelStore?.panel.id,
-            nombre: panelStore?.panel.nombreCaracteristica,
+            idArchivos: panelStore?.panel.id_archivos,
             nombreCaracteristica: panelStore?.panel.nombreCaracteristica,
-            descripcion: panelStore?.panel.descripcion,
             nombreFactor: panelStore?.panel.nombreFactor,
             observatorio: panelStore?.panel.observatorio,
-            columnas: panelStore?.panel.columnas,
         });
         mostrarPanel.value = true;
+        mostrarTableroDatos.value = false;
+        mostrarArchivos.value = false;
+    };
+
+    const diriguirseTablas = (item) => {
+      mostrarPanel.value = false;
+      mostrarTableroDatos.value = true;
+      mostrarArchivos.value = false;
+    };
+    const diriguirseDocumentos = (item) => {
+      mostrarPanel.value = false;
+      mostrarTableroDatos.value = false;
+      mostrarArchivos.value = true;
     };
 </script>
 

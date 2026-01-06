@@ -35,9 +35,19 @@ const routes = [
     component: () => import("../views/Estructuras.vue"),
   },
   {
+    path: "/estructuras/:observatorio_id",
+    name: "estructurasVista",
+    component: () => import("..//components/estructuras/EstructurasVista.vue"),
+  },
+  {
     path: "/:observatorio_id/tablero",
     name: "tablero",
     component: () => import("../views/Tablero.vue"),
+  },
+  {
+    path: "/tablero/:observatorio_id",
+    name: "tableroVista",
+    component: () => import("../components/tablero/TableroVista.vue"),
   },
   {
     path: "/:observatorio_id/panel",
@@ -59,6 +69,16 @@ const routes = [
     path: "/:observatorio_id/caracteristica",
     name: "caracteristicaPrincipal",
     component: () => import("../components/panel/CaracteristicaPrincipal.vue"),
+  },
+  {
+    path: "/panelVista/:observatorio_id",
+    name: "panelVista",
+    component: () => import("../components/panel/PanelVista.vue"),
+  },
+  {
+    path: "/:observatorio_id/archivos",
+    name: "archivosGestion",
+    component: () => import("../components/archivos/ArchivosGestion.vue"),
   },
   {
     path: "/:pathMatch(.*)*",
@@ -85,22 +105,16 @@ router.beforeEach(async (to, from, next) => {
 
   const roleUsuario = userStore.user?.role || [];
 
-  // Rutas permitidas para usuarios sin el rol
-  const rutasPermitidas = ["espacios", "root", "caracteristicaPrincipal"];
+  const rutasPermitidas = ["espacios", "root", "caracteristicaPrincipal", "panelVista", "tableroVista", "estructurasVista"];
   const esRutaPanel = to.path.includes("/panel");
 
   if (to.path === "/") {
-    // console.log("Esperando por el access_token...");
-    
     let intentosToken = 0;
     let accessToken = localStorage.getItem("access_token");
-    
-    while (!accessToken && intentosToken < 20) {  // máximo 20 intentos (1 segundo en total)
+    while (!accessToken && intentosToken < 20) {
       await new Promise((resolve) => setTimeout(resolve, 50));
       accessToken = localStorage.getItem("access_token");
       intentosToken++;
-      // console.log(intentosToken);
-      
     }
 
     if (accessToken) {
@@ -108,9 +122,6 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-
-
-  // Redirigir si no tiene rol y no es ruta permitida
   if (
     !roleUsuario.includes("ADMIN_OBSERVATORIOS") &&
     !rutasPermitidas.includes(to.name) &&

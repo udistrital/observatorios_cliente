@@ -95,10 +95,7 @@ onMounted(async () => {
 });
 </script>
   
-    <!-- border: 1px solid #ccc;  -->
-    /* background-color: "; */
-    <!-- padding: 10px; -->
-    <style scoped>
+<style scoped>
 .grafico-contenedor {
   width: 100%;
   padding: 5%;
