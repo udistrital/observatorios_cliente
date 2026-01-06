@@ -1,5 +1,4 @@
 <template>
-  <!-- <div class="vista__primaria"></div> -->
   <div
     class="contenedor-grilla vista__primaria"
     ref="miElemento"
@@ -9,15 +8,7 @@
     }"
   >
     <div class="cabecera">
-      <!-- <h1 class="titulo__cabecera">{{ panelStore?.panel.nombre }}</h1> -->
       <v-spacer />
-      <!-- <v-btn color="red" @click="desactivarSwapy" v-if="swapyActivo"
-        >Bloquear movimiento</v-btn
-      >
-      <v-btn color="green" @click="activarSwapy" v-else
-        >Permitir movimiento</v-btn
-      > -->
-      <!-- :color="swapyActivo ? 'red' : 'green'"  -->
       <v-btn
         @click="toggleSwapy"
         :variant="swapyActivo ? 'flat' : 'outlined'"
@@ -26,12 +17,7 @@
       >
         {{ swapyActivo ? "Guardar" : "Modificar Panel" }}
       </v-btn>
-
-      <!-- <v-btn color="primary" prepend-icon="mdi-plus" @click="agregarGrafica"
-          >Añadir Grafica</v-btn
-        > -->
     </div>
-    <!-- <button @click="agregarItem">Crear Grafico</button> -->
 
     <div v-for="indiceFila in filas" :key="indiceFila" class="fila">
       <div
@@ -51,9 +37,6 @@
             @mouseup="isHovering = true"
           >
             <div v-if="swapyActivo" class="modificar__grafica">
-              <!-- <v-btn @click="toggleSwapy" color="primary">
-                Modificar Gráfica
-              </v-btn> -->
               <v-btn
               variant="text"
               icon
@@ -145,12 +128,9 @@ const roleUsuario = ref('')
 const resultado = ref(0);
 const miElemento = ref(null);
 
-// Función para calcular el ancho
 const calcularAncho = () => {
   const ancho = miElemento.value.offsetWidth;
-  // resultado.value = (ancho - 100) / filas;
   resultado.value = (ancho - 1000) / filas;
-  console.log(resultado.value, "-----------");
 };
 
 
@@ -194,58 +174,29 @@ const eliminarGrafica = (graficaId) => {
         });
 
         setTimeout(() => {
-          location.reload();  // 👈 Esto recarga toda la página
+          location.reload();
         }, 2000);
       }).catch((error) => console.error(error));
     }
   });
 }
 
-// Usar onMounted para ejecutar el cálculo después de montar el componente
-// onMounted(() => {
-// });
-
-// const desactivarSwapy = () => {
-//   if (swapy.value) {
-//     swapy.value.destroy();
-//     swapy.value = null;
-//     swapyActivo.value = false;
-//     console.log("Swapy desactivado");
-//   }
-// };
-
-// const activarSwapy = () => {
-//   if (miElemento.value && !swapy.value) {
-//     swapy.value = createSwapy(miElemento.value);
-//     swapy.value.onSwap((evento) => {
-//       console.log("Intercambio detectado:", evento);
-//     });
-//     swapyActivo.value = true;
-//     console.log("Swapy activado");
-//   }
-// };
-
 const toggleSwapy = () => {
   if (swapyActivo.value) {
-    // Está activo, entonces lo desactivamos
     if (swapy.value) {
       swapy.value.destroy();
       swapy.value = null;
       modificarPanel();
     }
     swapyActivo.value = false;
-    console.log("Swapy desactivado");
   } else {
-    // Está desactivado, entonces lo activamos
     if (miElemento.value) {
       swapy.value = createSwapy(miElemento.value);
       swapy.value.onSwap((evento) => {
-        console.log("Intercambio detectado:", evento.newSlotItemMap.asArray);
         nuevoOrden.value = evento.newSlotItemMap.asArray;
       });
     }
     swapyActivo.value = true;
-    console.log("Swapy activado");
   }
 };
 
@@ -274,34 +225,22 @@ const modificarPanel = () => {
 };
 
 const buscarGrafico = (columna, fila) => {
-  // console.log(
-  //   graficos.value.find(
-  //     (grafico) => grafico.columna === columna && grafico.fila === fila
-  //   ),
-  //   fila,
-  //   columna
-  // );
-  console.log("ingreso a principal, columna:", columna, "fila:", fila);
   return graficos.value.find(
     (grafico) => grafico.columna === columna && grafico.fila === fila
   );
 };
 
 const agregarItem = () => {
-  console.log("Por aqui pase ");
-  const slots = document.querySelectorAll(".celda"); // Obtener todas las celdas
+  const slots = document.querySelectorAll(".celda");
   if (slots.length === 0) {
-    console.log("Sin Slots");
-    return; // Salir si no hay celdas
+    return;
   }
 
-  const indiceAleatorio = Math.floor(Math.random() * slots.length); // Elegir una celda al azar
+  const indiceAleatorio = Math.floor(Math.random() * slots.length);
   const slotSeleccionado = slots[indiceAleatorio];
 
-  // Evitar duplicados en la celda seleccionada
   if (slotSeleccionado.querySelector(".item")) return;
 
-  // Crear el nuevo elemento
   const nuevoItem = document.createElement("div");
   nuevoItem.classList.add("item-inactivo");
 
@@ -313,7 +252,6 @@ const agregarItem = () => {
   nuevoItem.setAttribute("data-swapy-item", slotSeleccionado.id);
   nuevoItem.innerHTML = "<div class = 'item-inactivo'>A</div>";
 
-  // Agregar al slot seleccionado
   slotSeleccionado.appendChild(nuevoItem);
   swapy.value.update();
 };
@@ -322,7 +260,6 @@ const graficos = ref([]);
 
 const obtenerGraficos = async () => {
   try {
-    console.log(panelStore.panel)
     const response = await peticionAPI(`/graficos/${panelStore.panel.id}/`);
     graficos.value = response;
   } catch (error) {
@@ -331,36 +268,18 @@ const obtenerGraficos = async () => {
 };
 
 onMounted(() => {
-
-  console.log(userStore.user.role, '---user');
   roleUsuario.value = userStore.user.role
   obtenerGraficos();
-  // console.log(graficos.value);
   calcularAncho();
-  // if (contenedor.value) {
-  //   swapy.value = createSwapy(contenedor.value);
-  //   swapy.value.onSwap((evento) => {
-  //     console.log("Intercambio detectado:", evento);
-  //   });
-  // }
-  // if (miElemento.value) {
-  //   swapy.value = createSwapy(miElemento.value);
-  //   swapy.value.onSwap((evento) => {
-  //     console.log("Intercambio detectado:", evento);
-  //   });
-  // }
 });
-
-// onMounted(() => {
-// });
 
 onUnmounted(() => {
   swapy.value?.destroy();
+  
 });
 const crearGrafica = (columna, fila) => {
   router.push({
     path: `graficas/${panelId}/${columna}/${fila}`,
-    // path: /:observatorio_id/panel/graficas/,`/${observatorioStore.observatorio?.observatorio_id}/tablero`
     params: { panel: panelId, columna, fila },
   });
 };
@@ -372,12 +291,9 @@ const crearGrafica = (columna, fila) => {
   flex-direction: column;
   grid-template-columns: repeat(var(--tamano-celdas), 1fr);
   grid-template-rows: repeat(var(--tamano-filas), 1fr);
-  /* max-width: 50% !important; */
   height: 100%;
   overflow: auto;
-  /* margin: 5%; */
   gap: 5px;
-  /* background-color: seagreen; */
 }
 
 .fila {
@@ -385,14 +301,11 @@ const crearGrafica = (columna, fila) => {
   height: calc(100% / var(--tamano-filas));
   gap: 5px;
   margin: 5px;
-  /* background-color: tomato; */
 }
 
 .celda {
   width: calc(100% / var(--tamano-celdas));
   height: 100%;
-  /* border-radius: 16px;
-  background-color: rgb(234, 234, 234); */
   margin: 5px;
 }
 
@@ -421,9 +334,6 @@ const crearGrafica = (columna, fila) => {
   justify-content: center;
   flex-direction: column;
   width: 100%;
-  /* box-shadow: 0px 5px 5px -3px var(--v-shadow-key-umbra-opacity, rgba(0, 0, 0, 0.2)),
-    0px 2px 2px 1px var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.14)),
-    0px 3px 14px 2px var(--v-shadow-key-penumbra-opacity, rgba(0, 0, 0, 0.12)) !important; */
 }
 .nueva-grafica:hover {
   box-shadow: 0px 8px 10px -5px var(--v-shadow-key-umbra-opacity, rgba(0, 0, 0, 0.2)),
@@ -442,7 +352,6 @@ const crearGrafica = (columna, fila) => {
   width: 98%;
 }
 .modificar__grafica{
-  /* background-color: red; */
 display: flex;
 justify-content: flex-end;
   width: 100%;

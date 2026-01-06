@@ -47,7 +47,7 @@ import Swal from "sweetalert2";
 const props = defineProps({
   campos: Object,
   idEstructura: String,
-  esVer: Boolean, // true: modo ver, false: modo editar
+  esVer: Boolean,
 });
 
 const emit = defineEmits(["cerrar", "guardar"]);
@@ -57,7 +57,7 @@ const camposForm = ref({});
 const armarFormulario = () => {
   camposForm.value = { ...props.campos };
 };
-// Cambiar a tomar del storage
+
 const obtenerDatosEstructura = () => {
   peticionAPI(`campos/estructuras/${props.idEstructura}/`, "GET")
     .then((data) => {

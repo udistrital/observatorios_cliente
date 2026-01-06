@@ -76,7 +76,6 @@ const chartOptions = computed(() => ({
     },
     events: {
       dataPointSelection: (event, chartContext, config) => {
-        console.log('Bar clicked:', config)
       },
     },
   },
@@ -151,12 +150,10 @@ const chartOptions = computed(() => ({
     },
   ],
 }))
-  
-// Evento clic
+
 const handleBarClick = (event, chartContext, config) => {
   const index = config.dataPointIndex
   const label = categories.value[index]
   const value = props.data.metrica[index]
-  console.log(`Barra clickeada: ${label} (${value})`)
 }
 </script>

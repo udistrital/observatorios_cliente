@@ -15,7 +15,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "./src"), // Define el alias "@"
+      "@": path.resolve(__dirname, "./src"),
     },
   },
   test: {
@@ -23,6 +23,6 @@ export default defineConfig({
     environment: "jsdom",
   },
   server: {
-    port: 4200  // Cambia 3001 por el puerto que necesites
+    port: 4200
   }
 });

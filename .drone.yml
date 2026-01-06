@@ -1,7 +1,6 @@
 kind: pipeline
 name: oas_cliente_ci
 
-
 steps:
   - name: install dependencies
     image: node:18
@@ -12,16 +11,6 @@ steps:
         - release/**
       event:
         - push
-
-  # - name: run tests
-  #   image: node:18
-  #   commands:
-  #     - npm run test
-  #   when:
-  #     branch:
-  #       - release/**
-  #     event:
-  #       - push
 
   - name: build project
     image: node:18
@@ -86,15 +75,3 @@ steps:
       - master
       event:
       - push
-
-# - name: deploy
-#   image: alpine
-#   commands:
-#     - echo "Despliegue aquí"
-#   when:
-#     branch:
-#       include:
-#         - release/**
-#     event:
-#       include:
-#         - push

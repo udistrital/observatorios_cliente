@@ -82,15 +82,18 @@ const traerObservatorios = () => {
 const diriguirseObservatorio = (item) => {
   observatorioStore.setObservatorio({
     id: item.id,
-    observatorio_id: item.observatorio_id,
     nombre: item.nombre,
+    descripcion: item.descripcion,
+    observatorio_id: item.observatorio_id,
     imagen: item.imagen,
   });
   if (roleUsuario.value.includes('ADMIN_OBSERVATORIOS')) {
-    
     router.push(`/${item.observatorio_id}/estructuras`);
   }else{
-    router.push(`/${item.observatorio_id}/panel`);
+    router.push({
+      name: "estructurasVista",
+      params: { observatorio_id: item.observatorio_id },
+    });
   }
 };
 watch(
@@ -137,16 +140,6 @@ onMounted(() => {
 .intro-box p{
   font-size: 14px;
 }
-/*.main-espacios {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  height: 60%;
-  max-height: 60%;
-  overflow-x: hidden;
-  margin-top: 0px;
-}*/
 .main-espacios {
   display: flex;
   justify-content: center;
@@ -170,7 +163,6 @@ onMounted(() => {
 .espacio__img img {
   height: 60px;
   width: 60px;
-  /* object-fit: cover; */
   border-radius: 50%;
 }
 .espacio__titulo {

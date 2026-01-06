@@ -3,7 +3,6 @@ import { ref, computed } from 'vue';
 const user = ref({});
 const permisos = ref([]);
 
-// Función para buscar acciones de forma recursiva
 function findActionFlat(permisosList, accion) {
   return permisosList.find(opt =>
     opt.Nombre === accion ||
@@ -17,7 +16,6 @@ export function useUserService() {
   }
 
   function updatePermisos(data) {
-    console.log("updatePermisos:", data);
     permisos.value = data;
   }
 

@@ -8,7 +8,6 @@
 
   <div class="paneles">
     <div class="cabecera">
-      <!-- <h1 class="titulo__cabecera">Paneles</h1> -->
       <v-spacer />
       <v-btn
         v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
@@ -137,7 +136,6 @@
       />
     </v-dialog>
   </div>
-  <!-- <router-view></router-view> -->
 </template>
 
 <script setup>
@@ -210,11 +208,9 @@ const verPanel = (item) => {
 };
 
 const editarPanel = (item) => {
-  console.log("item :", item.raw);
   _gestionPanel.value = true;
   _modo.value = true;
   datosPanel.value = item.raw;
-  console.log("datosPanel.value :", datosPanel.value);
 };
 
 const reactivarPanel = async (item) => {
@@ -264,8 +260,6 @@ const reactivarPanel = async (item) => {
 const eliminarPanel = async (item) => {
   let id = item.raw.id;
   let nombre = item.raw.nombre;
-  console.log("id :", id);
-  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Deshabilitar Panel",
@@ -309,12 +303,6 @@ const eliminarPanel = async (item) => {
   }
 };
 const diriguirsePanel = (item) => {
-  console.log("item.raw :", item.raw);
-  console.log("item.raw.id :", item.raw.id);
-  console.log("item.raw.nombre :", item.raw.nombre);
-  console.log("item.raw.descripcion :", item.raw.descripcion);
-  console.log("item.raw.observatorio :", item.raw.observatorio);
-  console.log("item.raw.columnas :", item.raw.columnas);
   panelStore.setPanel({
     id: item.raw.id,
     nombreCaracteristica: item.raw.nombre,
@@ -323,9 +311,7 @@ const diriguirsePanel = (item) => {
     observatorio: item.raw.observatorio,
     columnas: item.raw.columnas,
   });
-  //ESTABA ESTA 
-  //router.push(`panel/principal`);
-  router.push(`/${observatorioStore.observatorio?.observatorio_id}/caracteristica`);
+  router.push(`panel/principal`);
 };
 onMounted(() => {
   traerPaneles();

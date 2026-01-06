@@ -50,35 +50,6 @@
         </div>
       </v-list>
     </v-navigation-drawer>
-    <!-- <v-app-bar color="white" dense fixed class="fixed-app-bar">
-      <v-spacer />
-      <div class="header__logo">
-        <figure class="header__logo-image">
-          <img src="../assets/img/logo.png" alt="Logo" />
-        </figure>
-        <div class="header__logo-text">
-          <h1 class="header__logo-title">OBSERVATORIOS</h1>
-          <p class="header__logo-subtitle">
-            Oficina Asesora de Tecnologías e Información
-          </p>
-        </div>
-      </div>
-      <v-spacer />
-      <div class="header__info">
-        <div class="header__info-bell">
-          <v-btn
-            class="ma-2"
-            color="primary"
-            icon="mdi-bell"
-            variant="text"
-          ></v-btn>
-        </div>
-        <div class="header__info-email">
-          <v-icon color="primary" class="mdi mdi-account-circle"></v-icon>
-          <span class="header__info-text">correo@correo.com</span>
-        </div>
-      </div>
-    </v-app-bar> -->
   </div>
 </template>
 
@@ -163,23 +134,18 @@ const menuItems = [
 watch(verNavbar, (newValue) => {
   if (newValue === true) {
     roleUsuario.value = userStore.user.role;
-    console.log('🔔 verNavbar cambió a true, procesando menú');
 
     const base64Data = localStorage.getItem('menu');
     if (base64Data) {
       try {
         const jsonString = atob(base64Data);
         const jsonObject = JSON.parse(jsonString);
-        console.log('📦 Menú desde localStorage:');
 
         if (Array.isArray(jsonObject)) {
           userService.updatePermisos(jsonObject);
-          console.log('✅ Permisos actualizados desde localStorage');
         } else {
-          console.warn('❌ Menú no es un array válido:', jsonObject);
         }
       } catch (e) {
-        console.error('❌ Error decodificando menú:', e);
       }
     }
   }
@@ -202,9 +168,7 @@ const dynamicMenuItems = computed(() => {
   });
 });
 onMounted(() => {
-  console.log("🧩 dynamicMenuItems:", dynamicMenuItems.value);
   roleUsuario.value = userStore.user?.role;
-  console.log("🧩 roleUsuario:", roleUsuario.value);
 })
 </script>
 
@@ -223,7 +187,6 @@ onMounted(() => {
   position: fixed;
   width: 100%;
   left: 0;
-  /* z-index: 1200; */
 }
 .header__logo-image img {
   height: 50px;
@@ -271,7 +234,6 @@ onMounted(() => {
 .dawer__titulo-espacio {
   font-size: 18px;
   font-weight: bolder;
-  /* margin-left: 10px; */
   color: var(--texto-medio-color);
 }
 .dawer__img-espacio {
@@ -283,10 +245,8 @@ onMounted(() => {
 .dawer__logo-espacio img {
   height: 45px;
   width: 45px;
-  /* object-fit: cover; */
 }
 .dawer__logo-espacio {
-  /* border-bottom: 2px solid rgb(189, 189, 189); */
   width: 90%;
   height: 56px;
   display: flex;
