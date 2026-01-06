@@ -1,0 +1,33 @@
+{
+  "name": "observatorios_cliente",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@mdi/font": "^7.4.47",
+    "@vueuse/core": "^12.5.0",
+    "apexcharts": "^4.5.0",
+    "axios": "^1.7.9",
+    "gsap": "^3.12.7",
+    "pinia": "^2.3.1",
+    "pinia-plugin-persistedstate": "^4.2.0",
+    "swapy": "^1.0.5",
+    "sweetalert2": "^11.17.2",
+    "vue": "^3.5.13",
+    "vue-router": "^4.5.0",
+    "vue3-apexcharts": "^1.8.0",
+    "vuelidate": "^0.7.7",
+    "vuetify": "^3.3.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.2.1",
+    "vite": "^6.0.5",
+    "vitest": "^3.0.4"
+  }
+}
