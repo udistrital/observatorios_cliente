@@ -6,6 +6,7 @@ steps:
     image: node:18
     commands:
       - npm install
+      - npm list --depth=0
     when:
       branch:
         - release/**
