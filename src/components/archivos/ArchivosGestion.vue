@@ -156,7 +156,6 @@
 </template>
 
 <script setup>
-console.log("🔥 ArchivosGestion.vue SE ESTÁ MONTANDO");
 import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import { useRouter } from "vue-router";
@@ -173,7 +172,6 @@ const headerst = ref([
   { title: "Estado", key: "activo", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },
 ]);
-console.log("1");
 
 const router = useRouter();
 const estructuraStore = useEstructuraStore();
@@ -186,7 +184,6 @@ const ordering = computed(() => {
   }
   return "";
 });
-console.log("ll11");
 
 const estructuras = ref([]);
 const estructuraSeleccionada = ref(null);
@@ -211,9 +208,7 @@ const paginacion = reactive({
   itemsPerPage: 10,
   totalItems: 0,
 });
-console.log("222");
 
-// 🔹 1. Cargar estructuras desde el backend
 const traerEstructuras = async () => {
   cargando.value = true;
 
@@ -232,37 +227,26 @@ const traerEstructuras = async () => {
       observatorio: observatorioStore.observatorio?.observatorio_id,
     });
 
-    console.log("📌 estructuras en ArchivosGestion:", data);
     estructuras.value = data;
 
-    // Si vienes de Estructuras.vue con algo en el store, sincroniza
     if (estructuraStore.estructura) {
       const encontrada = data.find(
         (e) => e.id === estructuraStore.estructura.id
       );
       if (encontrada) {
-        console.log("✅ Estructura encontrada por id:", encontrada);
         estructuraSeleccionada.value = encontrada;
         await traerDatos(encontrada);
       } else {
-        console.warn(
-          "⚠️ Estructura del store no coincide con ninguna de las cargadas"
-        );
       }
     }
   } catch (e) {
-    console.error("❌ Error trayendo estructuras en ArchivosGestion:", e);
   } finally {
     cargando.value = false;
     Swal.close();
   }
 };
 
-// 🔹 2. Traer datos de archivos para una estructura
 const traerDatos = async (estructura) => {
-  console.log("llamado llamado");
-  console.log("👉 traerDatos() llamado con:", estructura);
-
   let estructuraActiva =
     estructura || estructuraSeleccionada.value || estructuraStore.estructura;
 
@@ -271,16 +255,11 @@ const traerDatos = async (estructura) => {
     return;
   }
 
-  console.log("✅ Estructura activa en traerDatos:", estructuraActiva);
-
   estructuraStore.setEstructura(estructuraActiva);
   estructuraSeleccionada.value = estructuraActiva;
 
   camposFormulario.value = estructuraActiva.mapeo_archivos || [];
   idEstructura.value = estructuraActiva.id_archivos || estructuraActiva.id;
-
-  console.log("📁 mapeo_archivos usado:", camposFormulario.value);
-  console.log("📁 idEstructura (archivos):", idEstructura.value);
 
   headers.value = camposFormulario.value.map((item) => ({
     title: item.nombre,
@@ -302,17 +281,6 @@ const traerDatos = async (estructura) => {
   datos.value = [];
 
   try {
-    /*const response = await peticionAPI(
-      `campos/archivos/${idEstructura.value}/`,
-      "GET",
-      null,
-      {
-        page: paginacion.page,
-        page_size: paginacion.itemsPerPage,
-        ordering: ordering.value,
-        ...filtros.value,
-      }
-    );*/
     const response = await peticionAPI(
       `datosArchivo/${idEstructura.value}/`,
       "GET",
@@ -324,8 +292,6 @@ const traerDatos = async (estructura) => {
         ...filtros.value,
       }
     );
-
-    console.log("📦 Respuesta API archivos:", response);
 
     datos.value = response.results || [];
     paginacion.totalItems = Number(response.count) || 0;
@@ -367,9 +333,6 @@ const cerrarModal = () => {
   _agregarFilro.value = false;
 };
 
-
-console.log("333");
-
 const agregarRegistro = () => {
   _agregarRegistro.value = true;
 };
@@ -402,7 +365,7 @@ const eliminarRegistro = async (item) => {
 
   try {
     await peticionAPI(
-      `datosArchivo/${idEstructura.value}/${id}/`, // ← NUEVO ENDPOINT
+      `datosArchivo/${idEstructura.value}/${id}/`,
       "DELETE"
     );
 
@@ -418,13 +381,9 @@ const eliminarRegistro = async (item) => {
   }
 };
 
-
-// 🔹 3. Montaje: aquí SÍ pasa algo
 onMounted(async () => {
-  console.log("🟢 onMounted ArchivosGestion.vue");
   await traerEstructuras();
 });
-console.log("44");
 </script>
 
 

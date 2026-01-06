@@ -5,7 +5,6 @@
     </v-card-title>
 
     <v-card-text>
-      <!-- BOTONES VER / DESCARGAR -->
       <div v-if="enlaceArchivo" class="mb-4 d-flex ga-3">
         <v-btn
           color="primary"
@@ -26,7 +25,6 @@
         </v-btn>
       </div>
 
-      <!-- INPUT ARCHIVO (SOLO EDICIÓN) -->
       <v-file-input
         v-if="!esVer"
         label="Actualizar archivo"
@@ -37,7 +35,6 @@
         @change="onFileChange"
       />
 
-      <!-- FORMULARIO METADATOS -->
       <v-form v-if="Object.keys(camposForm).length > 0">
         <v-text-field
           v-for="(campo, index) in camposVisibles"
@@ -77,9 +74,9 @@ import { environment } from "../../eviroments";
 
 
 const props = defineProps({
-  campos: Object,        // Datos existentes del documento (incluye hash, año, nombre archivo, etc.)
-  idEstructura: String,  // Id de estructura del archivo
-  idDato: String,        // IdDocumento (pk en ES)
+  campos: Object,
+  idEstructura: String,
+  idDato: String,
   esVer: Boolean,
 });
 
@@ -93,13 +90,11 @@ const fileName = ref(null);
 const gestorUrl = environment.GESTOR_DOCUMENTAL;
 const observatorios_mid_url = environment.OBSERVATORIOS_MID;
 
-/* --------------------------------------- FORMULARIO --------------------------------------- */
 const armarFormulario = () => {
   const limpio = {};
 
   Object.keys(props.campos || {}).forEach((key) => {
     if (key !== "id") {
-      // 👈 incluimos TODO, incluido el hash
       limpio[key] = props.campos[key] ?? "";
     }
   });
@@ -129,7 +124,6 @@ watch(
   { immediate: true }
 );
 
-/* --------------------------------------- VER / DESCARGAR --------------------------------------- */
 const base64ToBlob = (base64, type) => {
   const bytes = atob(base64);
   const array = new Uint8Array(bytes.length);
@@ -174,7 +168,6 @@ const verArchivo = async () => {
 
 const descargarArchivo = () => verArchivo();
 
-/* ===================== FILE INPUT ===================== */
 const onFileChange = () => {
   const file = archivoSeleccionado.value?.[0];
   if (!file) return;
@@ -188,12 +181,10 @@ const onFileChange = () => {
   reader.readAsDataURL(file);
 };
 
-/* ===================== GUARDAR ===================== */
-
 const guardarCambios = async () => {
   if (props.esVer) return cancelar();
 
-  const datosBody = { ...camposForm.value }; // ← SOLO metadata editable
+  const datosBody = { ...camposForm.value };
 
   const idDocumento = props.campos.id;
 
@@ -236,24 +227,9 @@ const guardarCambios = async () => {
   }
 };
 
-/*const base64ToBlob = (base64, type = "application/pdf") => {
-  const byteCharacters = atob(base64);
-  const byteNumbers = new Array(byteCharacters.length);
-
-  for (let i = 0; i < byteCharacters.length; i++) {
-    byteNumbers[i] = byteCharacters.charCodeAt(i);
-  }
-
-  return new Blob([new Uint8Array(byteNumbers)], { type });
-};*/
-
-
 const cerrar = () => emit("cerrar");
 
-
-
 </script>
-
 
 <style scoped>
 .titulo-modal {

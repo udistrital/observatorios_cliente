@@ -6,7 +6,6 @@
 
 </template>
 <script setup>
-// export default {};
 import { ref, computed, onMounted, reactive } from "vue";
 import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
@@ -19,7 +18,6 @@ import { usePanelStore } from '@/stores/panelStore';
 const props = defineProps({
   grafico: Number,
 });
-
 
 const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
@@ -69,12 +67,7 @@ const cargarGrafica = () => {
     .catch((error) => console.error(error));
 };
 
-
-
-
-
 onMounted(() => {
-  
 });
 </script>
 

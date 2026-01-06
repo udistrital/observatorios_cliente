@@ -61,7 +61,6 @@
       />
     </v-dialog>
   </div>
-  <!-- <router-view></router-view> -->
 </template>
 
 <script setup>
@@ -99,18 +98,6 @@ const _gestionPanel = ref(false);
 const _modo = ref(false);
 
 const datosPanel = ref({});
-
-/*const traerPaneles = () => {
-  cargando.value = true;
-  peticionAPI("dashboards/", "GET", null, {
-    observatorio: observatorioStore.observatorio?.id,
-  })
-    .then((data) => {
-      paneles.value = data;
-      cargando.value = false;
-    })
-    .catch((error) => console.error(error));
-};*/
 
 const traerPaneles = async () => {
   cargando.value = true;
@@ -150,12 +137,6 @@ const traerPaneles = async () => {
 };
 
 const diriguirsePanel = (item) => {
-  console.log("item.raw :", item.raw);
-  console.log("item.raw.id :", item.raw.id);
-  console.log("item.raw.nombre :", item.raw.nombre);
-  console.log("item.raw.descripcion :", item.raw.descripcion);
-  console.log("item.raw.observatorio :", item.raw.observatorio);
-  console.log("item.raw.columnas :", item.raw.columnas);
   panelStore.setPanel({
     id: item.raw.id,
     nombreCaracteristica: item.raw.nombre,
@@ -164,14 +145,9 @@ const diriguirsePanel = (item) => {
     observatorio: item.raw.observatorio,
     columnas: item.raw.columnas,
   });
-  //ESTABA ESTA 
   router.push(`panel/principal`);
-  //router.push(`/${observatorioStore.observatorio?.observatorio_id}/caracteristica`);
 };
-/*onMounted(() => {
-  traerPaneles();
-  roleUsuario.value = userStore.user.role;
-});*/
+
 onMounted(async () => {
   roleUsuario.value = userStore.user.role;
   await traerPaneles();
@@ -208,8 +184,6 @@ onMounted(async () => {
 .paneles {
   width: 80%;
   margin: 40px auto;
-
-  /*margin: 40px auto;*/
 }
 .accionesContainer{
   display: flex;

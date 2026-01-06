@@ -112,33 +112,15 @@ const isEditing = ref(props.value);
 const estructura = ref({ ...props.estructuraData });
 const tiposDeDato = ref([""]);
 
-// 🔵 Detectar si es edición de archivos
 const esModoArchivos = ref(props.estructuraData?.tipo === "archivos");
 
-// 🔵 Campos editables (mapeo o mapeo_archivos según el modo)
 const campos = ref([]);
 
-
-/*onMounted(() => {
-  estructura.value.mapeo = estructura.value.mapeo.map((item) => {
-    return {
-      ...item,
-      deshabilitado: true,
-    };
-  });
-  peticionAPI("campos/tipos", "GET")
-    .then((data) => {
-      tiposDeDato.value = Object.values(data);
-    })
-    .catch((error) => console.error(error));
-});*/
 onMounted(() => {
-  // Cargar tipos
   peticionAPI("campos/tipos", "GET")
     .then((data) => (tiposDeDato.value = Object.values(data)))
     .catch((error) => console.error(error));
 
-  // Seleccionar dataset correcto
   const origen = esModoArchivos.value
     ? estructura.value.mapeo_archivos
     : estructura.value.mapeo;
@@ -150,17 +132,11 @@ onMounted(() => {
   }));
 });
 
-
-
-/*const agregarCampo = () => {
-  estructura.value.mapeo.push({ nombre: "", tipo: "" });
-};*/
 const agregarCampo = () => {
   campos.value.push({ nombre: "", tipo: "" });
 };
 
 const eliminarCampo = (index) => {
-  //estructura.value.mapeo.splice(index, 1);
   campos.value.splice(index, 1);
 };
 

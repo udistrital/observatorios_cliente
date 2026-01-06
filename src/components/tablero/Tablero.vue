@@ -195,7 +195,6 @@
       :campos="camposFormulario"
       :idEstructura="idEstructura"
     />
-    <!-- <filtrar-datos/> -->
   </v-dialog>
 </template>
 
@@ -386,7 +385,6 @@ const traerEstructuras = async () => {
         observatorio: observatorioStore.observatorio?.observatorio_id,
       }
     );
-    console.log("📌 estructuras:", data);
     estructuras.value = data;
   } catch (error) {
     console.error("❌ Error cargando estructuras:", error);
@@ -399,13 +397,6 @@ const traerEstructuras = async () => {
     cargando.value = false;
     Swal.close();
   }
-  /*peticionAPI("campos/estructuras/", "GET", null, {
-    observatorio: observatorioStore.observatorio?.observatorio_id,
-  })
-    .then((data) => {
-      estructuras.value = data;
-    })
-    .catch((error) => console.error(error));*/
 };
 const limpiarEstructura = async () => {
   const resultado = await Swal.fire({
@@ -450,9 +441,7 @@ const limpiarEstructura = async () => {
   }
 };
 const eliminarRegistro = async (item) => {
-  console.log("item item :", item);
   let id = item.raw.id;
-  console.log("id id :", id);
   const resultado = await Swal.fire({
     title: "Eliminar Registro",
     html: `¿Desea eliminar el registro? `,
@@ -471,11 +460,8 @@ const eliminarRegistro = async (item) => {
   });
 
   if (resultado.isConfirmed) {
-    //const data = { confirmacion: true };
-
     peticionAPI(`/datos/${idEstructura.value}/${id}/`, "DELETE")
       .then((data) => {
-        console.log("data que llega:", data);
         Swal.fire({
           title: "¡Eliminado!",
           text: "El elemento ha sido eliminado correctamente.",
@@ -502,22 +488,14 @@ const cargarArchivos = () => {
   _cargarRegistro.value = true;
 };
 const verRegistro = (item) => {
-  console.log("item item :", item);
   _gestionRegistro.value = true;
   _modo.value = true;
   datosRegistro.value = item.raw;
-  console.log("_gestionRegistro.value :", _gestionRegistro.value);
-  console.log("_modo.value :", _modo.value);
-  console.log("datosRegistro.value :", datosRegistro.value);
 };
 const editarRegistro = (item) => {
-  console.log("item item :", item);
   _gestionRegistro.value = true;
   _modo.value = false;
   datosRegistro.value = item.raw;
-  console.log("_gestionRegistro.value :", _gestionRegistro.value);
-  console.log("_modo.value :", _modo.value);
-  console.log("datosRegistro.value :", datosRegistro.value);
 };
 const cerrarModal = (data) => {
   setTimeout(() => {

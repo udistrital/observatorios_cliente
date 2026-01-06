@@ -82,21 +82,6 @@ const filteredObservatories = computed(() => {
   );
 });
 
-/*const traerEstructuras = () => {
-  cargando.value = true;
-  peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
-  .then((data) => {
-    console.log("data que llega :", data);
-    estructuras.value = data.map(item => ({
-      ...item,
-      tieneDatos: item.mapeo?.length > 0,
-      tieneArchivos: item.mapeo_archivos?.length > 0,
-    }));
-    cargando.value = false;
-    })
-    .catch((error) => console.error(error));
-};*/
-
 const traerEstructuras = async () => {
   cargando.value = true;
 
@@ -138,7 +123,6 @@ const traerEstructuras = async () => {
 
 
 const diriguirseEstructura = (item) => {
-  console.log("item :", item);
   estructuraStore.setEstructura({
     id: item.raw.id,
     nombre: item.raw.nombre,
@@ -156,9 +140,7 @@ const diriguirseEstructura = (item) => {
       params: { observatorio_id: item.raw.observatorio },
     });
 };
-/*onMounted(() => {
-  traerEstructuras();
-});*/
+
 onMounted(async () => {
   await traerEstructuras();
 });

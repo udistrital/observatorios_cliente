@@ -87,7 +87,6 @@ const diriguirseObservatorio = (item) => {
     observatorio_id: item.observatorio_id,
     imagen: item.imagen,
   });
-  console.log("observatorio seleccionado:", observatorioStore.observatorio);
   if (roleUsuario.value.includes('ADMIN_OBSERVATORIOS')) {
     router.push(`/${item.observatorio_id}/estructuras`);
   }else{
@@ -141,16 +140,6 @@ onMounted(() => {
 .intro-box p{
   font-size: 14px;
 }
-/*.main-espacios {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  height: 60%;
-  max-height: 60%;
-  overflow-x: hidden;
-  margin-top: 0px;
-}*/
 .main-espacios {
   display: flex;
   justify-content: center;
@@ -174,7 +163,6 @@ onMounted(() => {
 .espacio__img img {
   height: 60px;
   width: 60px;
-  /* object-fit: cover; */
   border-radius: 50%;
 }
 .espacio__titulo {

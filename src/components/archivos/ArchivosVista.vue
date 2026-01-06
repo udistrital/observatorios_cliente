@@ -1,50 +1,5 @@
 <template>
     <v-container class="archivo">
-        <!-- <div class="control__container">
-            <div class="textfield__contenedor">
-                <v-select
-                    v-model="estructuraSeleccionada"
-                    :items="estructuras"
-                    item-title="nombre"
-                    return-object
-                    label="Estructura"
-                    variant="outlined"
-                    density="compact"
-                    hide-details
-                    class="textfield__control mr-10"
-                    @update:modelValue="traerDatos"
-                >
-                    <template v-slot:item="{ props, item }">
-                        <div class="select__estructura" v-bind="props">
-                        {{ item.raw.nombre }}
-                        </div>
-                    </template>
-                    <template v-slot:selection="{ item }">
-                        {{ item.raw.nombre }}
-                    </template>
-                </v-select>
-            </div>
-            <v-spacer />
-            <div class="contenedor_botones">
-                <v-btn
-                    v-if="_filtroActivo"
-                    @click="limpiarFiltro"
-                    color="primary"
-                    variant="outlined"
-                    class="mr-2"
-                >
-                    <v-icon left>mdi-filter-variant-remove</v-icon> Limpiar Filtro
-                </v-btn>
-                <v-btn
-                    color="primary"
-                    v-if="estructuraSeleccionada"
-                    @click="agregarFiltro"
-                >
-                    <v-icon left>mdi-filter-variant</v-icon>
-                </v-btn>
-            </div>
-        </div> -->
-        
         <v-card>
           <div class="cabecera__tabla">
             <v-spacer />
@@ -139,7 +94,6 @@
 </template>
 
 <script setup>
-console.log("🔥 ArchivosGestion.vue SE ESTÁ MONTANDO");
 import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import { useRouter } from "vue-router";
@@ -157,7 +111,6 @@ const headerst = ref([
   { title: "Estado", key: "activo", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },
 ]);
-console.log("1");
 
 const router = useRouter();
 const estructuraStore = useEstructuraStore();
@@ -170,7 +123,6 @@ const ordering = computed(() => {
   }
   return "";
 });
-console.log("ll11");
 
 const estructuras = ref([]);
 const estructuraSeleccionada = ref(null);
@@ -196,37 +148,6 @@ const paginacion = reactive({
   itemsPerPage: 10,
   totalItems: 0,
 });
-console.log("222");
-
-// 🔹 1. Cargar estructuras desde el backend
-/*const traerEstructuras = async () => {
-  try {
-    const data = await peticionAPI("campos/estructuras/", "GET", null, {
-      observatorio: observatorioStore.observatorio?.observatorio_id,
-    });
-
-    console.log("📌 estructuras en ArchivosGestion:", data);
-    estructuras.value = data;
-
-    // Si vienes de Estructuras.vue con algo en el store, sincroniza
-    if (estructuraStore.estructura) {
-      const encontrada = data.find(
-        (e) => e.id === estructuraStore.estructura.id
-      );
-      if (encontrada) {
-        console.log("✅ Estructura encontrada por id:", encontrada);
-        estructuraSeleccionada.value = encontrada;
-        await traerDatos(encontrada);
-      } else {
-        console.warn(
-          "⚠️ Estructura del store no coincide con ninguna de las cargadas"
-        );
-      }
-    }
-  } catch (e) {
-    console.error("❌ Error trayendo estructuras en ArchivosGestion:", e);
-  }
-};*/
 
 const traerEstructuras = async () => {
   cargando.value = true;
@@ -251,10 +172,8 @@ const traerEstructuras = async () => {
       }
     );
 
-    console.log("📌 estructuras en ArchivosVista:", data);
     estructuras.value = data;
 
-    // 🔁 sincronizar si viene estructura desde el store
     if (estructuraStore.estructura) {
       const encontrada = data.find(
         (e) => e.id === estructuraStore.estructura.id
@@ -262,7 +181,7 @@ const traerEstructuras = async () => {
 
       if (encontrada) {
         estructuraSeleccionada.value = encontrada;
-        await traerDatos(encontrada, true); // 👈 loader SOLO aquí
+        await traerDatos(encontrada, true);
       }
     }
   } catch (e) {
@@ -277,83 +196,6 @@ const traerEstructuras = async () => {
     Swal.close();
   }
 };
-
-
-// 🔹 2. Traer datos de archivos para una estructura
-/*const traerDatos = async (estructura) => {
-  console.log("llamado llamado");
-  console.log("👉 traerDatos() llamado con:", estructura);
-
-  let estructuraActiva =
-    estructura || estructuraSeleccionada.value || estructuraStore.estructura;
-
-  if (!estructuraActiva) {
-    console.warn("⚠️ traerDatos(): no hay estructura activa");
-    return;
-  }
-
-  console.log("✅ Estructura activa en traerDatos:", estructuraActiva);
-
-  estructuraStore.setEstructura(estructuraActiva);
-  estructuraSeleccionada.value = estructuraActiva;
-
-  camposFormulario.value = estructuraActiva.mapeo_archivos || [];
-  idEstructura.value = estructuraActiva.id_archivos || estructuraActiva.id;
-
-  console.log("📁 mapeo_archivos usado:", camposFormulario.value);
-  console.log("📁 idEstructura (archivos):", idEstructura.value);
-
-  headers.value = camposFormulario.value
-  .filter(
-    (item) =>
-      item.nombre !== "Hash" &&
-      item.nombre !== "hash"
-  )
-  .map((item) => ({
-    title: item.nombre,
-    key: item.nombre,
-    value: item.nombre,
-    align: "center",
-    sortable: true,
-  }));
-
-
-  headers.value.push({
-    title: "Acciones",
-    key: "acciones",
-    value: "acciones",
-    align: "center",
-    sortable: false,
-  });
-
-  cargando.value = true;
-  datos.value = [];
-
-  try {
-
-    const response = await peticionAPI(
-      `datosArchivo/${idEstructura.value}/`,
-      "GET",
-      null,
-      {
-        page: paginacion.page,
-        page_size: paginacion.itemsPerPage,
-        ordering: ordering.value,
-        ...filtros.value,
-      }
-    );
-
-    console.log("📦 Respuesta API archivos:", response);
-
-    datos.value = response.results || [];
-    paginacion.totalItems = Number(response.count) || 0;
-    await nextTick();
-  } catch (error) {
-    console.error("❌ Error al cargar archivos:", error);
-  } finally {
-    cargando.value = false;
-  }
-};*/
 
 const traerDatos = async (estructura, mostrarLoader = false) => {
   let estructuraActiva =
@@ -417,8 +259,6 @@ const traerDatos = async (estructura, mostrarLoader = false) => {
       }
     );
 
-    console.log("📦 Respuesta API archivos:", response);
-
     datos.value = response.results || [];
     paginacion.totalItems = Number(response.count) || 0;
     await nextTick();
@@ -474,7 +314,6 @@ const base64ToBlob = (base64, type) => {
 };
 
 const verArchivo = async (item) => {
-  console.log("👉 verArchivo() llamado con:", item);
   const enlaceArchivo =
       item?.raw?.Enlace ||
       item?.raw?.enlace ||
@@ -514,79 +353,9 @@ const verArchivo = async (item) => {
   }
 };
 
-/*const verArchivo = async (item) => {
-  console.log("👉 verArchivo() llamado con:", item);
-
-  const enlaceArchivo =
-    item?.raw?.Enlace ||
-    item?.raw?.enlace ||
-    item?.raw?.Hash ||
-    item?.raw?.id_archivo;
-
-  if (!enlaceArchivo) {
-    Swal.fire(
-      "Aviso",
-      "Este registro no tiene archivo asociado",
-      "warning"
-    );
-    return;
-  }
-
-  // 🟡 Loader bloqueante
-  Swal.fire({
-    title: "Cargando archivo",
-    text: "Por favor espera…",
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    didOpen: () => {
-      Swal.showLoading();
-    },
-  });
-
-  try {
-    const resp = await fetch(
-      `${gestorUrl}document/${enlaceArchivo}`
-    );
-
-    if (!resp.ok) {
-      throw new Error("Error consultando gestor documental");
-    }
-
-    const data = await resp.json();
-    const base64 = data.file;
-
-    if (!base64) {
-      throw new Error("No se encontró base64 del archivo");
-    }
-
-    const blob = base64ToBlob(base64, "application/pdf");
-    const url = URL.createObjectURL(blob);
-
-    // 📄 Abrir archivo
-    window.open(url, "_blank");
-
-    // 🧹 Liberar memoria
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  } catch (e) {
-    console.error(e);
-    Swal.fire(
-      "Error",
-      "No se pudo abrir el archivo",
-      "error"
-    );
-    return;
-  } finally {
-    Swal.close();
-  }
-};*/
-
-
-// 🔹 3. Montaje: aquí SÍ pasa algo
 onMounted(async () => {
-  console.log("🟢 onMounted ArchivosGestion.vue");
   await traerEstructuras();
 });
-console.log("44");
 </script>
 
 

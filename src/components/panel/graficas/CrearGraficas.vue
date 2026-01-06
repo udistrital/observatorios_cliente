@@ -68,7 +68,7 @@
                   class="textfield__control"
                   @update:modelValue="traerCamposSugeridos(campo.tipo)"
                 ></v-select>
-                <!-- {{ campo.tipo }} -->
+
                 <v-select
                   v-model="campoConfigSeleccionado[campo.tipo]"
                   label="Campo"
@@ -133,7 +133,7 @@
 
                     </div>
 
-                    <div 
+                    <div
                       class="campos__configuracion"
                       v-for="(sub_campo, index) in configuracionOperacion[campo.tipo]?.opcionales"
                       :key="index"
@@ -180,7 +180,6 @@
                       >
                       </v-checkbox>
 
-
                     </div>
                   </details>
                 </div>
@@ -200,7 +199,6 @@
 </template>
 
 <script setup>
-// export default {};
 import { ref, computed, onMounted, reactive, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
@@ -213,7 +211,7 @@ import MultiLineChart from "./MultiLineChart.vue";
 import HeatMap from "./HeatMap.vue";
 import { usePanelStore } from '@/stores/panelStore';
 import { useGraficaStore } from "@/stores/graficaStore";
-// import { useRouter } from "vue-router";
+
 const router = useRouter();
 const props = defineProps({
   columna: Number,
@@ -291,7 +289,6 @@ const traerEstructuras = () => {
     .catch((error) => console.error(error));
 };
 const crearGrafica = () => {
-  console.log("Crear Grafica");
 };
 const crearConfiguracion = () => {
   let entradas = Object.keys(campoConfigSeleccionado.value);
@@ -303,7 +300,6 @@ const crearConfiguracion = () => {
   };
 
   for (const element of entradas) {
-    console.log("element", element)
     configuracion.configuracion[element] = {
       campo: campoConfigSeleccionado.value[element],
       operacion: formValues.value[element],
@@ -313,16 +309,13 @@ const crearConfiguracion = () => {
     let subcampos = configuracionOperacion.value[element];
     if (subcampos?.obligatorios) {
       for (const subcampo of subcampos.obligatorios) {
-        // Si el subcampo tiene un input dinámico, tomamos el valor actual
         const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
         configuracion.configuracion[element].obligatorios[subcampo.valor] = valorActual;
-
       }
     }
 
     if (subcampos?.opcionales) {
       for (const subcampo of subcampos.opcionales) {
-        // Si el subcampo tiene un input dinámico, tomamos el valor actual
         const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
         configuracion.configuracion[element].opcionales[subcampo.valor] = valorActual;
       }
@@ -336,18 +329,6 @@ const crearConfiguracion = () => {
       datosGrafica.value = data
       verificar.value = true
       tipoVisualizacion.value = data.grafico_metadata.tipo
-      // Swal.fire({
-      //   title: "¡Creado!",
-      //   text: "La estructura se creó correctamente.",
-      //   icon: "success",
-      //   width: "300px",
-      //   customClass: {
-      //     popup: "popup-personalizado",
-      //     title: "titulo-alerta-personalizado",
-      //     confirmButton: "confirmacion-alerta-personalizado",
-      //   },
-      //   buttonsStyling: false,
-      // });
     })
     .catch((error) => console.error(error));
 };
@@ -372,16 +353,13 @@ const guardarGrafica = () => {
     let subcampos = configuracionOperacion.value[element];
     if (subcampos?.obligatorios) {
       for (const subcampo of subcampos.obligatorios) {
-        // Si el subcampo tiene un input dinámico, tomamos el valor actual
         const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
         configuracion.configuracion[element].obligatorios[subcampo.valor] = valorActual;
-        
       }
     }
 
     if (subcampos?.opcionales) {
       for (const subcampo of subcampos.opcionales) {
-        // Si el subcampo tiene un input dinámico, tomamos el valor actual
         const valorActual = subcampo.valor_actual ? subcampo.valor_actual: subcampo.valor_por_defecto;
         configuracion.configuracion[element].opcionales[subcampo.valor] = valorActual;
       }
@@ -436,10 +414,6 @@ const guardarGrafica = () => {
     })
     .catch((error) => console.error(error));
   }
-
-  
-
-
 }
 
 onUnmounted(() => {
@@ -449,7 +423,6 @@ onUnmounted(() => {
 onMounted(() => {
   traerEstructuras();
   if (graficaStore.grafica){
-    console.log("Grafica", graficaStore.grafica)
     nombreGrafica.value = graficaStore.grafica.nombre
     tipoGrafica.value = graficaStore.grafica.configuracion.tipo
     estructuraSeleccionada.value = graficaStore.grafica.estructura
@@ -457,7 +430,6 @@ onMounted(() => {
 
     for (const key of Object.keys(graficaStore.grafica.configuracion)) {
       if (key !== "tipo") {
-        console.log(key)
         formValues.value[key] = graficaStore.grafica.configuracion[key].operacion;
         campoConfigSeleccionado.value[key] = graficaStore.grafica.configuracion[key].campo;
         traerCamposSugeridos(key)

@@ -242,8 +242,6 @@ const traerEstructuras = async () => {
       { observatorio: observatorioStore.observatorio?.observatorio_id }
     );
 
-    console.log("data que llega :", data);
-
     estructuras.value = data.map((item) => ({
       ...item,
       tieneDatos: item.mapeo?.length > 0,
@@ -260,17 +258,6 @@ const traerEstructuras = async () => {
     cargando.value = false;
     Swal.close();
   }
-  /*peticionAPI("campos/estructuras/", "GET", null,{'observatorio': observatorioStore.observatorio?.observatorio_id})
-  .then((data) => {
-    console.log("data que llega :", data);
-    estructuras.value = data.map(item => ({
-      ...item,
-      tieneDatos: item.mapeo?.length > 0,
-      tieneArchivos: item.mapeo_archivos?.length > 0,
-    }));
-    cargando.value = false;
-    })
-    .catch((error) => console.error(error));*/
 };
 
 const cerrarModal = () => {
@@ -286,18 +273,12 @@ const crearEstructura = () => {
 };
 
 const verEstructura = (item) => {
-  console.log("verEstructura :", item.raw);
   _gestionEstructura.value = true;
   _modo.value = false;
   datosEstructura.value = item.raw;
-  console.log("_gestionEstructura.value :", _gestionEstructura.value);
-  console.log("_modo.value :", _modo.value);
-  console.log("datosEstructura.value :", datosEstructura.value);
 };
 
 const verEstructuraArchivos = (item) => {
-  console.log("verEstructuraArchivos :", item.raw);
-
   _gestionEstructura.value = true;
   _modo.value = false;
 
@@ -306,24 +287,15 @@ const verEstructuraArchivos = (item) => {
     tipo: 'archivos',
     mapeo_archivos: item.raw.mapeo_archivos
   };
-
-  console.log("_gestionEstructura.value :", _gestionEstructura.value);
-  console.log("_modo.value :", _modo.value);
-  console.log("datosEstructura.value :", datosEstructura.value);
 };
 
 const editarEstructura = (item) => {
   _gestionEstructura.value = true;
   _modo.value = true;
   datosEstructura.value = item.raw;
-  console.log("_gestionEstructura.value :", _gestionEstructura.value);
-  console.log("_modo.value :", _modo.value);
-  console.log("datosEstructura.value :", datosEstructura.value);
 };
 
 const editarEstructuraArchivos = (item) => {
-  console.log("editarEstructuraArchivos :", item.raw);
-
   _gestionEstructura.value = true;
   _modo.value = true;
 
@@ -332,10 +304,7 @@ const editarEstructuraArchivos = (item) => {
     tipo: "archivos",
     mapeo_archivos: item.raw.mapeo_archivos
   };
-
-  console.log("datosEstructura.value :", datosEstructura.value);
 };
-
 
 const reactivarEstructura = async (item) => {
   let id = item.raw.id;
@@ -382,13 +351,8 @@ const reactivarEstructura = async (item) => {
   }
 };
 const eliminarEstructura = async (item) => {
-  console.log("item.raw :", item.raw);
-
   let id = item.raw.id;
   let nombre = item.raw.nombre;
-
-  console.log("id :", id);
-  console.log("nombre :", nombre);
 
   const resultado = await Swal.fire({
     title: "Deshabilitar Estructura",
@@ -440,7 +404,6 @@ const diriguirseEstructura = (item) => {
   router.push(`/${observatorioStore.observatorio?.observatorio_id}/tablero`);
 };
 const diriguirseArchivos = (item) => {
-  console.log("diriguirseArchivos item.raw :", item.raw);
   estructuraStore.setEstructura({
     id: item.raw.id,
     nombre: item.raw.nombre,

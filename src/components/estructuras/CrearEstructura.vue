@@ -72,7 +72,6 @@
           </div>
         </div>
 
-        <!-- CAMPOS DE ARCHIVOS -->
         <div class="subcabecera mt-5">
           <h3 class="subtitulo-modal">Campos de Archivos</h3>
           <v-btn icon color="green" density="compact" @click="agregarCampoArchivo">

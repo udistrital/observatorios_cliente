@@ -4,7 +4,6 @@
 
     <v-card-text>
       <v-form @submit.prevent="crearRegistro">
-        <!-- INPUT PARA ARCHIVO -->
         <v-file-input
           label="Archivo"
           variant="outlined"
@@ -14,7 +13,6 @@
           @change="onFileChange"
           required
         ></v-file-input>
-        <!-- CAMPOS DINÁMICOS -->
         <v-text-field
           v-for="(campo, index) in camposFiltrados"
           :key="index"
@@ -42,6 +40,7 @@ import Swal from "sweetalert2";
 import { environment } from "../../eviroments";
 
 let baseURL = environment.MAIN_BACKEND;
+let observatoriosMidURL = environment.OBSERVATORIOS_MID;
 
 const archivoSeleccionado = ref(null);
 const fileName = ref("");
@@ -56,12 +55,10 @@ const emit = defineEmits(["cerrar", "crear"]);
 
 const form = ref({});
 
-// Filtrar todos los campos que NO sean hash
 const camposFiltrados = computed(() =>
   props.campos.filter(c => !c.nombre.toLowerCase().includes("hash"))
 );
 
-// Armar formulario dinámico
 onMounted(() => {
   props.campos.forEach(campo => {
     form.value[campo.nombre] = "";
@@ -81,7 +78,6 @@ const onFileChange = (event) => {
   const reader = new FileReader();
   reader.onload = () => {
     fileBase64.value = reader.result.split(",")[1];
-    console.log("Base64 generado:", fileBase64.value.substring(0, 40) + "...");
   };
   reader.readAsDataURL(file);
 };
@@ -109,10 +105,8 @@ const crearRegistro = async () => {
     }
   ];
 
-  console.log("🔥 Body enviado a observatorios_mid:", body);
-
   try {
-    const resp = await fetch("http://10.80.0.173:8086/v1/documento", {
+    const resp = await fetch(observatoriosMidURL + "/documento", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body)

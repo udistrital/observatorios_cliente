@@ -12,11 +12,11 @@ export default createVuetify({
   },
   directives,
   icons: {
-    defaultSet: 'mdi', // Cambiar a 'mdiSvg' para usar los iconos SVG
+    defaultSet: 'mdi',
     sets: { mdi },
   },
   theme: {
-    defaultTheme: 'light', // Cambiar a 'dark' para usar el tema oscuro (No está configurado correctamente)
+    defaultTheme: 'light',
     themes: {
       light: {
         colors: {

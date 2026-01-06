@@ -195,15 +195,6 @@ const limpiarFiltro = () => {
   traerDatos();
   _filtroActivo.value = false;
 };
-/*const traerEstructuras = () => {
-  peticionAPI("campos/estructuras/", "GET", null, {
-    observatorio: observatorioStore.observatorio?.observatorio_id,
-  })
-    .then((data) => {
-      estructuras.value = data;
-    })
-    .catch((error) => console.error(error));
-};*/
 
 const traerEstructuras = async () => {
   Swal.fire({
@@ -244,8 +235,6 @@ const agregarFiltro = () => {
   _agregarFilro.value = true;
 };
 onMounted(async () => {
-  console.log("panelStore.panel :", panelStore.panel);
-  console.log("estructuraStore.estructura :", estructuraStore.estructura);
   traerEstructuras();
   if (estructuraStore.estructura) {
     estructuraSeleccionada.value = estructuraStore.estructura;

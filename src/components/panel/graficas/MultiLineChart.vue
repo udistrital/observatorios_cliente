@@ -152,6 +152,5 @@
     const dataIndex = config.dataPointIndex;
     const label = categories.value[dataIndex];
     const value = series.value[seriesIndex]?.data?.[dataIndex];
-    console.log(`Click en: ${label} (${value})`);
   };
   </script>

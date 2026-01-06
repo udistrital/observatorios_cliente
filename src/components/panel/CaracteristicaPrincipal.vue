@@ -1,10 +1,6 @@
 <template>
     <div class="intro">
         <h1>{{ upper(panelStore?.panel.nombreFactor) }} - {{ upper(panelStore?.panel.nombreCaracteristica) }}</h1>
-        <!--<div class="intro-box">
-        <p>{{ panelStore?.panel.descripcion }}</p>
-        </div>-->
-        
     </div>
     <div class="intro">
         <div class="menu-opciones">
@@ -14,9 +10,6 @@
         </div>
     </div>
 
-    <!--<div v-if="mostrarPanel">
-        <PanelVistaPrincipal />
-    </div>-->
     <div v-if="mostrarPanel">
         <Panel />
     </div>
@@ -40,7 +33,6 @@
 
     const observatorioStore = useObservatorioStore();
     const panelStore = usePanelStore();
-    console.log("componente característica principal", panelStore.panel);
     const mostrarPanel = ref(false);
     const mostrarTableroDatos = ref(false);
     const mostrarArchivos = ref(false);
@@ -55,7 +47,6 @@
             nombreFactor: panelStore?.panel.nombreFactor,
             observatorio: panelStore?.panel.observatorio,
         });
-        console.log("panelStore.panel actualizado :", panelStore.panel);
         mostrarPanel.value = true;
         mostrarTableroDatos.value = false;
         mostrarArchivos.value = false;
