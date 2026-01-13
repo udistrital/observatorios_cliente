@@ -326,20 +326,8 @@ const verArchivo = async (item) => {
   }
 
   try {
-    /*const resp = await fetch(
-      `${gestorUrl}document/${enlaceArchivo}`
-    );*/
-
     const resp = await gestorDocumentalApi.get(`document/${enlaceArchivo}`);
-
-    console.log("respuesta de :", resp);
-
-    if (!resp.ok) {
-      throw new Error("Error consultando gestor documental");
-    }
-
-    const data = await resp.json();
-    const base64 = data.file;
+    const base64 = resp.file;
 
     if (!base64) {
       throw new Error("No se encontró base64 del archivo");
