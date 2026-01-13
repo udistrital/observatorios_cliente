@@ -96,7 +96,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
-import gestorDocumentalApi  from '../service/gestorDocumentalService';
+import gestorDocumentalApi  from '@/service/gestorDocumentalService';
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
