@@ -1,32 +1,57 @@
-import axios from "axios";
 import { environment } from "../eviroments";
 
-const gestorDocumentalApi = axios.create({
-  baseURL: environment.GESTOR_DOCUMENTAL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+const authHeader = () => {
+  const token = localStorage.getItem("access_token");
 
-gestorDocumentalApi.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("access_token");
+  if (!token) return {};
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+};
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+const gestorApi = axios.create({
+    baseURL: environment.GESTOR_DOCUMENTAL,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    timeout: 30000,
+  });
 
-gestorDocumentalApi.interceptors.response.use(
-  (response) => response.data,
-  (error) => {
-    console.error("❌ Error Gestor Documental:", error);
-    return Promise.reject(error);
+const request = async (method, path, data = null, params = null) => {
+  const config = {
+    method,
+    url: path,
+    headers: {
+      ...authHeader(),
+    },
+    params,
+  };
+
+  if (data) {
+    config.data = data;
   }
-);
 
-export default gestorDocumentalApi;
+  const response = await gestorApi(config);
+  return response.data;
+};
+
+export const gestorGet = (path, params = null) =>
+  request("GET", path, null, params);
+
+export const gestorPost = (path, data) =>
+  request("POST", path, data);
+
+export const gestorPut = (path, data) =>
+  request("PUT", path, data);
+
+export const gestorDelete = (path) =>
+  request("DELETE", path);
+
+export default {
+  get: gestorGet,
+  post: gestorPost,
+  put: gestorPut,
+  delete: gestorDelete,
+};
+
