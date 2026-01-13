@@ -332,6 +332,8 @@ const verArchivo = async (item) => {
 
     const resp = await gestorDocumentalApi.get(`document/${enlaceArchivo}`);
 
+    console.log("respuesta de :", resp);
+
     if (!resp.ok) {
       throw new Error("Error consultando gestor documental");
     }
