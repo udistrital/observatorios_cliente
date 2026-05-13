@@ -1,16 +1,16 @@
 <template>
   <div class="observatorios">
     <div class="cabecera">
-      <h1 class="titulo__cabecera">Administración de Observatorios</h1>
+      <h1 class="titulo__cabecera">Administración de Factores</h1>
       <v-spacer />
       <v-btn color="primary" prepend-icon="mdi-plus" @click="crearObservario"
-        >Crear Observatorio</v-btn
+        >Crear Factor</v-btn
       >
     </div>
     <v-card>
       <div class="cabecera__tabla">
         <v-card-title class="d-flex justify-space-between align-center">
-          <span class="text-h5">Observatorios</span>
+          <span class="text-h5">Factores</span>
         </v-card-title>
         <v-spacer />
         <v-text-field
