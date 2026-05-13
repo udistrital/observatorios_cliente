@@ -1,20 +1,25 @@
 <template>
   <div class="intro">
     <h1>¿ Qué es el Sistema de Evidencias de la Autoevaluación Institucional ?</h1>
-    <div class="intro-box">
-      <p>Es una herramienta que permite organizar de manera conjunta documentos, registros, datos, indicadores, estadísticas y demás pruebas que recopila la Universidad
-      para analizar y sistematizar la autoevaluación institucional y posteriormente demostrar el cumplimiento de los estándares de calidad establecidos en el Acuerdo 01de
-      2025 del CESU.</p>
-    </div>
-    
-    <h1>¿ Cuáles son las funciones del Sistema de Evidencias de la Autoevaluación Institucional ?</h1>
+
     <div class="intro-box">
       <p>
-        1. Respaldar la autoevaluación: garantiza que los juicios de valor de la institución se basan en pruebas verificables.<br>
-        2. Servir de insumo de los procesos de autoevaluación de programas: provee información sistematizad del orden institucional requerida en los análisis que realizan los
-        programas en sus procesos de autoevaluación.<br>
-        3. Facilitar la verificación externa: sirve como fuente de consulta para los pares evaluadores o agencias acreditadoras.<br>
-        4. Organizar la información institucional: centraliza documentos clave (estatutos, planes estratégicos, informes financieros, actas, encuestas de estudiantes y egresados, etc.).<br>
+        Es una herramienta que permite organizar de manera conjunta documentos,
+        registros, datos, indicadores, estadísticas y demás pruebas que recopila
+        la Universidad para analizar y sistematizar la autoevaluación institucional
+        y posteriormente demostrar el cumplimiento de los estándares de calidad
+        establecidos en el Acuerdo 01 de 2025 del CESU.
+      </p>
+    </div>
+
+    <h1>¿ Cuáles son las funciones del Sistema de Evidencias de la Autoevaluación Institucional ?</h1>
+
+    <div class="intro-box">
+      <p>
+        1. Respaldar la autoevaluación: garantiza que los juicios de valor de la institución se basan en pruebas verificables.<br />
+        2. Servir de insumo de los procesos de autoevaluación de programas: provee información sistematizada del orden institucional requerida en los análisis que realizan los programas en sus procesos de autoevaluación.<br />
+        3. Facilitar la verificación externa: sirve como fuente de consulta para los pares evaluadores o agencias acreditadoras.<br />
+        4. Organizar la información institucional: centraliza documentos clave, estatutos, planes estratégicos, informes financieros, actas, encuestas de estudiantes y egresados, entre otros.<br />
         5. Dar transparencia: muestra la coherencia entre la misión, la gestión académica/administrativa y los resultados.
       </p>
     </div>
@@ -24,90 +29,120 @@
     <div
       class="espacio elevation-5"
       @click="verAdministracion"
-      v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
+      v-if="esAdministrador"
     >
       <div class="espacio__item"></div>
+
       <figure class="espacio__img">
-        <img src="../assets/img/logo-admin.png" alt="administracion" />
+        <img src="../assets/img/logo-admin.png" alt="administración" />
       </figure>
+
       <h4 class="espacio__titulo">Administración</h4>
     </div>
-    <div v-for="(espacio, index) in espacios" :key="index">
+
+    <div v-for="(factor, index) in factores" :key="factor.factor_id || factor.id || index">
       <div
-        v-if="espacio.activo"
+        v-if="factor.activo"
         class="espacio elevation-5"
-        @click="diriguirseObservatorio(espacio)"
+        @click="dirigirseFactor(factor)"
       >
-        <figure class="espacio__img">
-          <img :src="espacio.imagen" alt="administracion" />
+        <figure class="espacio__icono-factor">
+          <v-icon size="48" color="primary">mdi-format-list-bulleted</v-icon>
         </figure>
-        <h4 class="espacio__titulo">{{ espacio.nombre }}</h4>
+
+        <h4 class="espacio__titulo">{{ factor.nombre }}</h4>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from "vue";
-import espaciosData from "../data_prueba.json";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import peticionAPI from "@/service/conexion_api";
-import { useObservatorioStore } from "@/stores/observatorioStore";
+
+import { factoresService } from "@/service/factores.service";
+import { useFactorStore } from "@/stores/factorStore";
 import { useUserStore } from "@/stores/userStore";
 
-const userStore = useUserStore();
-const observatorioStore = useObservatorioStore();
 const router = useRouter();
-const espacios = ref([]);
-const observatorios = ref();
-const roleUsuario = ref([""]);
+
+const userStore = useUserStore();
+const factorStore = useFactorStore();
+
+const factores = ref([]);
+const roleUsuario = ref([]);
+const cargando = ref(false);
+
+const ROL_ADMIN = "ADMIN_OBSERVATORIOS";
+
+const esAdministrador = computed(() => {
+  return roleUsuario.value.includes(ROL_ADMIN);
+});
 
 const verAdministracion = () => {
-  router.push("/administracion/observatorios");
+  router.push("/administracion/factores");
 };
 
-const traerObservatorios = () => {
-  espacios.value = [];
-  peticionAPI("observatorios/", "GET")
-    .then((data) => {
-      espacios.value = data;
-      localStorage.setItem(
-        "observatorios_espacios",
-        JSON.stringify(espacios.value)
-      );
-    })
-    .catch((error) => console.error(error));
+const traerFactores = async () => {
+  cargando.value = true;
+  factores.value = [];
+
+  try {
+    const data = await factoresService.listar();
+    factores.value = Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Error al cargar factores:", error);
+    factores.value = [];
+  } finally {
+    cargando.value = false;
+  }
 };
 
-const diriguirseObservatorio = (item) => {
-  observatorioStore.setObservatorio({
-    id: item.id,
-    nombre: item.nombre,
-    descripcion: item.descripcion,
-    observatorio_id: item.observatorio_id,
-    imagen: item.imagen,
+const dirigirseFactor = (factor) => {
+  const factorId = factor.factor_id || factor.id;
+
+  factorStore.setFactor({
+    id: factor.id,
+    factor_id: factorId,
+    nombre: factor.nombre,
+    descripcion: factor.descripcion,
+    calificacion: factor.calificacion,
+    activo: factor.activo,
+    numero: factor.numero,
+    caracteristicas: Array.isArray(factor.caracteristicas)
+      ? factor.caracteristicas
+      : [],
   });
-  if (roleUsuario.value.includes('ADMIN_OBSERVATORIOS')) {
-    router.push(`/${item.observatorio_id}/estructuras`);
-  }else{
+
+  if (esAdministrador.value) {
+    router.push({
+      name: "estructuras",
+      params: {
+        factor_id: factorId,
+      },
+    });
+  } else {
     router.push({
       name: "estructurasVista",
-      params: { observatorio_id: item.observatorio_id },
+      params: {
+        factor_id: factorId,
+      },
     });
   }
 };
+
 watch(
   () => userStore.user?.role,
   (nuevoRol) => {
-    if (nuevoRol?.length) {
+    if (Array.isArray(nuevoRol) && nuevoRol.length) {
       roleUsuario.value = nuevoRol;
     }
   },
   { immediate: true }
 );
+
 onMounted(() => {
-  espacios.value = espaciosData.espacios;
-  traerObservatorios();
+  traerFactores();
 });
 </script>
 
@@ -123,11 +158,13 @@ onMounted(() => {
   margin-left: auto;
   margin-right: auto;
 }
+
 .intro h1 {
   text-align: center;
   font-size: 26px;
   margin-bottom: 10px;
 }
+
 .intro-box {
   background-color: #ffffff;
   color: black;
@@ -137,9 +174,11 @@ onMounted(() => {
   margin-top: 10px;
   margin-bottom: 20px;
 }
-.intro-box p{
+
+.intro-box p {
   font-size: 14px;
 }
+
 .main-espacios {
   display: flex;
   justify-content: center;
@@ -148,6 +187,7 @@ onMounted(() => {
   margin-top: 0px;
   padding-bottom: 20px;
 }
+
 .espacio {
   height: 150px;
   width: 150px;
@@ -160,11 +200,24 @@ onMounted(() => {
   margin: 20px;
   cursor: pointer;
 }
+
 .espacio__img img {
   height: 60px;
   width: 60px;
   border-radius: 50%;
+  object-fit: cover;
 }
+
+.espacio__icono-factor {
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+  background-color: #eef4fb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .espacio__titulo {
   text-align: center;
   width: 90%;
