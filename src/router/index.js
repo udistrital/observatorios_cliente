@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import { useFactorStore } from "@/stores/factorStore";
+import { factoresService } from "@/service/factores.service";
 import { useUserStore } from "@/stores/userStore";
 
 const routes = [
@@ -22,61 +24,66 @@ const routes = [
         component: () =>
           import("../components/administracion/Observatorios.vue"),
       },
-      {
+      /*{
         path: "observatorios-externos",
         component: () =>
           import("../components/administracion/ObservatoriosExternos.vue"),
+      },*/
+      {
+        path: "factores",
+        component: () =>
+          import("../components/administracion/Factores.vue"),
       },
     ],
   },
   {
-    path: "/:observatorio_id/estructuras",
+    path: "/factor/:factor_id",
     name: "estructuras",
     component: () => import("../views/Estructuras.vue"),
   },
   {
-    path: "/estructuras/:observatorio_id",
+    path: "/estructuras/:factor_id",
     name: "estructurasVista",
-    component: () => import("..//components/estructuras/EstructurasVista.vue"),
+    component: () => import("../components/estructuras/EstructurasVista.vue"),
   },
   {
-    path: "/:observatorio_id/tablero",
+    path: "/tablero/:factor_id",
     name: "tablero",
     component: () => import("../views/Tablero.vue"),
   },
-  {
-    path: "/tablero/:observatorio_id",
+  /*{
+    path: "/tablero/:factor_id",
     name: "tableroVista",
     component: () => import("../components/tablero/TableroVista.vue"),
-  },
+  },*/
   {
-    path: "/:observatorio_id/panel",
+    path: "/:factor_id/panel",
     name: "panel",
     component: () => import("../views/Panel.vue"),
   },
   {
-    path: "/:observatorio_id/panel/graficas/:panel/:columna/:fila",
+    path: "/:factor_id/panel/graficas/:panel/:columna/:fila",
     name: "panelGraficas",
     props: true,
     component: () => import("../components/panel/Graficas.vue"),
   },
   {
-    path: "/:observatorio_id/panel/principal",
+    path: "/:factor_id/panel/principal",
     name: "panelPrincipal",
     component: () => import("../components/panel/PanelVistaPrincipal.vue"),
   },
   {
-    path: "/:observatorio_id/caracteristica",
+    path: "/:factor_id/caracteristica",
     name: "caracteristicaPrincipal",
     component: () => import("../components/panel/CaracteristicaPrincipal.vue"),
   },
   {
-    path: "/panelVista/:observatorio_id",
+    path: "/panelVista/:factor_id",
     name: "panelVista",
     component: () => import("../components/panel/PanelVista.vue"),
   },
   {
-    path: "/:observatorio_id/archivos",
+    path: "/:factor_id/archivos",
     name: "archivosGestion",
     component: () => import("../components/archivos/ArchivosGestion.vue"),
   },
@@ -92,10 +99,10 @@ const router = createRouter({
 });
 
 router.beforeEach(async (to, from, next) => {
-  const observatorioStore = useObservatorioStore();
-
+  const factorStore = useFactorStore();
   const userStore = useUserStore();
-  const { observatorio_id } = to.params;
+
+  const { factor_id } = to.params;
 
   let intentos = 0;
   while (!userStore.user?.role && intentos < 10) {
@@ -105,12 +112,21 @@ router.beforeEach(async (to, from, next) => {
 
   const roleUsuario = userStore.user?.role || [];
 
-  const rutasPermitidas = ["espacios", "root", "caracteristicaPrincipal", "panelVista", "tableroVista", "estructurasVista"];
+  const rutasPermitidas = [
+    "espacios",
+    "root",
+    "caracteristicaPrincipal",
+    "panelVista",
+    "tableroVista",
+    "estructurasVista",
+  ];
+
   const esRutaPanel = to.path.includes("/panel");
 
   if (to.path === "/") {
     let intentosToken = 0;
     let accessToken = localStorage.getItem("access_token");
+
     while (!accessToken && intentosToken < 20) {
       await new Promise((resolve) => setTimeout(resolve, 50));
       accessToken = localStorage.getItem("access_token");
@@ -122,36 +138,31 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  if (
-    !roleUsuario.includes("ADMIN_OBSERVATORIOS") &&
-    !rutasPermitidas.includes(to.name) &&
-    !esRutaPanel
-  ) {
+  const esAdmin = roleUsuario.includes("ADMIN_OBSERVATORIOS");
+
+  if (!esAdmin && !rutasPermitidas.includes(to.name) && !esRutaPanel) {
     return next({ name: "espacios" });
   }
 
-  if (observatorio_id) {
-    const storedData = localStorage.getItem("observatorios_espacios");
-    if (storedData) {
-      let observatorios = [];
+  if (factor_id) {
+    const factorActual = factorStore.factor;
+
+    const yaTieneFactor =
+      factorActual &&
+      (factorActual.factor_id === factor_id || factorActual.id === factor_id);
+
+    if (!yaTieneFactor) {
       try {
-        observatorios = JSON.parse(storedData);
+        const factor = await factoresService.obtener(factor_id);
+        factorStore.setFactor(factor);
       } catch (error) {
-        console.error(
-          "Error al parsear observatorios del localStorage:",
-          error
-        );
+        console.error("No fue posible cargar el factor desde el router:", error);
+
+        factorStore.setFactor({
+          id: factor_id,
+          factor_id,
+        });
       }
-      const matchedObservatorio = observatorios.find(
-        (item) => item.observatorio_id === observatorio_id
-      );
-      if (matchedObservatorio) {
-        observatorioStore.setObservatorio(matchedObservatorio);
-      } else {
-        observatorioStore.setObservatorio({ id: observatorio_id });
-      }
-    } else {
-      observatorioStore.setObservatorio({ id: observatorio_id });
     }
   }
 

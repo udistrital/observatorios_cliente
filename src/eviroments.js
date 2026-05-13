@@ -35,5 +35,6 @@ export const environment = {
   //OBSERVATORIOS_MID: 'http://0.0.0.0:8086/v1',
   OBSERVATORIOS_MID: 'https://pruebasapi.intranetoas.udistrital.edu.co/observatorios_mid/api/v1',
   //GESTOR_DOCUMENTAL: 'http://127.0.0.1:8034/v1/'
-  GESTOR_DOCUMENTAL: 'http://pruebasapi2.intranetoas.udistrital.edu.co:8199/v1/'
+  //GESTOR_DOCUMENTAL: 'http://pruebasapi2.intranetoas.udistrital.edu.co:8199/v1/'
+  GESTOR_DOCUMENTAL: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/'
 };

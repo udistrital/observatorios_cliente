@@ -96,6 +96,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
+import gestorDocumentalApi  from '@/service/gestorDocumentalService';
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
@@ -103,7 +104,6 @@ import { useObservatorioStore } from "@/stores/observatorioStore";
 import AgregarArchivo from "./AgregarArchivo.vue";
 import RegistroArchiGestion from "./RegistroArchiGestion.vue";
 import { environment } from "../../eviroments";
-
 
 const observatorioStore = useObservatorioStore();
 const headerst = ref([
@@ -326,16 +326,8 @@ const verArchivo = async (item) => {
   }
 
   try {
-    const resp = await fetch(
-      `${gestorUrl}document/${enlaceArchivo}`
-    );
-
-    if (!resp.ok) {
-      throw new Error("Error consultando gestor documental");
-    }
-
-    const data = await resp.json();
-    const base64 = data.file;
+    const resp = await gestorDocumentalApi.get(`document/${enlaceArchivo}`);
+    const base64 = resp.file;
 
     if (!base64) {
       throw new Error("No se encontró base64 del archivo");
