@@ -1,8 +1,8 @@
 <template>
   <div class="intro">
-    <h1>{{ observatorioStore.observatorio?.nombre }}</h1>
+    <h1>{{ factorStore.factor?.nombre }}</h1>
     <div class="intro-box">
-      <p>{{ observatorioStore.observatorio?.descripcion }}</p>
+      <p>{{ factorStore.factor?.descripcion }}</p>
     </div>
   </div>
 
@@ -59,11 +59,11 @@ import { useRouter } from "vue-router";
 import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
-import { useObservatorioStore } from "@/stores/observatorioStore";
+import { useFactorStore } from "@/stores/factorStore";
 import { usePanelStore } from "@/stores/panelStore";
 
 const panelStore = usePanelStore();
-const observatorioStore = useObservatorioStore();
+const factorStore = useFactorStore();
 const estructuraStore = useEstructuraStore();
 const router = useRouter();
 const search = ref("");
@@ -100,7 +100,7 @@ const traerEstructuras = async () => {
       "campos/estructuras/",
       "GET",
       null,
-      { observatorio: observatorioStore.observatorio?.observatorio_id }
+      { factor: factorStore.factor?.factor_id }
     );
 
     estructuras.value = data.map((item) => ({
@@ -129,16 +129,18 @@ const diriguirseEstructura = (item) => {
     mapeo: item.raw.mapeo,
   });
   panelStore.setPanel({
-            id: item.raw.id,
-            idArchivos: item.raw.id_archivos,
-            nombreCaracteristica: item.columns.nombre,
-            nombreFactor: observatorioStore.observatorio?.nombre,
-            observatorio: item.raw.observatorio,
-        });
+    id: item.raw.id,
+    idArchivos: item.raw.id_archivos,
+    nombreCaracteristica: item.columns.nombre,
+    nombreFactor: factorStore.factor?.nombre,
+    factor: item.raw.factor,
+  });
   router.push({
-      name: "caracteristicaPrincipal",
-      params: { observatorio_id: item.raw.observatorio },
-    });
+    name: "caracteristicaPrincipal",
+    params: {
+      factor_id: item.raw.factor,
+    },
+  });
 };
 
 onMounted(async () => {

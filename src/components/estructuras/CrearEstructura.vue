@@ -145,11 +145,13 @@
 import { ref, defineEmits, defineProps, onMounted } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import Swal from "sweetalert2";
-import { useObservatorioStore } from "@/stores/observatorioStore";
 
-const observatorioStore = useObservatorioStore();
 const props = defineProps({
   value: Boolean,
+  factorId: {
+    type: String,
+    required: true,
+  },
 });
 const emit = defineEmits(["cerrar", "crear"]);
 
@@ -178,13 +180,13 @@ const eliminarCampoArchivo = (index) => {
 const crearEstructura = () => {
   const estructura = {
     nombre: nombreEstructura.value,
-    observatorio: observatorioStore.observatorio?.observatorio_id,
+    factor: props.factorId,
     mapeo: campos.value,
-    mapeo_archivos: camposArchivos.value
+    mapeo_archivos: camposArchivos.value,
   };
 
   peticionAPI("/campos/estructuras/", "POST", estructura)
-    .then((data) => {
+    .then(() => {
       Swal.fire({
         title: "¡Creado!",
         text: "La estructura se creó correctamente.",
@@ -202,6 +204,7 @@ const crearEstructura = () => {
 
   emit("cerrar");
 };
+
 const traerCampos = () => {
   peticionAPI("campos/tipos", "GET")
     .then((data) => {
