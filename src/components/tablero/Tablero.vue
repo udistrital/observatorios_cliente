@@ -48,7 +48,7 @@
             prepend-icon="mdi-table-column-plus-after"
             @click="crearCamposEstructura"
           >
-            Crear campos
+            Agregar campos
           </v-btn>
 
           <v-btn
@@ -83,6 +83,17 @@
             @click="eliminarEstructuraTabla"
           >
             Eliminar
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="tonal"
+            size="small"
+            class="btn-table-action"
+            prepend-icon="mdi-plus-box"
+            :disabled="camposFormulario.length === 0"
+            @click="agregarRegistro"
+          >
+            Agregar registro
           </v-btn>
         </div>
       </div>
@@ -223,7 +234,8 @@
         @cerrar="cerrarModal"
         :esVer="_modo"
         :idEstructura="idEstructura"
-        :campos="datosRegistro"
+        :campos="camposFormulario"
+        :registro="datosRegistro"
       />
     </v-dialog>
 
@@ -261,6 +273,7 @@ import { estructurasEvidenciasService } from "@/service/estructuras-evidencias.s
 import { aspectosService } from "@/service/aspectos.service";
 import { caracteristicasService } from "@/service/caracteristicas.service";
 import { factoresService } from "@/service/factores.service";
+import { camposService } from "@/service/campos.service";
 
 const route = useRoute();
 const estructuraStore = useEstructuraStore();
@@ -355,14 +368,7 @@ const cargarContextoDesdeIdTabla = async () => {
 
   const estructuraResponse = await estructurasEvidenciasService.obtener(estructuraId);
 
-  const metadata =
-    estructuraResponse.metadata ||
-    estructuraResponse.estructura ||
-    {};
-
-  const aspectoId =
-    estructuraResponse.aspecto_id ||
-    metadata.aspecto_id;
+  const aspectoId = estructuraResponse.aspecto_id;
 
   if (!aspectoId) {
     throw new Error("No fue posible identificar el aspecto asociado a la estructura.");
@@ -389,10 +395,17 @@ const cargarContextoDesdeIdTabla = async () => {
   }
 
   return {
-    id: estructuraId,
-    nombre: metadata.nombre || "Estructura tabla",
-    tipo_evidencia: metadata.tipo_evidencia || "Tabla",
-    activo: metadata.activo !== false,
+    id: estructuraResponse.id,
+    aspecto_id: estructuraResponse.aspecto_id,
+    nombre: estructuraResponse.nombre,
+    tipo_evidencia: estructuraResponse.tipo_evidencia,
+    activo: estructuraResponse.activo !== false,
+    campos: Array.isArray(estructuraResponse.campos)
+      ? estructuraResponse.campos
+      : [],
+    data: Array.isArray(estructuraResponse.data)
+      ? estructuraResponse.data
+      : [],
 
     factor: {
       id: factor?.id || factorIdConsulta || route.params.factor_id,
@@ -413,17 +426,28 @@ const cargarContextoDesdeIdTabla = async () => {
       nombre: aspecto.nombre || "Aspecto",
       activo: aspecto.activo !== false,
     },
-
-    mapeo: Array.isArray(metadata.mapeo) ? metadata.mapeo : [],
   };
 };
 
-const obtenerMapeo = (estructura) => {
-  if (Array.isArray(estructura?.mapeo)) {
-    return estructura.mapeo;
+const obtenerCampos = (estructura) => {
+  if (!Array.isArray(estructura?.campos)) {
+    return [];
   }
 
-  return [];
+  return estructura.campos;
+};
+
+const normalizarCampos = (campos = []) => {
+  if (!Array.isArray(campos)) {
+    return [];
+  }
+
+  return campos
+    .filter((campo) => campo?.nombre_campo)
+    .map((campo) => ({
+      nombre_campo: campo.nombre_campo.trim(),
+      tipo_campo: campo.tipo_campo || "text",
+    }));
 };
 
 const traerDatos = async (estructura = null) => {
@@ -438,17 +462,15 @@ const traerDatos = async (estructura = null) => {
   estructuraSeleccionada.value = estructuraActiva;
   estructuraStore.setEstructura(estructuraActiva);
 
-  const mapeo = obtenerMapeo(estructuraActiva);
+  const campos = obtenerCampos(estructuraActiva);
 
-  camposFormulario.value = mapeo;
+  camposFormulario.value = campos;
   idEstructura.value = estructuraActiva.id;
 
-  camposBool.value = mapeo.filter((campo) => campo.tipo === "boolean");
-
-  headers.value = mapeo.map((item) => ({
-    title: item.nombre,
-    key: item.nombre,
-    value: item.nombre,
+  headers.value = campos.map((campo) => ({
+    title: campo.nombre_campo,
+    key: campo.nombre_campo,
+    value: campo.nombre_campo,
     align: "center",
     sortable: true,
   }));
@@ -473,10 +495,8 @@ const traerDatos = async (estructura = null) => {
   datos.value = [];
 
   try {
-    const response = await peticionAPI(
-      `datos/${estructuraActiva.id}/`,
-      "GET",
-      null,
+    const response = await camposService.listarData(
+      estructuraActiva.id,
       {
         page: paginacion.page,
         page_size: paginacion.itemsPerPage,
@@ -485,17 +505,9 @@ const traerDatos = async (estructura = null) => {
       }
     );
 
-    datos.value = Array.isArray(response.results) ? response.results : [];
-
-    camposBool.value.forEach((campo) => {
-      datos.value.forEach((item) => {
-        if (item[campo.nombre] === true) {
-          item[campo.nombre] = "true";
-        } else if (item[campo.nombre] === false) {
-          item[campo.nombre] = "false";
-        }
-      });
-    });
+    datos.value = Array.isArray(response.results)
+      ? response.results
+      : [];
 
     paginacion.totalItems = Number(response.count) || 0;
 
@@ -647,8 +659,8 @@ const copiarIdEstructura = async () => {
 
 const limpiarEstructura = async () => {
   const resultado = await Swal.fire({
-    title: "Limpiar estructura",
-    html: `¿Desea eliminar todos los datos de la estructura <b>${nombreEstructura.value}</b>?`,
+    title: "Limpiar registros",
+    html: `¿Desea eliminar todos los registros de <b>${nombreEstructura.value}</b>?`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
@@ -666,11 +678,11 @@ const limpiarEstructura = async () => {
   if (!resultado.isConfirmed) return;
 
   try {
-    await peticionAPI(`/datos/${idEstructura.value}/`, "DELETE");
+    await camposService.eliminarTodosRegistros(idEstructura.value);
 
     await Swal.fire({
       title: "¡Eliminado!",
-      text: "Los datos de la estructura fueron eliminados correctamente.",
+      text: "Los registros fueron eliminados correctamente.",
       icon: "success",
       width: "300px",
       customClass: {
@@ -710,7 +722,10 @@ const eliminarRegistro = async (item) => {
   if (!resultado.isConfirmed) return;
 
   try {
-    await peticionAPI(`/datos/${idEstructura.value}/${id}/`, "DELETE");
+    await camposService.eliminarRegistro(
+      idEstructura.value,
+      id
+    );
 
     await Swal.fire({
       title: "¡Eliminado!",
@@ -798,19 +813,6 @@ const TIPOS_DATO = [
   { label: "Forma", value: "shape" },
 ];
 
-const normalizarCampos = (campos = []) => {
-  if (!Array.isArray(campos)) {
-    return [];
-  }
-
-  return campos
-    .filter((campo) => campo?.nombre)
-    .map((campo) => ({
-      nombre: campo.nombre,
-      tipo: campo.tipo || "text",
-    }));
-};
-
 const escaparHtml = (valor = "") => {
   return String(valor)
     .replaceAll("&", "&amp;")
@@ -834,55 +836,86 @@ const construirOpcionesTipoDato = (tipoSeleccionado = "text") => {
     .join("");
 };
 
-const construirFilaCampo = (campo = {}, index = 0) => {
-  const nombre = escaparHtml(campo.nombre || "");
-  const tipo = campo.tipo || "text";
+const construirFilaCampo = (campo = {}, index = 0, esExistente = false) => {
+  const nombre = escaparHtml(campo.nombre_campo || "");
+  const tipo = campo.tipo_campo || "text";
 
   return `
-    <div class="campo-row" data-index="${index}">
+    <div
+      class="campo-row"
+      data-index="${index}"
+      data-original="${nombre}"
+      data-existente="${esExistente ? "true" : "false"}"
+    >
       <div class="campo-field">
         <input
           class="campo-input campo-nombre"
           placeholder="Nombre del campo"
           value="${nombre}"
+          ${esExistente ? "disabled" : ""}
         />
       </div>
 
       <div class="campo-field campo-select-wrapper">
         <label>Tipo de dato</label>
-        <select class="campo-input campo-tipo">
+        <select
+          class="campo-input campo-tipo"
+          ${esExistente ? "disabled" : ""}
+        >
           ${construirOpcionesTipoDato(tipo)}
         </select>
       </div>
 
       <button
         type="button"
-        class="campo-delete"
-        title="Eliminar campo"
+        class="campo-disable"
+        title="Quita el campo de la vista, pero conserva la data histórica"
       >
-        ×
+        Desactivar
+      </button>
+
+      <button
+        type="button"
+        class="campo-delete"
+        title="Quita el campo y borra esa columna en la data"
+      >
+        Eliminar
       </button>
     </div>
   `;
 };
 
-
-const abrirFormularioCampos = async (camposIniciales = []) => {
+const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
   const camposBase = normalizarCampos(camposIniciales);
-  const camposRender =
-    camposBase.length > 0 ? camposBase : [{ nombre: "", tipo: "text" }];
+
+  const camposRender = [...camposBase];
+
+  if (opciones.agregarFilaVacia || camposRender.length === 0) {
+    camposRender.push({
+      nombre_campo: "",
+      tipo_campo: "text",
+    });
+  }
+
+  const eliminadosData = [];
 
   return Swal.fire({
     title: "Campos de la estructura",
     html: `
       <div class="campos-popup">
         <p class="campos-popup__help">
-          Agrega los campos que tendrá la estructura tipo tabla.
+          Agrega o administra los campos que tendrá la estructura.
+          <br>
+          <b>Desactivar</b> quita el campo de la tabla, pero conserva la data histórica.
+          <br>
+          <b>Eliminar</b> quita el campo y borra esa columna en todos los registros.
         </p>
 
         <div id="camposContainer" class="campos-container">
           ${camposRender
-            .map((campo, index) => construirFilaCampo(campo, index))
+            .map((campo, index) =>
+              construirFilaCampo(campo, index, Boolean(campo.nombre_campo))
+            )
             .join("")}
         </div>
 
@@ -898,7 +931,7 @@ const abrirFormularioCampos = async (camposIniciales = []) => {
     showCancelButton: true,
     confirmButtonText: "Guardar",
     cancelButtonText: "Cancelar",
-    width: "760px",
+    width: "860px",
     customClass: {
       popup: "popup-personalizado popup-campos",
       title: "titulo-alerta-personalizado",
@@ -910,29 +943,26 @@ const abrirFormularioCampos = async (camposIniciales = []) => {
       const container = document.getElementById("camposContainer");
       const btnAgregar = document.getElementById("btnAgregarCampo");
 
-      const refrescarBotonesEliminar = () => {
-        const filas = container.querySelectorAll(".campo-row");
+      const enlazarEventos = () => {
+        const botonesDesactivar = container.querySelectorAll(".campo-disable");
+        const botonesEliminar = container.querySelectorAll(".campo-delete");
 
-        filas.forEach((fila) => {
-          const boton = fila.querySelector(".campo-delete");
-          const deshabilitado = filas.length === 1;
-
-          boton.disabled = deshabilitado;
-          boton.classList.toggle("campo-delete--disabled", deshabilitado);
-        });
-      };
-
-      const agregarEventosEliminar = () => {
-        const botones = container.querySelectorAll(".campo-delete");
-
-        botones.forEach((boton) => {
+        botonesDesactivar.forEach((boton) => {
           boton.onclick = () => {
-            const filas = container.querySelectorAll(".campo-row");
-
-            if (filas.length === 1) return;
-
             boton.closest(".campo-row").remove();
-            refrescarBotonesEliminar();
+          };
+        });
+
+        botonesEliminar.forEach((boton) => {
+          boton.onclick = () => {
+            const fila = boton.closest(".campo-row");
+            const nombreOriginal = fila.dataset.original;
+
+            if (nombreOriginal) {
+              eliminadosData.push(nombreOriginal);
+            }
+
+            fila.remove();
           };
         });
       };
@@ -942,38 +972,55 @@ const abrirFormularioCampos = async (camposIniciales = []) => {
 
         container.insertAdjacentHTML(
           "beforeend",
-          construirFilaCampo({ nombre: "", tipo: "text" }, total)
+          construirFilaCampo(
+            { nombre_campo: "", tipo_campo: "text" },
+            total,
+            false
+          )
         );
 
-        agregarEventosEliminar();
-        refrescarBotonesEliminar();
+        enlazarEventos();
       };
 
-      agregarEventosEliminar();
-      refrescarBotonesEliminar();
+      enlazarEventos();
     },
     preConfirm: () => {
       const filas = Array.from(document.querySelectorAll(".campo-row"));
 
       const campos = filas.map((fila) => {
-        const nombre = fila.querySelector(".campo-nombre")?.value?.trim();
-        const tipo = fila.querySelector(".campo-tipo")?.value || "text";
+        const nombreCampo = fila.querySelector(".campo-nombre")?.value?.trim();
+        const tipoCampo = fila.querySelector(".campo-tipo")?.value || "text";
 
         return {
-          nombre,
-          tipo,
+          nombre_campo: nombreCampo,
+          tipo_campo: tipoCampo,
         };
       });
 
-      const camposValidos = campos.filter((campo) => campo.nombre);
+      const camposValidos = campos.filter((campo) => campo.nombre_campo);
 
       if (camposValidos.length === 0) {
         Swal.showValidationMessage("Debe registrar al menos un campo.");
         return false;
       }
 
+      const regexNombre = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+      const campoInvalido = camposValidos.find(
+        (campo) => !regexNombre.test(campo.nombre_campo)
+      );
+
+      if (campoInvalido) {
+        Swal.showValidationMessage(
+          `El campo '${campoInvalido.nombre_campo}' no es válido. ` +
+          "Use letras, números y guion bajo. Debe iniciar con letra o guion bajo."
+        );
+
+        return false;
+      }
+
       const nombres = camposValidos.map((campo) =>
-        campo.nombre.toLowerCase()
+        campo.nombre_campo.toLowerCase()
       );
 
       const nombresUnicos = new Set(nombres);
@@ -983,9 +1030,140 @@ const abrirFormularioCampos = async (camposIniciales = []) => {
         return false;
       }
 
-      return camposValidos;
+      return {
+        campos: camposValidos,
+        eliminar_data_campos: [...new Set(eliminadosData)],
+      };
     },
   });
+};
+
+const actualizarCamposEstructura = async ({
+  campos = [],
+  eliminarDataCampos = [],
+} = {}) => {
+  if (!idEstructura.value) {
+    throw new Error("No hay una estructura seleccionada.");
+  }
+
+  const estructuraActualizada = await camposService.actualizarCampos(
+    idEstructura.value,
+    campos,
+    eliminarDataCampos
+  );
+
+  estructuraSeleccionada.value = {
+    ...estructuraSeleccionada.value,
+    ...estructuraActualizada,
+    campos: normalizarCampos(estructuraActualizada.campos || []),
+    data: Array.isArray(estructuraActualizada.data)
+      ? estructuraActualizada.data
+      : [],
+  };
+
+  estructuraStore.setEstructura(estructuraSeleccionada.value);
+
+  await traerDatos(estructuraSeleccionada.value);
+};
+
+const crearCamposEstructura = async () => {
+  const resultado = await abrirFormularioCampos(
+    camposFormulario.value,
+    {
+      agregarFilaVacia: true,
+    }
+  );
+
+  if (!resultado.isConfirmed) return;
+
+  mostrarCargandoTablero(
+    "Creando campos",
+    "Guardando los campos de la estructura…"
+  );
+
+  try {
+    await actualizarCamposEstructura({
+      campos: resultado.value.campos,
+    });
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "¡Campos creados!",
+      text: "Los campos fueron creados correctamente.",
+      icon: "success",
+      width: "320px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  } catch (error) {
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      text: "No fue posible crear los campos.",
+      icon: "error",
+      width: "340px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
+};
+
+const editarCamposEstructura = async () => {
+  const resultado = await abrirFormularioCampos(camposFormulario.value);
+
+  if (!resultado.isConfirmed) return;
+
+  mostrarCargandoTablero(
+    "Editando campos",
+    "Actualizando los campos de la estructura…"
+  );
+
+  try {
+    await actualizarCamposEstructura({
+      campos: resultado.value.campos,
+      eliminarDataCampos: resultado.value.eliminar_data_campos,
+    });
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "¡Campos actualizados!",
+      text: "Los campos fueron actualizados correctamente.",
+      icon: "success",
+      width: "320px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  } catch (error) {
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      text: "No fue posible editar los campos.",
+      icon: "error",
+      width: "340px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
 };
 
 const actualizarMetadataEstructura = async (data = {}) => {
@@ -1034,174 +1212,10 @@ const actualizarMetadataEstructura = async (data = {}) => {
   await traerDatos(estructuraSeleccionada.value);
 };
 
-const crearCamposEstructura = async () => {
-  const resultado = await abrirFormularioCampos([]);
 
-  if (!resultado.isConfirmed) return;
 
-  mostrarCargandoTablero(
-    "Creando campos",
-    "Guardando los campos de la estructura…"
-  );
 
-  try {
-    await actualizarMetadataEstructura({
-      mapeo: resultado.value,
-    });
 
-    cerrarCargandoTablero();
-
-    await Swal.fire({
-      title: "¡Campos creados!",
-      text: "Los campos fueron creados correctamente.",
-      icon: "success",
-      width: "320px",
-      customClass: {
-        popup: "popup-personalizado",
-        title: "titulo-alerta-personalizado",
-        confirmButton: "confirmacion-alerta-personalizado",
-      },
-      buttonsStyling: false,
-    });
-  } catch (error) {
-    console.error("Error al crear campos:", error?.response?.data || error);
-
-    cerrarCargandoTablero();
-
-    await Swal.fire({
-      title: "Error",
-      text: "No fue posible crear los campos de la estructura.",
-      icon: "error",
-      width: "340px",
-      customClass: {
-        popup: "popup-personalizado",
-        title: "titulo-alerta-personalizado",
-        confirmButton: "confirmacion-alerta-personalizado",
-      },
-      buttonsStyling: false,
-    });
-  }
-};
-
-const editarCamposEstructura = async () => {
-  const resultado = await abrirFormularioCampos(camposFormulario.value);
-
-  if (!resultado.isConfirmed) return;
-
-  mostrarCargandoTablero(
-    "Editando campos",
-    "Actualizando los campos de la estructura…"
-  );
-
-  try {
-    await actualizarMetadataEstructura({
-      mapeo: resultado.value,
-    });
-
-    cerrarCargandoTablero();
-
-    await Swal.fire({
-      title: "¡Campos actualizados!",
-      text: "Los campos fueron actualizados correctamente.",
-      icon: "success",
-      width: "320px",
-      customClass: {
-        popup: "popup-personalizado",
-        title: "titulo-alerta-personalizado",
-        confirmButton: "confirmacion-alerta-personalizado",
-      },
-      buttonsStyling: false,
-    });
-  } catch (error) {
-    console.error("Error al editar campos:", error?.response?.data || error);
-
-    cerrarCargandoTablero();
-
-    await Swal.fire({
-      title: "Error",
-      text: "No fue posible editar los campos de la estructura.",
-      icon: "error",
-      width: "340px",
-      customClass: {
-        popup: "popup-personalizado",
-        title: "titulo-alerta-personalizado",
-        confirmButton: "confirmacion-alerta-personalizado",
-      },
-      buttonsStyling: false,
-    });
-  }
-};
-
-const eliminarEstructuraTabla = async () => {
-  const resultado = await Swal.fire({
-    title: "Eliminar estructura",
-    html: `
-      ¿Desea eliminar la estructura <b>${nombreEstructura.value}</b>?
-      <br><br>
-      <small>Esta acción debe quitar la estructura del aspecto y dejar de usar el índice asociado.</small>
-    `,
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "Eliminar",
-    cancelButtonText: "Cancelar",
-    width: "390px",
-    customClass: {
-      popup: "popup-personalizado",
-      title: "titulo-alerta-personalizado",
-      confirmButton: "confirmacion-alerta-personalizado",
-      cancelButton: "cancelacion-alerta-personalizado",
-    },
-    buttonsStyling: false,
-  });
-
-  if (!resultado.isConfirmed) return;
-
-  mostrarCargandoTablero(
-    "Eliminando estructura",
-    "Quitando la estructura del aspecto…"
-  );
-
-  try {
-    await estructurasEvidenciasService.eliminar(idEstructura.value);
-
-    cerrarCargandoTablero();
-
-    await Swal.fire({
-      title: "¡Eliminada!",
-      text: "La estructura fue eliminada correctamente.",
-      icon: "success",
-      width: "320px",
-      customClass: {
-        popup: "popup-personalizado",
-        title: "titulo-alerta-personalizado",
-        confirmButton: "confirmacion-alerta-personalizado",
-      },
-      buttonsStyling: false,
-    });
-
-    window.close();
-  } catch (error) {
-    console.error(
-      "Error al eliminar estructura:",
-      error?.response?.data || error
-    );
-
-    cerrarCargandoTablero();
-
-    await Swal.fire({
-      title: "Error",
-      text: "No fue posible eliminar la estructura.",
-      icon: "error",
-      width: "340px",
-      customClass: {
-        popup: "popup-personalizado",
-        title: "titulo-alerta-personalizado",
-        confirmButton: "confirmacion-alerta-personalizado",
-      },
-      buttonsStyling: false,
-    });
-  }
-};
 
 onMounted(async () => {
   mostrarCargandoTablero(
@@ -1539,10 +1553,32 @@ onMounted(async () => {
 
 .campo-row {
   display: grid !important;
-  grid-template-columns: minmax(220px, 1fr) minmax(270px, 310px) 40px !important;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 260px) 96px 86px !important;
   align-items: center !important;
   gap: 10px !important;
   width: 100% !important;
+}
+
+.campo-disable,
+.campo-delete {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 40px !important;
+  border: none !important;
+  border-radius: 9px !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+}
+
+.campo-disable {
+  background: #fff8e1 !important;
+  color: #8a6d1d !important;
+}
+
+.campo-disable:hover {
+  background: #ffecb3 !important;
 }
 
 .campo-field {

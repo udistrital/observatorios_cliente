@@ -48,13 +48,14 @@ export const estructurasEvidenciasService = {
   async obtener(id) {
     const response = await api.get(`/estructuras-evidencias/${id}/`);
 
-    return response.data;
+    return EstructuraEvidenciaModel.fromApi(response.data);
   },
 
   async crear(data) {
-    const estructura = data instanceof EstructuraEvidenciaModel
-      ? data
-      : new EstructuraEvidenciaModel(data);
+    const estructura =
+      data instanceof EstructuraEvidenciaModel
+        ? data
+        : new EstructuraEvidenciaModel(data);
 
     const response = await api.post(
       "/estructuras-evidencias/",
@@ -70,18 +71,26 @@ export const estructurasEvidenciasService = {
   },
 
   async actualizar(id, data) {
+    const estructura =
+      data instanceof EstructuraEvidenciaModel
+        ? data
+        : new EstructuraEvidenciaModel(data);
+
     const response = await api.patch(
       `/estructuras-evidencias/${id}/`,
-      data
+      estructura.toUpdatePayload()
     );
 
-    return response.data;
+    return {
+      estructura: EstructuraEvidenciaModel.fromApi(response.data.estructura),
+      estructuras_evidencias: EstructuraEvidenciaModel.fromApiList(
+        response.data.estructuras_evidencias || []
+      ),
+    };
   },
 
   async eliminar(id) {
-    const response = await api.delete(
-      `/estructuras-evidencias/${id}/`
-    );
+    const response = await api.delete(`/estructuras-evidencias/${id}/`);
 
     return response.data;
   },
