@@ -24,14 +24,14 @@
     <article class="table-card">
       <div class="table-card__header">
         <div class="table-card__title">
-          <span class="table-card__label">Estructura tabla</span>
+          <span class="table-card__label">{{ etiquetaEstructura }}</span>
 
           <div class="table-card__title-row">
             <h2>{{ nombreEstructura }}</h2>
 
             <v-chip
               size="small"
-              color="success"
+              :color="colorTipoEvidencia"
               variant="tonal"
             >
               {{ tipoEvidencia }}
@@ -61,6 +61,19 @@
             @click="editarCamposEstructura"
           >
             Editar campos
+          </v-btn>
+
+          <v-btn
+            v-if="esDocumental"
+            color="primary"
+            variant="tonal"
+            size="small"
+            class="btn-table-action"
+            prepend-icon="mdi-file-upload"
+            :disabled="camposFormulario.length === 0 || !estructuraActiva"
+            @click="agregarRegistroDocumental"
+          >
+            Cargar documento
           </v-btn>
 
           <v-btn
@@ -150,10 +163,12 @@
               icon
               size="x-small"
               color="primary"
-              title="Ver registro"
-              @click="verRegistro(item)"
+              :title="esDocumental ? 'Ver documento' : 'Ver registro'"
+              @click="esDocumental ? verArchivoDocumental(item) : verRegistro(item)"
             >
-              <v-icon size="16">mdi-eye</v-icon>
+              <v-icon size="16">
+                {{ esDocumental ? "mdi-file-eye" : "mdi-eye" }}
+              </v-icon>
             </v-btn>
 
             <v-btn
@@ -161,10 +176,12 @@
               icon
               size="x-small"
               color="primary"
-              title="Editar registro"
-              @click="editarRegistro(item)"
+              :title="esDocumental ? 'Editar documento' : 'Editar registro'"
+              @click="esDocumental ? editarRegistroDocumental(item) : editarRegistro(item)"
             >
-              <v-icon size="16">mdi-pencil</v-icon>
+              <v-icon size="16">
+                {{ esDocumental ? "mdi-file-document-edit" : "mdi-pencil" }}
+              </v-icon>
             </v-btn>
 
             <v-btn
@@ -275,6 +292,8 @@ import { caracteristicasService } from "@/service/caracteristicas.service";
 import { factoresService } from "@/service/factores.service";
 import { camposService } from "@/service/campos.service";
 
+import gestorDocumentalApi from "@/service/gestorDocumentalService";
+
 const route = useRoute();
 const estructuraStore = useEstructuraStore();
 
@@ -338,6 +357,22 @@ const tipoEvidencia = computed(() => {
 
 const estructuraActiva = computed(() => {
   return estructuraSeleccionada.value?.activo !== false;
+});
+
+const esTabla = computed(() => {
+  return tipoEvidencia.value === "Tabla";
+});
+
+const esDocumental = computed(() => {
+  return tipoEvidencia.value === "Documental";
+});
+
+const etiquetaEstructura = computed(() => {
+  return esDocumental.value ? "Estructura documental" : "Estructura tabla";
+});
+
+const colorTipoEvidencia = computed(() => {
+  return esDocumental.value ? "primary" : "success";
 });
 
 const mostrarCargandoTablero = (
@@ -448,6 +483,110 @@ const normalizarCampos = (campos = []) => {
       nombre_campo: campo.nombre_campo.trim(),
       tipo_campo: campo.tipo_campo || "text",
     }));
+};
+
+const base64ToBlob = (base64, type = "application/pdf") => {
+  const bytes = atob(base64);
+  const array = new Uint8Array(bytes.length);
+
+  for (let i = 0; i < bytes.length; i++) {
+    array[i] = bytes.charCodeAt(i);
+  }
+
+  return new Blob([array], { type });
+};
+
+const verArchivoDocumental = async (item) => {
+  const hash =
+    item?.raw?.hash ||
+    item?.raw?.Hash ||
+    item?.raw?.enlace ||
+    item?.raw?.Enlace;
+
+  if (!hash) {
+    await Swal.fire({
+      title: "Sin archivo",
+      text: "Este registro no tiene hash de documento asociado.",
+      icon: "info",
+      width: "340px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    return;
+  }
+
+  mostrarCargandoTablero(
+    "Abriendo documento",
+    "Consultando archivo en Gestor Documental…"
+  );
+
+  try {
+    const response = await gestorDocumentalApi.get(`document/${hash}`);
+    const base64 = response?.file;
+
+    if (!base64) {
+      throw new Error("No se encontró el base64 del archivo.");
+    }
+
+    const blob = base64ToBlob(base64, "application/pdf");
+    const url = URL.createObjectURL(blob);
+
+    cerrarCargandoTablero();
+
+    window.open(url, "_blank");
+
+    setTimeout(() => URL.revokeObjectURL(url), 10000);
+  } catch (error) {
+    console.error("Error al abrir documento:", error);
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      text: "No se pudo abrir el documento.",
+      icon: "error",
+      width: "340px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
+};
+
+const esCampoHash = (campo) => {
+  return campo?.nombre_campo === "hash";
+};
+
+const tieneCampoHash = (campos = []) => {
+  return campos.some((campo) => esCampoHash(campo));
+};
+
+const asegurarCampoHashDocumental = (campos = []) => {
+  const camposNormalizados = normalizarCampos(campos);
+
+  if (!esDocumental.value) {
+    return camposNormalizados;
+  }
+
+  const camposSinHash = camposNormalizados.filter((campo) => {
+    return campo.nombre_campo !== "hash";
+  });
+
+  return [
+    ...camposSinHash,
+    {
+      nombre_campo: "hash",
+      tipo_campo: "text",
+    },
+  ];
 };
 
 const traerDatos = async (estructura = null) => {
@@ -783,6 +922,7 @@ const agregarFiltro = () => {
 
 const TIPOS_DATO = [
   { label: "Texto", value: "text" },
+  { label: "Archivo PDF", value: "file" },
   { label: "Palabra clave", value: "keyword" },
   { label: "Largo", value: "long" },
   { label: "Entero", value: "integer" },
@@ -1046,9 +1186,11 @@ const actualizarCamposEstructura = async ({
     throw new Error("No hay una estructura seleccionada.");
   }
 
+  const camposPreparados = asegurarCampoHashDocumental(campos);
+
   const estructuraActualizada = await camposService.actualizarCampos(
     idEstructura.value,
-    campos,
+    camposPreparados,
     eliminarDataCampos
   );
 
@@ -1064,6 +1206,32 @@ const actualizarCamposEstructura = async ({
   estructuraStore.setEstructura(estructuraSeleccionada.value);
 
   await traerDatos(estructuraSeleccionada.value);
+};
+
+const sincronizarCampoHashDocumental = async (estructura) => {
+  if (estructura?.tipo_evidencia !== "Documental") {
+    return estructura;
+  }
+
+  const camposActuales = normalizarCampos(estructura.campos || []);
+
+  if (tieneCampoHash(camposActuales)) {
+    return estructura;
+  }
+
+  const camposConHash = asegurarCampoHashDocumental(camposActuales);
+
+  const estructuraActualizada = await camposService.actualizarCampos(
+    estructura.id,
+    camposConHash,
+    []
+  );
+
+  return {
+    ...estructura,
+    ...estructuraActualizada,
+    campos: normalizarCampos(estructuraActualizada.campos || camposConHash),
+  };
 };
 
 const crearCamposEstructura = async () => {
@@ -1213,9 +1381,506 @@ const actualizarMetadataEstructura = async (data = {}) => {
 };
 
 
+const convertirArchivoBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
 
+    reader.onload = () => {
+      const resultado = String(reader.result || "");
+      resolve(resultado.split(",")[1]);
+    };
 
+    reader.onerror = () => {
+      reject(new Error("No fue posible leer el archivo."));
+    };
 
+    reader.readAsDataURL(file);
+  });
+};
+
+const extraerHashGestorDocumental = (response) => {
+  return (
+    response?.res?.Enlace ||
+    response?.res?.enlace ||
+    response?.Enlace ||
+    response?.enlace ||
+    response?.hash ||
+    response?.id ||
+    response?.Id ||
+    response?.data?.hash ||
+    response?.data?.id
+  );
+};
+
+const construirMetadatosGestor = (metadatos = {}) => {
+  const { hash, Hash, enlace, Enlace, ...metadatosSinHash } = metadatos;
+
+  return {
+    ...metadatosSinHash,
+    estructura_id: idEstructura.value,
+    estructura_nombre: nombreEstructura.value,
+    tipo_evidencia: tipoEvidencia.value,
+    factor: nombreFactor.value,
+    caracteristica: nombreCaracteristica.value,
+    aspecto: nombreAspecto.value,
+  };
+};
+
+const subirArchivoGestorDocumental = async ({
+  file,
+  fileBase64,
+  metadatos = {},
+}) => {
+  const payload = [
+    {
+      IdTipoDocumento: 192,
+      nombre: file.name,
+      metadatos: construirMetadatosGestor(metadatos),
+      descripcion: "Archivo cargado desde Atlas",
+      file: fileBase64,
+    },
+  ];
+
+  const response = await gestorDocumentalApi.post(
+    "document/uploadAnyFormat",
+    payload
+  );
+
+  const status = response?.Status || response?.status;
+
+  if (status && String(status) !== "200") {
+    throw new Error(
+      response?.message ||
+        response?.error ||
+        "El Gestor Documental no pudo guardar el archivo."
+    );
+  }
+
+  const hash = extraerHashGestorDocumental(response);
+
+  if (!hash) {
+    throw new Error(
+      "El Gestor Documental guardó la solicitud, pero no retornó el Enlace/hash del documento."
+    );
+  }
+
+  return hash;
+};
+
+const eliminarArchivoGestorDocumental = async (hash) => {
+  if (!hash) return;
+
+  await gestorDocumentalApi.delete(`document/${hash}`);
+};
+
+const construirInputDocumento = (campo, registro = {}) => {
+  const nombre = campo.nombre_campo;
+  const tipo = campo.tipo_campo;
+  const valor = escaparHtml(registro?.[nombre] ?? "");
+
+  if (nombre === "hash") {
+    return `
+      <label class="documento-label">${nombre}</label>
+      <input
+        id="documento_${nombre}"
+        class="documento-input"
+        value="${valor || "Se llenará automáticamente al cargar el documento"}"
+        disabled
+      />
+    `;
+  }
+
+  if (tipo === "boolean") {
+    const seleccionadoTrue = String(valor) === "true" ? "selected" : "";
+    const seleccionadoFalse = String(valor) === "false" ? "selected" : "";
+
+    return `
+      <label class="documento-label">${nombre}</label>
+      <select id="documento_${nombre}" class="documento-input">
+        <option value="">Seleccione</option>
+        <option value="true" ${seleccionadoTrue}>Sí</option>
+        <option value="false" ${seleccionadoFalse}>No</option>
+      </select>
+    `;
+  }
+
+  if (tipo === "date" || tipo === "date_nanos") {
+    return `
+      <label class="documento-label">${nombre}</label>
+      <input
+        id="documento_${nombre}"
+        type="date"
+        class="documento-input"
+        value="${valor}"
+      />
+    `;
+  }
+
+  if (
+    ["integer", "long", "short", "byte", "double", "float", "half_float", "scaled_float"].includes(tipo)
+  ) {
+    return `
+      <label class="documento-label">${nombre}</label>
+      <input
+        id="documento_${nombre}"
+        type="number"
+        class="documento-input"
+        placeholder="${nombre}"
+        value="${valor}"
+      />
+    `;
+  }
+
+  return `
+    <label class="documento-label">${nombre}</label>
+    <input
+      id="documento_${nombre}"
+      class="documento-input"
+      placeholder="${nombre}"
+      value="${valor}"
+    />
+  `;
+};
+
+const obtenerIdRegistro = (item) => {
+  return (
+    item?.raw?.id ||
+    item?.raw?._id ||
+    item?.id ||
+    item?._id
+  );
+};
+
+const obtenerHashRegistro = (registro = {}) => {
+  return (
+    registro?.hash ||
+    registro?.Hash ||
+    registro?.enlace ||
+    registro?.Enlace ||
+    ""
+  );
+};
+
+const editarRegistroDocumental = async (item) => {
+  const registroActual = item?.raw || item;
+  const idRegistro = obtenerIdRegistro(item);
+  const hashAnterior = obtenerHashRegistro(registroActual);
+
+  if (!idRegistro) {
+    await Swal.fire({
+      title: "Registro sin ID",
+      text: "No fue posible identificar el registro que se desea editar.",
+      icon: "error",
+      width: "340px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    return;
+  }
+
+  const resultado = await abrirFormularioDocumento(registroActual, {
+    modo: "editar",
+    archivoRequerido: false,
+  });
+
+  if (!resultado.isConfirmed) return;
+
+  mostrarCargandoTablero(
+    "Editando documento",
+    "Actualizando la información del documento…"
+  );
+
+  let hashNuevo = hashAnterior;
+  let archivoCambiado = false;
+
+  try {
+    if (resultado.value.archivoNuevo) {
+      const fileBase64 = await convertirArchivoBase64(resultado.value.file);
+
+      hashNuevo = await subirArchivoGestorDocumental({
+        file: resultado.value.file,
+        fileBase64,
+        metadatos: resultado.value.datosFormulario,
+      });
+
+      archivoCambiado = true;
+    }
+
+    const datosActualizados = {
+      ...resultado.value.datosFormulario,
+      hash: hashNuevo,
+    };
+
+    await camposService.actualizarRegistro(
+      idEstructura.value,
+      idRegistro,
+      datosActualizados
+    );
+
+    let errorEliminandoAnterior = null;
+
+    if (archivoCambiado && hashAnterior && hashAnterior !== hashNuevo) {
+      try {
+        await eliminarArchivoGestorDocumental(hashAnterior);
+      } catch (error) {
+        errorEliminandoAnterior = error;
+        console.warn(
+          "El registro fue actualizado, pero no fue posible eliminar el documento anterior:",
+          error
+        );
+      }
+    }
+
+    cerrarCargandoTablero();
+
+    if (errorEliminandoAnterior) {
+      await Swal.fire({
+        title: "Actualizado con advertencia",
+        text: "El registro fue actualizado, pero no fue posible eliminar el documento anterior del Gestor Documental.",
+        icon: "warning",
+        width: "420px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    } else {
+      await Swal.fire({
+        title: "¡Documento actualizado!",
+        text: archivoCambiado
+          ? "El documento fue reemplazado y la información fue actualizada correctamente."
+          : "La información del documento fue actualizada correctamente.",
+        icon: "success",
+        width: "390px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    }
+
+    await traerDatos(estructuraSeleccionada.value);
+  } catch (error) {
+    console.error("Error al editar documento:", error);
+
+    if (archivoCambiado && hashNuevo && hashNuevo !== hashAnterior) {
+      try {
+        await eliminarArchivoGestorDocumental(hashNuevo);
+      } catch (rollbackError) {
+        console.warn(
+          "No fue posible eliminar el documento nuevo después del error:",
+          rollbackError
+        );
+      }
+    }
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      text:
+        error?.response?.data?.message ||
+        error?.message ||
+        "No fue posible actualizar el documento.",
+      icon: "error",
+      width: "390px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
+};
+
+const abrirFormularioDocumento = async (
+  registro = {},
+  opciones = {
+    modo: "crear",
+    archivoRequerido: true,
+  }
+) => {
+  const campos = normalizarCampos(camposFormulario.value);
+  const esEdicion = opciones.modo === "editar";
+
+  const camposHtml = campos
+    .map((campo) => construirInputDocumento(campo, registro))
+    .join("");
+
+  return Swal.fire({
+    title: esEdicion ? "Editar documento" : "Cargar documento",
+    html: `
+      <div class="documento-popup">
+        <p class="documento-help">
+          ${
+            esEdicion
+              ? "Actualice los campos del documento. Seleccione un nuevo PDF solo si desea reemplazar el archivo actual."
+              : "Seleccione el archivo PDF y complete los campos de la estructura."
+          }
+          <br>
+          El campo <b>hash</b> se actualiza automáticamente con el identificador retornado por el Gestor Documental.
+        </p>
+
+        <label class="documento-label">
+          ${esEdicion ? "Nuevo archivo PDF opcional" : "Archivo PDF"}
+        </label>
+        <input
+          id="documentoArchivo"
+          type="file"
+          accept=".pdf,application/pdf"
+          class="documento-file"
+        />
+
+        <div class="documento-fields">
+          ${camposHtml}
+        </div>
+      </div>
+    `,
+    showCancelButton: true,
+    confirmButtonText: "Guardar",
+    cancelButtonText: "Cancelar",
+    width: "620px",
+    customClass: {
+      popup: "popup-personalizado popup-documento",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+    preConfirm: () => {
+      const file = document.getElementById("documentoArchivo")?.files?.[0];
+
+      if (opciones.archivoRequerido && !file) {
+        Swal.showValidationMessage("Debe seleccionar un archivo PDF.");
+        return false;
+      }
+
+      if (file) {
+        const esPdf =
+          file.type === "application/pdf" ||
+          file.name.toLowerCase().endsWith(".pdf");
+
+        if (!esPdf) {
+          Swal.showValidationMessage("Solo se permiten archivos PDF.");
+          return false;
+        }
+      }
+
+      const datosFormulario = {};
+
+      campos.forEach((campo) => {
+        const nombre = campo.nombre_campo;
+        const input = document.getElementById(`documento_${nombre}`);
+
+        if (nombre === "hash") {
+          datosFormulario[nombre] = registro?.hash || registro?.Hash || "";
+          return;
+        }
+
+        datosFormulario[nombre] = input?.value ?? "";
+      });
+
+      return {
+        file,
+        datosFormulario,
+        archivoNuevo: Boolean(file),
+      };
+    },
+  });
+};
+
+const agregarRegistroDocumental = async () => {
+  if (!esDocumental.value) return;
+
+  if (!tieneCampoHash(camposFormulario.value)) {
+    await Swal.fire({
+      title: "Campo hash requerido",
+      text: "La estructura documental debe tener el campo hash antes de cargar documentos.",
+      icon: "info",
+      width: "390px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    return;
+  }
+
+  const resultado = await abrirFormularioDocumento();
+
+  if (!resultado.isConfirmed) return;
+
+  mostrarCargandoTablero(
+    "Cargando documento",
+    "Enviando archivo al Gestor Documental…"
+  );
+
+  try {
+    const fileBase64 = await convertirArchivoBase64(resultado.value.file);
+
+    const hash = await subirArchivoGestorDocumental({
+      file: resultado.value.file,
+      fileBase64,
+      metadatos: resultado.value.datosFormulario,
+    });
+
+    const datosRegistro = {
+      ...resultado.value.datosFormulario,
+      hash,
+    };
+
+    await camposService.crearRegistro(idEstructura.value, datosRegistro);
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "¡Documento cargado!",
+      text: "El archivo fue enviado al Gestor Documental y el registro fue guardado correctamente.",
+      icon: "success",
+      width: "380px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    await traerDatos(estructuraSeleccionada.value);
+  } catch (error) {
+    console.error("Error al cargar documento:", error);
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      text:
+        error?.message ||
+        "No fue posible cargar el documento.",
+      icon: "error",
+      width: "390px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
+};
 
 onMounted(async () => {
   mostrarCargandoTablero(
@@ -1250,6 +1915,8 @@ onMounted(async () => {
 
       return;
     }
+
+    estructuraInicial = await sincronizarCampoHashDocumental(estructuraInicial);
 
     estructuraSeleccionada.value = estructuraInicial;
     estructuraStore.setEstructura(estructuraInicial);
@@ -1690,5 +2357,59 @@ onMounted(async () => {
   .campo-delete {
     justify-self: flex-end !important;
   }
+}
+</style>
+
+<style>
+.popup-documento {
+  width: 620px !important;
+  padding: 0 0 22px !important;
+}
+
+.popup-documento .swal2-html-container {
+  margin: 12px 28px 0 !important;
+  text-align: left !important;
+}
+
+.documento-popup {
+  width: 100%;
+  text-align: left;
+}
+
+.documento-help {
+  margin: 0 0 16px;
+  color: #607d8b;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.documento-label {
+  display: block;
+  margin: 10px 0 6px;
+  color: #455a64;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.documento-file,
+.documento-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #b0bec5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #37474f;
+  font-size: 13px;
+}
+
+.documento-input:disabled {
+  background: #f3f7fc;
+  color: #607d8b;
+  cursor: not-allowed;
+}
+
+.documento-fields {
+  margin-top: 14px;
 }
 </style>

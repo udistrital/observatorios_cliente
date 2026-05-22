@@ -111,6 +111,15 @@ export const camposService = {
     return response.data;
   },
 
+  async actualizarRegistro(idEstructura, idRegistro, data) {
+    const response = await api.put(
+      `/campos/datos/${idEstructura}/${idRegistro}/`,
+      data
+    );
+
+    return response.data;
+  },
+
   async eliminarRegistro(idEstructura, idRegistro) {
     const response = await api.delete(
       `/campos/datos/${idEstructura}/${idRegistro}/`
