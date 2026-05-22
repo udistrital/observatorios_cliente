@@ -452,8 +452,10 @@ const cambiarEstadoEstructuraEvidencia = async (aspecto, estructura) => {
 
 const irAEstructuraEvidencia = async (...args) => {
   const estructura = args.length === 2 ? args[1] : args[0];
+  console.log("Estructura para ir:", estructura);
 
   const estructuraId = estructura?.id;
+  console.log("ID de la estructura:", estructuraId);
 
   if (!estructuraId) {
     await Swal.fire({
@@ -474,12 +476,12 @@ const irAEstructuraEvidencia = async (...args) => {
 
   const tipo = estructura.tipo_evidencia || estructura.tipo || "";
 
-  if (tipo !== "Tabla" && tipo !== "datos") {
+  if (!["Tabla", "Documental"].includes(tipo)) {
     await Swal.fire({
       title: "Tipo de evidencia no soportado",
-      text: "Solo las evidencias de tipo Tabla pueden abrir el tablero.",
+      text: "Solo se pueden abrir estructuras de tipo Tabla o Documental.",
       icon: "info",
-      width: "360px",
+      width: "380px",
       customClass: {
         popup: "popup-personalizado",
         title: "titulo-alerta-personalizado",
