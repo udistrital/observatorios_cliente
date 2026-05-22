@@ -113,11 +113,13 @@
               variant="tonal"
               icon
               size="x-small"
-              color="success"
-              title="Ir a la estructura"
+              :color="obtenerColorAccionIr(item.tipo_evidencia)"
+              :title="obtenerTituloAccionIr(item.tipo_evidencia)"
               @click.stop="$emit('ir', item)"
             >
-              <v-icon size="16">mdi-arrow-right-bold-circle</v-icon>
+              <v-icon size="16">
+                {{ obtenerIconoAccionIr(item.tipo_evidencia) }}
+              </v-icon>
             </v-btn>
           </div>
         </div>
@@ -272,6 +274,48 @@ const obtenerColorTipo = (tipo = "") => {
   }
 
   return "grey";
+};
+
+const obtenerIconoAccionIr = (tipo = "") => {
+  const tipoNormalizado = tipo.toLowerCase();
+
+  if (tipoNormalizado === "documental") {
+    return "mdi-file-document-arrow-right";
+  }
+
+  if (tipoNormalizado === "tabla") {
+    return "mdi-table-arrow-right";
+  }
+
+  return "mdi-arrow-right-bold-circle";
+};
+
+const obtenerTituloAccionIr = (tipo = "") => {
+  const tipoNormalizado = tipo.toLowerCase();
+
+  if (tipoNormalizado === "documental") {
+    return "Ir a la estructura documental";
+  }
+
+  if (tipoNormalizado === "tabla") {
+    return "Ir al tablero de datos";
+  }
+
+  return "Ir a la estructura";
+};
+
+const obtenerColorAccionIr = (tipo = "") => {
+  const tipoNormalizado = tipo.toLowerCase();
+
+  if (tipoNormalizado === "documental") {
+    return "primary";
+  }
+
+  if (tipoNormalizado === "tabla") {
+    return "success";
+  }
+
+  return "primary";
 };
 </script>
 
