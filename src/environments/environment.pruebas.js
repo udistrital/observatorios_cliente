@@ -7,7 +7,6 @@ export const environment = {
   appname: 'observatorios',
   appMenu: 'Observatorios',
   ASSETS_SERVICE: "https://assets.portaloas.udistrital.edu.co/",
-  NOTIFICACIONES_CRUD: "https://autenticacion.portaloas.udistrital.edu.co/apioas/notificaciones_crud/",
   TOKEN: {
     AUTORIZATION_URL: 'https://autenticacion.portaloas.udistrital.edu.co/oauth2/authorize',
     CLIENTE_ID: 'G80k5fLBp9FJ3fDh9zN2IKrXwgYa',
