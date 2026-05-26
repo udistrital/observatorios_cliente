@@ -1,6 +1,6 @@
 import axios from "axios";
 import { FactorModel } from "../model/factor.model";
-import { environment } from "../eviroments";
+import { environment } from "@/environments/environment";
 
 function getToken() {
   return localStorage.getItem("access_token");

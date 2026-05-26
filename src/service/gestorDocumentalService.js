@@ -1,4 +1,4 @@
-import { environment } from "../eviroments";
+import { environment } from "@/environments/environment";
 import axios from "axios";
 
 const authHeader = () => {

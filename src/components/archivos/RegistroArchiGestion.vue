@@ -70,7 +70,7 @@
 <script setup>
 import { ref, defineProps, defineEmits, computed, watch } from "vue";
 import Swal from "sweetalert2";
-import { environment } from "../../eviroments";
+import { environment } from "@/environments/environment";
 
 
 const props = defineProps({
@@ -88,7 +88,7 @@ const fileBase64 = ref(null);
 const fileName = ref(null);
 
 const gestorUrl = environment.GESTOR_DOCUMENTAL;
-const observatorios_mid_url = environment.OBSERVATORIOS_MID;
+const observatorios_mid_url = '';
 
 const armarFormulario = () => {
   const limpio = {};

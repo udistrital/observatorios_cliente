@@ -13,7 +13,7 @@
 import HeaderApp from "./components/HeaderApp.vue";
 import { ref, watchEffect } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { environment } from "./eviroments";
+import { environment } from "@/environments/environment";
 import { useUserService } from "@/service/userService";
 import { useUserStore } from "@/stores/userStore";
 

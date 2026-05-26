@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   observatorio-frontend:
     build:
@@ -7,4 +5,4 @@ services:
       dockerfile: Dockerfile
     container_name: observatorio-frontend
     ports:
-      - "4200:4200"  # Puerto externo 4200 -> interno 80 (nginx)
+      - "4200:80"
