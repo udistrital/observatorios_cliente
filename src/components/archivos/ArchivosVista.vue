@@ -103,7 +103,7 @@ import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import AgregarArchivo from "./AgregarArchivo.vue";
 import RegistroArchiGestion from "./RegistroArchiGestion.vue";
-import { environment } from "../../eviroments";
+import { environment } from "@/environments/environment";
 
 const observatorioStore = useObservatorioStore();
 const headerst = ref([

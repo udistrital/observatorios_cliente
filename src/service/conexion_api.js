@@ -1,6 +1,6 @@
 import axios from "axios";
 import Swal from "sweetalert2";
-import { environment } from "../eviroments";
+import { environment } from "@/environments/environment";
 import { useUserStore } from "@/stores/userStore";
 
 const api = axios.create({

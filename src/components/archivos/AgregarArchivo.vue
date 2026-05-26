@@ -37,10 +37,10 @@
 import { ref, defineProps, defineEmits, onMounted, computed } from "vue";
 import peticionAPI from "@/service/conexion_api";
 import Swal from "sweetalert2";
-import { environment } from "../../eviroments";
+import { environment } from "@/environments/environment";
 
 let baseURL = environment.MAIN_BACKEND;
-let observatoriosMidURL = environment.OBSERVATORIOS_MID;
+let observatoriosMidURL = '';
 
 const archivoSeleccionado = ref(null);
 const fileName = ref("");
