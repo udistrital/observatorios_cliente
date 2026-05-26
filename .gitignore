@@ -25,4 +25,4 @@ dist-ssr
 *.sw?
 .env
 
-environments/environment.js
+src/environments/environment.js
