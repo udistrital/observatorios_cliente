@@ -1,5 +1,5 @@
 import axios from "axios";
-import { environment } from "@/eviroments";
+import { environment } from "@/environments/environment";
 import { EstructuraEvidenciaModel } from "@/model/estructura-evidencia.model";
 
 function getToken() {
