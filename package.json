@@ -4,8 +4,14 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "cp -f src/environments/environment.local.js src/environments/environment.js && vite --host 127.0.0.1 --port 4200",
+    "dev:local": "cp -f src/environments/environment.local.js src/environments/environment.js && vite --host 127.0.0.1 --port 4200",
+    "dev:pruebas": "cp -f src/environments/environment.pruebas.js src/environments/environment.js && vite --host 127.0.0.1 --port 4200",
+    "dev:prod": "cp -f src/environments/environment.producion.js src/environments/environment.js && vite --host 127.0.0.1 --port 4200",
     "build": "vite build",
+    "build:local": "cp -f src/environments/environment.local.js src/environments/environment.js && vite build",
+    "build:pruebas": "cp -f src/environments/environment.pruebas.js src/environments/environment.js && vite build",
+    "build:prod": "cp -f src/environments/environment.producion.js src/environments/environment.js && vite build",
     "preview": "vite preview",
     "test": "vitest"
   },

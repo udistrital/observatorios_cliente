@@ -2,27 +2,6 @@ kind: pipeline
 name: oas_cliente_ci
 
 steps:
-  - name: install dependencies
-    image: node:18
-    commands:
-      - npm install
-      - npm list --depth=0
-    when:
-      branch:
-        - release/**
-      event:
-        - push
-
-  - name: build project
-    image: node:18
-    commands:
-      - npm run build
-    when:
-      branch:
-        - release/**
-      event:
-        - push
-
   - name: run_sonar_scanner
     image: sonarsource/sonar-scanner-cli:latest
     environment:
@@ -35,11 +14,37 @@ steps:
       - sonar-scanner
     when:
       branch:
-      - develop
-      - feature/*
-      - release/*
+        - feature/*
+        - develop
+        - release/*
+        - hotfix/*
+        - master
       event:
-      - push
+        - push
+
+  - name: build_release
+    image: node:18
+    commands:
+      - npm install
+      - npm list --depth=0
+      - npm run build:pruebas
+    when:
+      branch:
+        - release/*
+      event:
+        - push
+
+  - name: build_master
+    image: node:18
+    commands:
+      - npm install
+      - npm list --depth=0
+      - npm run build:prod
+    when:
+      branch:
+        - master
+      event:
+        - push
 
   - name: publish_s3_release
     image: plugins/s3

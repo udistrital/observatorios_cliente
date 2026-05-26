@@ -1,5 +1,5 @@
 import axios from "axios";
-import { environment } from "@/eviroments";
+import { environment } from "@/environments/environment";
 
 function getToken() {
   return localStorage.getItem("access_token");
