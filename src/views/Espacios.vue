@@ -71,10 +71,13 @@
       class="mt-4"
     >
       No se encontraron factores activos.
+      <span v-if="esAdministrador">
+        Puede ingresar a Administración para crear o gestionar los factores.
+      </span>
     </v-alert>
 
     <div
-      v-if="!cargando && factoresActivos.length > 0"
+      v-if="!cargando && mostrarGridEspacios"
       class="espacios-grid"
     >
       <article
@@ -199,6 +202,10 @@ const esAdministrador = computed(() => {
 
 const factoresActivos = computed(() => {
   return factores.value.filter((factor) => factor.activo);
+});
+
+const mostrarGridEspacios = computed(() => {
+  return esAdministrador.value || factoresActivos.value.length > 0;
 });
 
 const verAdministracion = () => {
