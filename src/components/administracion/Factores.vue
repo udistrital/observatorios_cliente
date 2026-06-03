@@ -5,9 +5,24 @@
 
       <v-spacer />
 
-      <v-btn color="primary" prepend-icon="mdi-plus" @click="abrirCrearFactor">
-        Crear Factor
-      </v-btn>
+      <div class="acciones-cabecera">
+        <v-btn
+          color="primary"
+          variant="tonal"
+          prepend-icon="mdi-clipboard-text-outline"
+          @click="abrirCrearProceso"
+        >
+          Crear Proceso
+        </v-btn>
+
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-plus"
+          @click="abrirCrearFactor"
+        >
+          Crear Factor
+        </v-btn>
+      </div>
     </div>
 
     <v-card>
@@ -42,6 +57,10 @@
 
         <template v-slot:[`item.factor_id`]="{ item }">
           {{ obtenerRaw(item).factor_id || obtenerRaw(item).id }}
+        </template>
+
+        <template v-slot:[`item.proceso_id`]="{ item }">
+          {{ obtenerNombreProceso(obtenerRaw(item).proceso_id) }}
         </template>
 
         <template v-slot:[`item.activo`]="{ item }">
@@ -112,6 +131,11 @@
       </v-data-table>
     </v-card>
 
+    <ProcesoFormDialog
+      ref="procesoFormDialogRef"
+      @proceso-creado="alCrearProceso"
+    />
+
     <!-- Modal crear / editar / ver -->
     <v-dialog
       v-model="modalFactor"
@@ -133,6 +157,20 @@
 
         <v-card-text>
           <v-form ref="formRef" @submit.prevent="guardarFactor">
+            <v-select
+              v-model="formulario.proceso_id"
+              :items="procesosSelectItems"
+              item-title="etiqueta"
+              item-value="id"
+              label="Proceso"
+              variant="outlined"
+              density="comfortable"
+              no-data-text="No hay procesos activos"
+              :readonly="modo === 'ver'"
+              :disabled="modo === 'ver'"
+              :rules="[reglas.requerido]"
+            />
+
             <v-text-field
               v-model="formulario.nombre"
               label="Nombre"
@@ -166,6 +204,24 @@
               color="primary"
               :disabled="modo === 'ver'"
             />
+
+            <v-text-field
+              v-if="modo !== 'crear'"
+              v-model="formulario.fecha_creacion"
+              label="Fecha creación"
+              variant="outlined"
+              density="comfortable"
+              readonly
+            />
+
+            <v-text-field
+              v-if="modo !== 'crear'"
+              v-model="formulario.fecha_modificacion"
+              label="Fecha modificación"
+              variant="outlined"
+              density="comfortable"
+              readonly
+            />
           </v-form>
         </v-card-text>
 
@@ -198,6 +254,9 @@ import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 import { useFactorStore } from "@/stores/factorStore";
 
+import ProcesoFormDialog from "@/components/procesos/ProcesoFormDialog.vue";
+import { procesosService } from "@/service/procesos.service";
+
 import { factoresService } from "../../service/factores.service";
 import { FactorModel } from "../../model/factor.model";
 
@@ -210,6 +269,10 @@ const factores = ref([]);
 const cargando = ref(false);
 const guardando = ref(false);
 
+const procesos = ref([]);
+const cargandoProcesos = ref(false);
+const procesoFormDialogRef = ref(null);
+
 const modalFactor = ref(false);
 const modo = ref("crear");
 const factorSeleccionado = ref(null);
@@ -218,16 +281,19 @@ const formRef = ref(null);
 const formulario = ref({
   id: null,
   factor_id: null,
+  proceso_id: "",
   nombre: "",
   descripcion: "",
   calificacion: "",
-  activo: true,
-  numero: null,
   caracteristicas: [],
+  activo: true,
+  fecha_creacion: "",
+  fecha_modificacion: "",
 });
 
 const headers = ref([
   { title: "ID del Factor", key: "factor_id", align: "center" },
+  { title: "Proceso", key: "proceso_id", align: "center" },
   { title: "Nombre", key: "nombre", align: "center" },
   { title: "Estado", key: "activo", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },
@@ -243,17 +309,74 @@ const tituloModal = computed(() => {
   return "Ver Factor";
 });
 
+const obtenerNombreProceso = (procesoId) => {
+  if (!procesoId) return "Sin proceso";
+
+  const proceso = procesos.value.find((item) => {
+    const id = item.proceso_id || item.id;
+    return id === procesoId;
+  });
+
+  return proceso?.nombre || procesoId;
+};
+
+const traerProcesos = async () => {
+  cargandoProcesos.value = true;
+  procesos.value = [];
+
+  try {
+    const data = await procesosService.listar();
+    procesos.value = Array.isArray(data) ? data : [];
+  } catch (error) {
+    console.error("Error al cargar procesos:", error?.response?.data || error);
+
+    Swal.fire({
+      title: "Error",
+      text: "No fue posible cargar los procesos.",
+      icon: "error",
+      width: "350px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  } finally {
+    cargandoProcesos.value = false;
+  }
+};
+
 const factoresFiltrados = computed(() => {
   if (!search.value) return factores.value;
 
   const textoBusqueda = search.value.toLowerCase();
 
   return factores.value.filter((factor) => {
+    const nombreProceso = obtenerNombreProceso(factor.proceso_id);
+
     return (
       factor.nombre?.toLowerCase().includes(textoBusqueda) ||
       factor.factor_id?.toLowerCase().includes(textoBusqueda) ||
-      String(factor.numero || "").includes(textoBusqueda)
+      factor.proceso_id?.toLowerCase().includes(textoBusqueda) ||
+      nombreProceso?.toLowerCase().includes(textoBusqueda)
     );
+  });
+});
+
+const procesosActivos = computed(() => {
+  return procesos.value.filter((proceso) => proceso.activo !== false);
+});
+
+const procesosSelectItems = computed(() => {
+  return procesosActivos.value.map((proceso) => {
+    const id = proceso.proceso_id || proceso.id;
+
+    return {
+      ...proceso,
+      id,
+      etiqueta: proceso.nombre || id,
+    };
   });
 });
 
@@ -295,18 +418,37 @@ const limpiarFormulario = () => {
   formulario.value = {
     id: null,
     factor_id: null,
+    proceso_id: "",
     nombre: "",
     descripcion: "",
     calificacion: "",
-    activo: true,
-    numero: null,
     caracteristicas: [],
+    activo: true,
+    fecha_creacion: "",
+    fecha_modificacion: "",
   };
 
   factorSeleccionado.value = null;
 };
 
-const abrirCrearFactor = () => {
+const abrirCrearProceso = () => {
+  procesoFormDialogRef.value?.abrir();
+};
+
+const alCrearProceso = async (procesoCreado) => {
+  await traerProcesos();
+
+  if (procesoCreado) {
+    formulario.value.proceso_id =
+      procesoCreado.proceso_id || procesoCreado.id || "";
+  }
+};
+
+const abrirCrearFactor = async () => {
+  if (procesos.value.length === 0) {
+    await traerProcesos();
+  }
+
   limpiarFormulario();
   modo.value = "crear";
   modalFactor.value = true;
@@ -326,14 +468,16 @@ const verFactor = (item) => {
   formulario.value = {
     id: factor.id || null,
     factor_id: factor.factor_id || factor.id || null,
+    proceso_id: factor.proceso_id || "",
     nombre: factor.nombre || "",
     descripcion: factor.descripcion || "",
     calificacion: factor.calificacion || "",
-    activo: factor.activo !== false,
-    numero: factor.numero || null,
     caracteristicas: Array.isArray(factor.caracteristicas)
       ? factor.caracteristicas
       : [],
+    activo: factor.activo !== false,
+    fecha_creacion: factor.fecha_creacion || "",
+    fecha_modificacion: factor.fecha_modificacion || "",
   };
 
   modalFactor.value = true;
@@ -348,12 +492,16 @@ const editarFactor = (item) => {
   formulario.value = {
     id: factor.id || null,
     factor_id: factor.factor_id || factor.id || null,
+    proceso_id: factor.proceso_id || "",
     nombre: factor.nombre || "",
     descripcion: factor.descripcion || "",
     calificacion: factor.calificacion || "",
-    imagen: null,
+    caracteristicas: Array.isArray(factor.caracteristicas)
+      ? factor.caracteristicas
+      : [],
     activo: factor.activo !== false,
-    numero: factor.numero || null,
+    fecha_creacion: factor.fecha_creacion || "",
+    fecha_modificacion: factor.fecha_modificacion || "",
   };
 
   modalFactor.value = true;
@@ -372,55 +520,57 @@ const guardarFactor = async () => {
 
   try {
     const factor = new FactorModel({
+      proceso_id: formulario.value.proceso_id,
       nombre: formulario.value.nombre,
       descripcion: formulario.value.descripcion,
       calificacion: formulario.value.calificacion || "",
-      activo: formulario.value.activo,
       caracteristicas: formulario.value.caracteristicas || [],
+      activo: formulario.value.activo,
     });
+
+    let mensajeExito = "";
 
     if (modo.value === "editar") {
       const id = formulario.value.factor_id || formulario.value.id;
 
       await factoresService.actualizar(id, factor);
 
-      await Swal.fire({
-        title: "¡Actualizado!",
-        text: "El factor se ha actualizado correctamente.",
-        icon: "success",
-        width: "300px",
-        customClass: {
-          popup: "popup-personalizado",
-          title: "titulo-alerta-personalizado",
-          confirmButton: "confirmacion-alerta-personalizado",
-        },
-        buttonsStyling: false,
-      });
+      mensajeExito = "El factor se ha actualizado correctamente.";
     } else {
       await factoresService.crear(factor);
 
-      await Swal.fire({
-        title: "¡Creado!",
-        text: "El factor se ha creado correctamente.",
-        icon: "success",
-        width: "300px",
-        customClass: {
-          popup: "popup-personalizado",
-          title: "titulo-alerta-personalizado",
-          confirmButton: "confirmacion-alerta-personalizado",
-        },
-        buttonsStyling: false,
-      });
+      mensajeExito = "El factor se ha creado correctamente.";
     }
 
+    guardando.value = false;
     cerrarModal();
-    await traerFactores();
-  } catch (error) {
-    console.error(error);
 
-    Swal.fire({
+    await Promise.all([
+      traerFactores(),
+      traerProcesos(),
+    ]);
+
+    await Swal.fire({
+      title: modo.value === "editar" ? "¡Actualizado!" : "¡Creado!",
+      text: mensajeExito,
+      icon: "success",
+      width: "300px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  } catch (error) {
+    console.error("Error al guardar factor:", error?.response?.data || error);
+
+    await Swal.fire({
       title: "Error",
-      text: "No fue posible guardar el factor.",
+      text:
+        error?.response?.data?.detalle ||
+        error?.response?.data?.error ||
+        "No fue posible guardar el factor.",
       icon: "error",
       width: "350px",
       customClass: {
@@ -562,12 +712,11 @@ const dirigirseFactor = (item) => {
   factorStore.setFactor({
     id: factor.id,
     factor_id: factor.factor_id || factor.id,
+    proceso_id: factor.proceso_id,
     nombre: factor.nombre,
     descripcion: factor.descripcion,
     calificacion: factor.calificacion,
-    imagen: factor.imagen,
     activo: factor.activo,
-    numero: factor.numero,
   });
 
   router.push({
@@ -578,12 +727,29 @@ const dirigirseFactor = (item) => {
   });
 };
 
-onMounted(() => {
-  traerFactores();
+onMounted(async () => {
+  await Promise.all([
+    traerProcesos(),
+    traerFactores(),
+  ]);
 });
 </script>
 
 <style scoped>
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.acciones-cabecera {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .factores {
   width: 90%;
   margin: 40px auto;
@@ -612,5 +778,16 @@ onMounted(() => {
   max-height: 220px;
   object-fit: contain;
   display: block;
+}
+
+@media (max-width: 700px) {
+  .cabecera {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .acciones-cabecera {
+    width: 100%;
+  }
 }
 </style>
