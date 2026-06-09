@@ -479,9 +479,13 @@ const normalizarCampos = (campos = []) => {
 
   return campos
     .filter((campo) => campo?.nombre_campo)
-    .map((campo) => ({
+    .map((campo, index) => ({
+      campo_id: campo.campo_id || null,
+      orden: Number(campo.orden || index + 1),
       nombre_campo: campo.nombre_campo.trim(),
       tipo_campo: campo.tipo_campo || "text",
+      activo: campo.activo !== false,
+      migrar_data: campo.migrar_data === true,
     }));
 };
 
@@ -576,15 +580,23 @@ const asegurarCampoHashDocumental = (campos = []) => {
     return camposNormalizados;
   }
 
+  const campoHashExistente = camposNormalizados.find((campo) => {
+    return campo.nombre_campo === "hash";
+  });
+
   const camposSinHash = camposNormalizados.filter((campo) => {
     return campo.nombre_campo !== "hash";
   });
 
   return [
     ...camposSinHash,
-    {
+    campoHashExistente || {
+      campo_id: null,
+      orden: camposSinHash.length + 1,
       nombre_campo: "hash",
       tipo_campo: "text",
+      activo: true,
+      migrar_data: false,
     },
   ];
 };
@@ -601,7 +613,9 @@ const traerDatos = async (estructura = null) => {
   estructuraSeleccionada.value = estructuraActiva;
   estructuraStore.setEstructura(estructuraActiva);
 
-  const campos = obtenerCampos(estructuraActiva);
+  const campos = obtenerCampos(estructuraActiva)
+    .filter((campo) => campo.activo !== false)
+    .sort((a, b) => Number(a.orden || 999999) - Number(b.orden || 999999));
 
   camposFormulario.value = campos;
   idEstructura.value = estructuraActiva.id;
@@ -977,31 +991,35 @@ const construirOpcionesTipoDato = (tipoSeleccionado = "text") => {
 };
 
 const construirFilaCampo = (campo = {}, index = 0, esExistente = false) => {
+  const campoId = escaparHtml(campo.campo_id || "");
+  const orden = Number(campo.orden || index + 1);
   const nombre = escaparHtml(campo.nombre_campo || "");
   const tipo = campo.tipo_campo || "text";
+  const activo = campo.activo !== false;
 
   return `
     <div
       class="campo-row"
       data-index="${index}"
+      data-campo-id="${campoId}"
+      data-orden="${orden}"
+      data-tipo-original="${tipo}"
       data-original="${nombre}"
+      data-activo="${activo ? "true" : "false"}"
       data-existente="${esExistente ? "true" : "false"}"
+      style="${activo ? "" : "opacity:0.45"}"
     >
       <div class="campo-field">
         <input
           class="campo-input campo-nombre"
           placeholder="Nombre del campo"
           value="${nombre}"
-          ${esExistente ? "disabled" : ""}
         />
       </div>
 
       <div class="campo-field campo-select-wrapper">
         <label>Tipo de dato</label>
-        <select
-          class="campo-input campo-tipo"
-          ${esExistente ? "disabled" : ""}
-        >
+        <select class="campo-input campo-tipo">
           ${construirOpcionesTipoDato(tipo)}
         </select>
       </div>
@@ -1011,7 +1029,7 @@ const construirFilaCampo = (campo = {}, index = 0, esExistente = false) => {
         class="campo-disable"
         title="Quita el campo de la vista, pero conserva la data histórica"
       >
-        Desactivar
+        ${activo ? "Desactivar" : "Activar"}
       </button>
 
       <button
@@ -1089,16 +1107,24 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
 
         botonesDesactivar.forEach((boton) => {
           boton.onclick = () => {
-            boton.closest(".campo-row").remove();
+            const fila = boton.closest(".campo-row");
+            const estaActivo = fila.dataset.activo !== "false";
+
+            fila.dataset.activo = estaActivo ? "false" : "true";
+            fila.style.opacity = estaActivo ? "0.45" : "1";
+            boton.textContent = estaActivo ? "Activar" : "Desactivar";
           };
         });
 
         botonesEliminar.forEach((boton) => {
           boton.onclick = () => {
             const fila = boton.closest(".campo-row");
+            const campoId = fila.dataset.campoId;
             const nombreOriginal = fila.dataset.original;
 
-            if (nombreOriginal) {
+            if (campoId) {
+              eliminadosData.push(campoId);
+            } else if (nombreOriginal) {
               eliminadosData.push(nombreOriginal);
             }
 
@@ -1127,13 +1153,18 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
     preConfirm: () => {
       const filas = Array.from(document.querySelectorAll(".campo-row"));
 
-      const campos = filas.map((fila) => {
+      const campos = filas.map((fila, index) => {
         const nombreCampo = fila.querySelector(".campo-nombre")?.value?.trim();
         const tipoCampo = fila.querySelector(".campo-tipo")?.value || "text";
+        const tipoOriginal = fila.dataset.tipoOriginal || tipoCampo;
 
         return {
+          campo_id: fila.dataset.campoId || null,
+          orden: Number(fila.dataset.orden || index + 1),
           nombre_campo: nombreCampo,
           tipo_campo: tipoCampo,
+          activo: fila.dataset.activo !== "false",
+          migrar_data: tipoOriginal !== tipoCampo ? false : false,
         };
       });
 
