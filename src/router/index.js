@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import { useFactorStore } from "@/stores/factorStore";
 import { factoresService } from "@/service/factores.service";
@@ -94,7 +94,7 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  history: createWebHashHistory(),
   routes,
 });
 
@@ -117,7 +117,7 @@ router.beforeEach(async (to, from, next) => {
     "root",
     "caracteristicaPrincipal",
     "panelVista",
-    "tableroVista",
+    "tablero",
     "estructurasVista",
   ];
 
