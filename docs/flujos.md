@@ -11,9 +11,35 @@ Permitir operación de entidades de observatorios desde interfaz.
 
 ### Flujo principal
 1. Usuario autenticado navega a módulo.
-2. UI consulta catálogos y datos al CRUD.
-3. UI registra/actualiza/elimina según permisos.
-4. Se reflejan cambios en tablas/indicadores.
+2. UI consulta procesos como primer nivel jerárquico.
+3. Usuario selecciona un proceso y la UI muestra factores asociados.
+4. UI registra/actualiza/elimina procesos y factores según permisos.
+5. Se reflejan cambios en tablas/indicadores.
+
+## Flujo: Navegación jerárquica de procesos
+### Objetivo
+Exponer la jerarquía funcional desde procesos antes de ingresar a factores y estructuras.
+
+### Componentes involucrados
+- `src/views/Espacios.vue`.
+- `src/components/procesos/ProcesoFactores.vue`.
+- `src/service/procesos.service.js`.
+- `src/service/factores.service.js`.
+- API `observatorios_crud`.
+
+### Flujo principal
+1. Usuario autenticado ingresa a `/espacios`.
+2. UI consulta `/procesos/` y muestra procesos activos.
+3. Usuario selecciona un proceso.
+4. UI navega a `/procesos/:proceso_id/factores`.
+5. UI consulta `/factores/` y filtra por `proceso_id`.
+6. Usuario selecciona factor para continuar al flujo de estructuras existente.
+
+### Convención de rutas
+- Ruta principal canónica: `/procesos`.
+- Ruta de factores por proceso: `/procesos/:proceso_id/factores`.
+- Rutas hijas de factor: `/procesos/:proceso_id/factores/:factor_id/...`.
+- Rutas anteriores como `/espacios`, `/factor/:factor_id`, `/estructuras/:factor_id`, `/tablero/:factor_id` y `/:factor_id/panel` se mantienen como compatibilidad mientras se completa la transición.
 
 ## Flujo: Gestión documental desde UI
 ### Objetivo

@@ -1,5 +1,16 @@
 <template>
   <section class="tablero-page">
+    <div class="flow-nav">
+      <v-btn
+        variant="text"
+        color="primary"
+        prepend-icon="mdi-arrow-left"
+        @click="volverAEstructuras"
+      >
+        Regresar a estructuras
+      </v-btn>
+    </div>
+
     <article class="context-card">
       <div class="context-card__header">
         <span class="context-card__label">Tablero de evidencias</span>
@@ -275,7 +286,7 @@
 
 <script setup>
 import { ref, computed, onMounted, nextTick, reactive } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Swal from "sweetalert2";
 
 import peticionAPI from "@/service/conexion_api";
@@ -296,6 +307,7 @@ import { environment } from "@/environments/environment";
 import gestorDocumentalApi from "@/service/gestorDocumentalService";
 
 const route = useRoute();
+const router = useRouter();
 const estructuraStore = useEstructuraStore();
 const idTipoDocumentoGestorDocumental = environment.ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL;
 
@@ -336,6 +348,31 @@ const ordering = computed(() => {
 const estructuraIdRuta = computed(() => {
   return route.query.estructura_id || route.params.estructura_id || "";
 });
+
+const volverAEstructuras = () => {
+  if (route.params.proceso_id && route.params.factor_id) {
+    router.push({
+      name: "factorEstructurasGestion",
+      params: {
+        proceso_id: route.params.proceso_id,
+        factor_id: route.params.factor_id,
+      },
+    });
+    return;
+  }
+
+  if (route.params.factor_id) {
+    router.push({
+      name: "estructuras",
+      params: {
+        factor_id: route.params.factor_id,
+      },
+    });
+    return;
+  }
+
+  router.back();
+};
 
 const nombreFactor = computed(() => {
   return estructuraSeleccionada.value?.factor?.nombre || "Factor";
@@ -1988,6 +2025,12 @@ onMounted(async () => {
   margin: 16px auto 48px;
   font-family: Arial, Helvetica, sans-serif;
   color: #263238;
+}
+
+.flow-nav {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
 }
 
 .context-card,

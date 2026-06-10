@@ -11,9 +11,22 @@ const routes = [
     component: () => import("../views/Home.vue"),
   },
   {
-    path: "/espacios",
-    name: "espacios",
+    path: "/procesos",
+    name: "procesos",
     component: () => import("../views/Espacios.vue"),
+  },
+  {
+    path: "/espacios",
+    redirect: "/procesos",
+  },
+  {
+    path: "/procesos/:proceso_id/factores",
+    name: "procesoFactores",
+    component: () => import("../components/procesos/ProcesoFactores.vue"),
+  },
+  {
+    path: "/proceso/:proceso_id/factores",
+    redirect: (to) => `/procesos/${to.params.proceso_id}/factores`,
   },
   {
     path: "/administracion",
@@ -35,6 +48,52 @@ const routes = [
           import("../components/administracion/Factores.vue"),
       },
     ],
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/estructuras/gestion",
+    name: "factorEstructurasGestion",
+    component: () => import("../views/Estructuras.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/estructuras",
+    name: "factorEstructuras",
+    component: () => import("../components/estructuras/EstructurasVista.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/tablero",
+    name: "factorTablero",
+    component: () => import("../views/Tablero.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/panel",
+    name: "factorPanelGestion",
+    component: () => import("../views/Panel.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/panel/graficas/:panel/:columna/:fila",
+    name: "factorPanelGraficas",
+    props: true,
+    component: () => import("../components/panel/Graficas.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/panel/principal",
+    name: "factorPanelPrincipal",
+    component: () => import("../components/panel/PanelVistaPrincipal.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/caracteristicas/principal",
+    name: "factorCaracteristicaPrincipal",
+    component: () => import("../components/panel/CaracteristicaPrincipal.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/panel/vista",
+    name: "factorPanelVista",
+    component: () => import("../components/panel/PanelVista.vue"),
+  },
+  {
+    path: "/procesos/:proceso_id/factores/:factor_id/archivos",
+    name: "factorArchivosGestion",
+    component: () => import("../components/archivos/ArchivosGestion.vue"),
   },
   {
     path: "/factor/:factor_id",
@@ -89,7 +148,7 @@ const routes = [
   },
   {
     path: "/:pathMatch(.*)*",
-    redirect: "/espacios",
+    redirect: "/procesos",
   },
 ];
 
@@ -113,8 +172,18 @@ router.beforeEach(async (to, from, next) => {
   const roleUsuario = userStore.user?.role || [];
 
   const rutasPermitidas = [
-    "espacios",
+    "procesos",
     "root",
+    "procesoFactores",
+    "factorCaracteristicaPrincipal",
+    "factorPanelVista",
+    "factorTablero",
+    "factorEstructurasGestion",
+    "factorEstructuras",
+    "factorPanelGestion",
+    "factorPanelGraficas",
+    "factorPanelPrincipal",
+    "factorArchivosGestion",
     "caracteristicaPrincipal",
     "panelVista",
     "tablero",
@@ -135,14 +204,14 @@ router.beforeEach(async (to, from, next) => {
     }
 
     if (accessToken) {
-      return next({ name: "espacios" });
+      return next({ name: "procesos" });
     }
   }
 
   const esAdmin = roleUsuario.includes("ADMIN_OBSERVATORIOS");
 
   if (!esAdmin && !rutasPermitidas.includes(to.name) && !esRutaPanel) {
-    return next({ name: "espacios" });
+    return next({ name: "procesos" });
   }
 
   if (factor_id) {

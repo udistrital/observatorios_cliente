@@ -1,5 +1,16 @@
 <template>
     <v-container class="archivo">
+        <div class="flow-nav">
+            <v-btn
+                variant="text"
+                color="primary"
+                prepend-icon="mdi-arrow-left"
+                @click="volverAEstructuras"
+            >
+                Regresar a estructuras
+            </v-btn>
+        </div>
+
         <div class="cabecera">
             <h1 class="titulo__cabecera">Archivos</h1>
         </div>
@@ -158,7 +169,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick, reactive } from "vue";
 import peticionAPI from "@/service/conexion_api";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useObservatorioStore } from "@/stores/observatorioStore";
@@ -174,7 +185,33 @@ const headerst = ref([
 ]);
 
 const router = useRouter();
+const route = useRoute();
 const estructuraStore = useEstructuraStore();
+
+const volverAEstructuras = () => {
+  if (route.params.proceso_id && route.params.factor_id) {
+    router.push({
+      name: "factorEstructurasGestion",
+      params: {
+        proceso_id: route.params.proceso_id,
+        factor_id: route.params.factor_id,
+      },
+    });
+    return;
+  }
+
+  if (route.params.factor_id) {
+    router.push({
+      name: "estructuras",
+      params: {
+        factor_id: route.params.factor_id,
+      },
+    });
+    return;
+  }
+
+  router.back();
+};
 
 const sortBy = ref(null);
 const sortDesc = ref(false);
@@ -390,6 +427,12 @@ onMounted(async () => {
 <style scoped>
 .archivo {
   margin: 40px auto;
+}
+
+.flow-nav {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
 }
 .control__container {
   margin: 20px 0;

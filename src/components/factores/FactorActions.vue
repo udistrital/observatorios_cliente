@@ -29,12 +29,12 @@
         variant="tonal"
         icon
         size="small"
-        :color="factor.activo !== false ? 'error' : 'success'"
+        :color="factor.activo !== false ? 'warning' : 'success'"
         :title="factor.activo !== false ? 'Desactivar factor' : 'Activar factor'"
         @click.stop="$emit('cambiar-estado')"
       >
         <v-icon>
-          {{ factor.activo !== false ? "mdi-trash-can" : "mdi-sync" }}
+          {{ factor.activo !== false ? "mdi-cancel" : "mdi-sync" }}
         </v-icon>
       </v-btn>
     </div>
