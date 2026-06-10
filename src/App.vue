@@ -25,13 +25,43 @@ const router = useRouter();
 const userService = useUserService();
 const loadRouting = ref(false);
 
+const obtenerRolesUsuario = (detail) => {
+  const posiblesRoles = [
+    detail?.user?.role,
+    detail?.user?.roles,
+    detail?.userService?.role,
+    detail?.userService?.roles,
+    detail?.userService?.Roles,
+    detail?.userService?.Rol,
+    detail?.userService?.rol,
+  ];
+
+  const roles = posiblesRoles.find((item) => Array.isArray(item) || typeof item === "string");
+
+  if (Array.isArray(roles)) {
+    return roles;
+  }
+
+  if (typeof roles === "string" && roles.trim()) {
+    return [roles];
+  }
+
+  return [];
+};
+
+const normalizarUsuario = (detail) => ({
+  ...(detail?.user || {}),
+  role: obtenerRolesUsuario(detail),
+  userService: detail?.userService,
+});
+
 watchEffect(() => {
   if (oas.value) {
     oas.value.environment = environment;
 
     const handleUser = (event) => {
       const detail = event.detail;
-      userStore.setUser(detail.user);
+      userStore.setUser(normalizarUsuario(detail));
       if (detail) {
         loadRouting.value = true;
         userService.updateUser(detail);
