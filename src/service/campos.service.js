@@ -111,10 +111,12 @@ export const camposService = {
     return response.data;
   },
 
-  async actualizarRegistro(idEstructura, idRegistro, data) {
-    const response = await api.put(
+  async cambiarEstadoRegistro(idEstructura, idRegistro, activo) {
+    const response = await api.patch(
       `/campos/datos/${idEstructura}/${idRegistro}/`,
-      data
+      {
+        activo,
+      }
     );
 
     return response.data;

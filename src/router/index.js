@@ -117,7 +117,8 @@ router.beforeEach(async (to, from, next) => {
     "root",
     "caracteristicaPrincipal",
     "panelVista",
-    "tableroVista",
+    "tablero",
+    "estructuras",
     "estructurasVista",
   ];
 
