@@ -291,11 +291,13 @@ import { aspectosService } from "@/service/aspectos.service";
 import { caracteristicasService } from "@/service/caracteristicas.service";
 import { factoresService } from "@/service/factores.service";
 import { camposService } from "@/service/campos.service";
+import { environment } from "@/environments/environment";
 
 import gestorDocumentalApi from "@/service/gestorDocumentalService";
 
 const route = useRoute();
 const estructuraStore = useEstructuraStore();
+const idTipoDocumentoGestorDocumental = environment.ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL;
 
 const sortBy = ref(null);
 const sortDesc = ref(false);
@@ -1464,7 +1466,7 @@ const subirArchivoGestorDocumental = async ({
 }) => {
   const payload = [
     {
-      IdTipoDocumento: 192,
+      IdTipoDocumento: idTipoDocumentoGestorDocumental,
       nombre: file.name,
       metadatos: construirMetadatosGestor(metadatos),
       descripcion: "Archivo cargado desde Atlas",
