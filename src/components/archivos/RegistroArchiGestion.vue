@@ -89,6 +89,7 @@ const fileName = ref(null);
 
 const gestorUrl = environment.GESTOR_DOCUMENTAL;
 const observatorios_mid_url = '';
+const idTipoDocumentoGestorDocumental = environment.ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL;
 
 const armarFormulario = () => {
   const limpio = {};
@@ -194,7 +195,7 @@ const guardarCambios = async () => {
 
   if (archivoNuevo) {
     archivoPayload = {
-      IdTipoDocumento: 192,
+      IdTipoDocumento: idTipoDocumentoGestorDocumental,
       nombre: fileName.value,
       metadatos: datosBody,
       descripcion: "Archivo cargado desde Observatorios",

@@ -41,6 +41,7 @@ import { environment } from "@/environments/environment";
 
 let baseURL = environment.MAIN_BACKEND;
 let observatoriosMidURL = '';
+const idTipoDocumentoGestorDocumental = environment.ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL;
 
 const archivoSeleccionado = ref(null);
 const fileName = ref("");
@@ -94,7 +95,7 @@ const crearRegistro = async () => {
   const body = [
     {
       "Archivo": {
-        "IdTipoDocumento": 192,
+        "IdTipoDocumento": idTipoDocumentoGestorDocumental,
         "nombre": fileName.value,
         "metadatos": metadatos,
         "descripcion": "Archivo cargado desde Observatorios",

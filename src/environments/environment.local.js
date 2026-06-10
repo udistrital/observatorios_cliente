@@ -19,5 +19,7 @@ export const environment = {
   CONFIGURACION_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/configuracion_crud_api/v1/',
   CONF_MENU_SERVICE: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/configuracion_crud_api/v1/menu_opcion_padre/ArbolMenus/',
   MAIN_BACKEND: 'http://localhost:8000/api/v1',
-  GESTOR_DOCUMENTAL: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/'
+  // MAIN_BACKEND: 'https://pruebasapi.intranetoas.udistrital.edu.co/observatorios_crud/api/v1/',
+  GESTOR_DOCUMENTAL: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/',
+  ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL: 192
 };
