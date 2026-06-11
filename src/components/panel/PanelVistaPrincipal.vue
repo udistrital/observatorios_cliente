@@ -100,7 +100,7 @@
   <script setup>
 import { createSwapy } from "swapy";
 import { onMounted, onUnmounted, ref } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import { usePanelStore } from "@/stores/panelStore";
 import { useGraficaStore } from "@/stores/graficaStore";
@@ -115,6 +115,7 @@ const panelStore = usePanelStore();
 const graficaStore = useGraficaStore();
 const panelId = panelStore.panel.id;
 const router = useRouter();
+const route = useRoute();
 const tamanoCeldas = ref(1);
 const tamanoFilas = ref(1);
 const filas = ref(3);
@@ -136,7 +137,23 @@ const calcularAncho = () => {
 
 const editarGrafica = (grafica) => {
     graficaStore.setGrafica(grafica)
-    router.push(`/${observatorioStore.observatorio?.id}/panel/graficas/${panelStore.panel?.id}/${grafica.columna}/${grafica.fila}`);
+    router.push({
+      name: route.params.proceso_id ? "factorPanelGraficas" : "panelGraficas",
+      params: route.params.proceso_id
+        ? {
+            proceso_id: route.params.proceso_id,
+            factor_id: route.params.factor_id,
+            panel: panelStore.panel?.id,
+            columna: grafica.columna,
+            fila: grafica.fila,
+          }
+        : {
+            factor_id: route.params.factor_id || observatorioStore.observatorio?.id,
+            panel: panelStore.panel?.id,
+            columna: grafica.columna,
+            fila: grafica.fila,
+          },
+    });
 }
 
 const eliminarGrafica = (graficaId) => {
@@ -279,8 +296,10 @@ onUnmounted(() => {
 });
 const crearGrafica = (columna, fila) => {
   router.push({
-    path: `graficas/${panelId}/${columna}/${fila}`,
-    params: { panel: panelId, columna, fila },
+    name: route.params.proceso_id ? "factorPanelGraficas" : "panelGraficas",
+    params: route.params.proceso_id
+      ? { proceso_id: route.params.proceso_id, factor_id: route.params.factor_id, panel: panelId, columna, fila }
+      : { factor_id: route.params.factor_id || observatorioStore.observatorio?.id, panel: panelId, columna, fila },
   });
 };
 </script>

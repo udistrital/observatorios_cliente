@@ -76,7 +76,7 @@ const observatorioId = computed(() => {
   );
 });
 
-const rutasNavbar = ["/", "/espacios"];
+const rutasNavbar = ["/", "/espacios", "/procesos"];
 const verNavbar = computed(() => !rutasNavbar.includes(route.path));
 
 const imagenSrc = computed(() => {
@@ -95,7 +95,7 @@ const menuItems = [
   {
     texto: "Inicio",
     icono: "mdi-home",
-    direccion: "/espacios",
+    direccion: "/procesos",
     admin: true,
     general: true,
     generalUSers: true,

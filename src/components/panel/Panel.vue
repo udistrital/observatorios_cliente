@@ -140,7 +140,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import CrearPanel from "./CrearPanel.vue";
@@ -153,6 +153,7 @@ const userStore = useUserStore();
 const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const router = useRouter();
+const route = useRoute();
 const search = ref("");
 const paneles = ref([]);
 const cargando = ref(false);
@@ -311,7 +312,12 @@ const diriguirsePanel = (item) => {
     observatorio: item.raw.observatorio,
     columnas: item.raw.columnas,
   });
-  router.push(`panel/principal`);
+  router.push({
+    name: route.params.proceso_id ? "factorPanelPrincipal" : "panelPrincipal",
+    params: route.params.proceso_id
+      ? { proceso_id: route.params.proceso_id, factor_id: route.params.factor_id }
+      : { factor_id: route.params.factor_id },
+  });
 };
 onMounted(() => {
   traerPaneles();

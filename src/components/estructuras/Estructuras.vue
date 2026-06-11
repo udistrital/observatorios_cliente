@@ -1,5 +1,16 @@
 <template>
   <section class="factor-page">
+    <div class="flow-nav">
+      <v-btn
+        variant="text"
+        color="primary"
+        prepend-icon="mdi-arrow-left"
+        @click="volverAFactores"
+      >
+        Regresar a factores
+      </v-btn>
+    </div>
+
     <!-- FACTOR -->
     <FactorCard
       :factor="factor"
@@ -114,6 +125,24 @@ const search = ref("");
 const factorId = computed(() => {
   return route.params.factor_id || route.params.id;
 });
+
+const procesoId = computed(() => {
+  return route.params.proceso_id || factor.value?.proceso_id;
+});
+
+const volverAFactores = () => {
+  if (procesoId.value) {
+    router.push({
+      name: "procesoFactores",
+      params: {
+        proceso_id: procesoId.value,
+      },
+    });
+    return;
+  }
+
+  router.back();
+};
 
 const {
   factor,
@@ -514,7 +543,12 @@ const irAEstructuraDelAspecto = async (estructuraAsociada) => {
       mapeo_archivos: estructuraAsociada.mapeo_archivos || [],
     });
 
-    router.push(`/${factorId.value}/archivos`);
+    router.push({
+      name: procesoId.value ? "factorArchivosGestion" : "archivosGestion",
+      params: procesoId.value
+        ? { proceso_id: procesoId.value, factor_id: factorId.value }
+        : { factor_id: factorId.value },
+    });
     return;
   }
 
@@ -535,17 +569,16 @@ const irAEstructuraDelAspecto = async (estructuraAsociada) => {
     return;
   }
 
-  const ruta = router.resolve({
-    name: "tablero",
+  router.push({
+    name: procesoId.value ? "factorTablero" : "tablero",
     params: {
+      ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
       factor_id: factorId.value,
     },
     query: {
       estructura_id: estructuraId,
     },
   });
-
-  window.open(ruta.href, "_blank", "noopener,noreferrer");
 };
 
 const traerEstructuras = async () => {
@@ -703,7 +736,13 @@ const diriguirseEstructura = (item) => {
     mapeo: estructura.mapeo,
   });
 
-  router.push(`/${factorId.value}/tablero`);
+  router.push({
+    name: procesoId.value ? "factorTablero" : "tablero",
+    params: {
+      ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
+      factor_id: factorId.value,
+    },
+  });
 };
 
 
@@ -819,7 +858,12 @@ const diriguirseArchivos = (item) => {
     mapeo_archivos: estructura.mapeo_archivos,
   });
 
-  router.push(`/${factorId.value}/archivos`);
+  router.push({
+    name: procesoId.value ? "factorArchivosGestion" : "archivosGestion",
+    params: procesoId.value
+      ? { proceso_id: procesoId.value, factor_id: factorId.value }
+      : { factor_id: factorId.value },
+  });
 };
 
 onMounted(async () => {
@@ -853,6 +897,12 @@ onMounted(async () => {
   margin: 16px auto 48px;
   font-family: Arial, Helvetica, sans-serif;
   color: #263238;
+}
+
+.flow-nav {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
 }
 
 /* FACTOR */

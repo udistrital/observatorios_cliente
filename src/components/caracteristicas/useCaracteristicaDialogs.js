@@ -60,6 +60,8 @@ export function useCaracteristicaDialogs() {
           <input
             id="calificacionCaracteristica"
             class="swal2-input"
+            type="text"
+            inputmode="decimal"
             placeholder="Ej: 4.5"
           >
         </div>
@@ -70,6 +72,16 @@ export function useCaracteristicaDialogs() {
       width: "520px",
       customClass: clases,
       buttonsStyling: false,
+      didOpen: () => {
+        document
+          .getElementById("calificacionCaracteristica")
+          .addEventListener("input", (event) => {
+            const partes = event.target.value.replace(/[^\d.]/g, "").split(".");
+            event.target.value = partes.length <= 1
+              ? partes[0]
+              : `${partes[0]}.${partes.slice(1).join("")}`;
+          });
+      },
       preConfirm: () => {
         const nombre = document
           .getElementById("nombreCaracteristica")
@@ -90,6 +102,11 @@ export function useCaracteristicaDialogs() {
 
         if (!descripcion) {
           Swal.showValidationMessage("La descripción de la característica es obligatoria.");
+          return false;
+        }
+
+        if (calificacion && !/^\d+(\.\d+)?$/.test(calificacion)) {
+          Swal.showValidationMessage("La calificación debe ser un número decimal.");
           return false;
         }
 
@@ -126,6 +143,8 @@ export function useCaracteristicaDialogs() {
           <input
             id="editarCalificacionCaracteristica"
             class="swal2-input"
+            type="text"
+            inputmode="decimal"
             placeholder="Ej: 4.5"
           >
         </div>
@@ -145,6 +164,15 @@ export function useCaracteristicaDialogs() {
 
         document.getElementById("editarCalificacionCaracteristica").value =
           caracteristica.calificacion || "";
+
+        document
+          .getElementById("editarCalificacionCaracteristica")
+          .addEventListener("input", (event) => {
+            const partes = event.target.value.replace(/[^\d.]/g, "").split(".");
+            event.target.value = partes.length <= 1
+              ? partes[0]
+              : `${partes[0]}.${partes.slice(1).join("")}`;
+          });
       },
       preConfirm: () => {
         const nombre = document
@@ -166,6 +194,11 @@ export function useCaracteristicaDialogs() {
 
         if (!descripcion) {
           Swal.showValidationMessage("La descripción de la característica es obligatoria.");
+          return false;
+        }
+
+        if (calificacion && !/^\d+(\.\d+)?$/.test(calificacion)) {
+          Swal.showValidationMessage("La calificación debe ser un número decimal.");
           return false;
         }
 

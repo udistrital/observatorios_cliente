@@ -38,6 +38,7 @@
         </v-icon>
       </v-btn>
 
+      <!--
       <v-btn
         variant="tonal"
         icon
@@ -48,6 +49,7 @@
       >
         <v-icon>mdi-delete-forever</v-icon>
       </v-btn>
+      -->
     </div>
   </div>
 </template>

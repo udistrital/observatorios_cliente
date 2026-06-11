@@ -8,7 +8,7 @@
   >
     <v-card>
       <v-card-title class="d-flex align-center justify-space-between">
-        <span>Crear Proceso</span>
+        <span>{{ tituloModal }}</span>
 
         <v-btn icon variant="text" @click="cerrar">
           <v-icon>mdi-close</v-icon>
@@ -24,6 +24,7 @@
             label="Nombre"
             variant="outlined"
             density="comfortable"
+            :readonly="modo === 'ver'"
             :rules="[reglas.requerido]"
           />
 
@@ -33,6 +34,7 @@
             variant="outlined"
             density="comfortable"
             rows="4"
+            :readonly="modo === 'ver'"
             :rules="[reglas.requerido]"
           />
 
@@ -41,6 +43,7 @@
             label="Dependencia responsable"
             variant="outlined"
             density="comfortable"
+            :readonly="modo === 'ver'"
           />
 
           <v-textarea
@@ -49,6 +52,7 @@
             variant="outlined"
             density="comfortable"
             rows="3"
+            :readonly="modo === 'ver'"
           />
 
           <v-row>
@@ -59,6 +63,7 @@
                 type="date"
                 variant="outlined"
                 density="comfortable"
+                :readonly="modo === 'ver'"
                 :rules="[reglas.requerido]"
               />
             </v-col>
@@ -70,6 +75,7 @@
                 type="date"
                 variant="outlined"
                 density="comfortable"
+                :readonly="modo === 'ver'"
                 :rules="[reglas.requerido]"
               />
             </v-col>
@@ -79,6 +85,7 @@
             v-model="formulario.activo"
             label="Activo"
             color="primary"
+            :disabled="modo === 'ver'"
           />
         </v-form>
       </v-card-text>
@@ -93,6 +100,7 @@
         </v-btn>
 
         <v-btn
+          v-if="modo !== 'ver'"
           color="primary"
           :loading="guardando"
           @click="guardarProceso"
@@ -105,17 +113,19 @@
 </template>
 
 <script setup>
-import { ref, defineEmits, defineExpose } from "vue";
+import { computed, ref, defineEmits, defineExpose } from "vue";
 import Swal from "sweetalert2";
 
 import { procesosService } from "@/service/procesos.service";
 import { ProcesoModel } from "@/model/proceso.model";
 
-const emit = defineEmits(["proceso-creado"]);
+const emit = defineEmits(["proceso-creado", "proceso-actualizado", "proceso-guardado"]);
 
 const modalProceso = ref(false);
 const guardando = ref(false);
 const formRef = ref(null);
+const modo = ref("crear");
+const procesoSeleccionado = ref(null);
 
 const formulario = ref({
   nombre: "",
@@ -132,6 +142,12 @@ const reglas = {
   requerido: (value) => !!value || "Este campo es obligatorio",
 };
 
+const tituloModal = computed(() => {
+  if (modo.value === "editar") return "Editar Proceso";
+  if (modo.value === "ver") return "Ver Proceso";
+  return "Crear Proceso";
+});
+
 const limpiarFormulario = () => {
   formulario.value = {
     nombre: "",
@@ -143,10 +159,33 @@ const limpiarFormulario = () => {
     fecha_fin: "",
     activo: true,
   };
+
+  procesoSeleccionado.value = null;
 };
 
-const abrir = () => {
-  limpiarFormulario();
+const cargarFormulario = (proceso = {}) => {
+  formulario.value = {
+    nombre: proceso.nombre || "",
+    descripcion: proceso.descripcion || "",
+    dependencia_responsable: proceso.dependencia_responsable || "",
+    objetivo: proceso.objetivo || "",
+    factores: Array.isArray(proceso.factores) ? proceso.factores : [],
+    fecha_inicio: proceso.fecha_inicio || "",
+    fecha_fin: proceso.fecha_fin || "",
+    activo: proceso.activo !== false,
+  };
+};
+
+const abrir = (nuevoModo = "crear", proceso = null) => {
+  modo.value = nuevoModo;
+  procesoSeleccionado.value = proceso;
+
+  if (proceso) {
+    cargarFormulario(proceso);
+  } else {
+    limpiarFormulario();
+  }
+
   modalProceso.value = true;
 };
 
@@ -156,6 +195,8 @@ const cerrar = () => {
 };
 
 const guardarProceso = async () => {
+  if (modo.value === "ver") return;
+
   const validacion = await formRef.value?.validate();
 
   if (validacion && validacion.valid === false) {
@@ -176,16 +217,27 @@ const guardarProceso = async () => {
       activo: formulario.value.activo,
     });
 
-    const procesoCreado = await procesosService.crear(proceso);
+    let procesoGuardado = null;
+    let mensajeExito = "El proceso se ha creado correctamente.";
+
+    if (modo.value === "editar") {
+      const id = procesoSeleccionado.value?.proceso_id || procesoSeleccionado.value?.id;
+      procesoGuardado = await procesosService.actualizar(id, proceso);
+      mensajeExito = "El proceso se ha actualizado correctamente.";
+      emit("proceso-actualizado", procesoGuardado);
+    } else {
+      procesoGuardado = await procesosService.crear(proceso);
+      emit("proceso-creado", procesoGuardado);
+    }
 
     guardando.value = false;
     cerrar();
 
-    emit("proceso-creado", procesoCreado);
+    emit("proceso-guardado", procesoGuardado);
 
     await Swal.fire({
-      title: "¡Creado!",
-      text: "El proceso se ha creado correctamente.",
+      title: modo.value === "editar" ? "¡Actualizado!" : "¡Creado!",
+      text: mensajeExito,
       icon: "success",
       width: "300px",
       customClass: {
@@ -196,14 +248,14 @@ const guardarProceso = async () => {
       buttonsStyling: false,
     });
   } catch (error) {
-    console.error("Error al crear proceso:", error?.response?.data || error);
+    console.error("Error al guardar proceso:", error?.response?.data || error);
 
     await Swal.fire({
       title: "Error",
       text:
         error?.response?.data?.detalle ||
         error?.response?.data?.error ||
-        "No fue posible crear el proceso.",
+        "No fue posible guardar el proceso.",
       icon: "error",
       width: "350px",
       customClass: {

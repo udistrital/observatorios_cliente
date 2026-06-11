@@ -86,6 +86,8 @@ export function useFactorDialogs() {
           <input
             id="editarCalificacionFactor"
             class="swal2-input"
+            type="text"
+            inputmode="decimal"
             placeholder="Ej: 4.5"
           >
         </div>
@@ -105,6 +107,15 @@ export function useFactorDialogs() {
 
         document.getElementById("editarCalificacionFactor").value =
           factor.calificacion || "";
+
+        document
+          .getElementById("editarCalificacionFactor")
+          .addEventListener("input", (event) => {
+            const partes = event.target.value.replace(/[^\d.]/g, "").split(".");
+            event.target.value = partes.length <= 1
+              ? partes[0]
+              : `${partes[0]}.${partes.slice(1).join("")}`;
+          });
       },
       preConfirm: () => {
         const nombre = document
@@ -126,6 +137,11 @@ export function useFactorDialogs() {
 
         if (!descripcion) {
           Swal.showValidationMessage("La descripción del factor es obligatoria.");
+          return false;
+        }
+
+        if (calificacion && !/^\d+(\.\d+)?$/.test(calificacion)) {
+          Swal.showValidationMessage("La calificación debe ser un número decimal.");
           return false;
         }
 

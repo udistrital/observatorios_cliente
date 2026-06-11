@@ -55,7 +55,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
@@ -66,6 +66,7 @@ const panelStore = usePanelStore();
 const factorStore = useFactorStore();
 const estructuraStore = useEstructuraStore();
 const router = useRouter();
+const route = useRoute();
 const search = ref("");
 const estructuras = ref([]);
 const cargando = ref(false);
@@ -136,8 +137,9 @@ const diriguirseEstructura = (item) => {
     factor: item.raw.factor,
   });
   router.push({
-    name: "caracteristicaPrincipal",
+    name: route.params.proceso_id ? "factorCaracteristicaPrincipal" : "caracteristicaPrincipal",
     params: {
+      ...(route.params.proceso_id ? { proceso_id: route.params.proceso_id } : {}),
       factor_id: item.raw.factor,
     },
   });

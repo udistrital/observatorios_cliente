@@ -210,6 +210,7 @@ const itemsPorPagina = ref(5);
 
 const items = computed(() => {
   return props.estructuras.map((estructura, index) => ({
+    ...estructura,
     id: estructura.id || `estructura_${index + 1}`,
     tipo_evidencia: estructura.tipo_evidencia || "Sin tipo",
     nombre: estructura.nombre || `Estructura ${index + 1}`,

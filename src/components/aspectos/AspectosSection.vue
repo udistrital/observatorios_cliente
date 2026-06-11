@@ -60,7 +60,6 @@ import { useAspectos } from "./useAspectos";
 import { useAspectoDialogs } from "./useAspectoDialogs";
 import { estructurasEvidenciasService } from "@/service/estructuras-evidencias.service";
 import { useRouter, useRoute } from "vue-router";
-import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useFactorStore } from "@/stores/factorStore";
 
 const props = defineProps({
@@ -73,7 +72,6 @@ const props = defineProps({
 const router = useRouter();
 const route = useRoute();
 
-const estructuraStore = useEstructuraStore();
 const factorStore = useFactorStore();
 
 const factorId = computed(() => {
@@ -83,6 +81,10 @@ const factorId = computed(() => {
     route.params.factor_id ||
     route.params.id
   );
+});
+
+const procesoId = computed(() => {
+  return route.params.proceso_id || factorStore.factor?.proceso_id;
 });
 
 const caracteristicaId = computed(() => props.caracteristica?.id);
@@ -476,7 +478,7 @@ const irAEstructuraEvidencia = async (...args) => {
 
   const tipo = estructura.tipo_evidencia || estructura.tipo || "";
 
-  if (!["Tabla", "Documental"].includes(tipo)) {
+  if (!["Tabla", "Documental", "datos", "archivos"].includes(tipo)) {
     await Swal.fire({
       title: "Tipo de evidencia no soportado",
       text: "Solo se pueden abrir estructuras de tipo Tabla o Documental.",
@@ -493,17 +495,31 @@ const irAEstructuraEvidencia = async (...args) => {
     return;
   }
 
-  const ruta = router.resolve({
-    name: "tablero",
+  if (tipo === "Documental" || tipo === "archivos") {
+    router.push({
+      name: procesoId.value ? "factorTablero" : "tablero",
+      params: {
+        ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
+        factor_id: factorId.value,
+      },
+      query: {
+        estructura_id: estructuraId,
+      },
+    });
+
+    return;
+  }
+
+  router.push({
+    name: procesoId.value ? "factorTablero" : "tablero",
     params: {
+      ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
       factor_id: factorId.value,
     },
     query: {
       estructura_id: estructuraId,
     },
   });
-
-  window.open(ruta.href, "_blank", "noopener,noreferrer");
 };
 
 watch(
