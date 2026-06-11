@@ -433,6 +433,26 @@ const cambiarEstadoEstructuraEvidencia = async (aspecto, estructura) => {
   if (!props.puedeGestionar) return;
 
   const nuevoEstado = estructura.activo === false;
+  const accion = nuevoEstado ? "activar" : "desactivar";
+
+  const resultado = await Swal.fire({
+    title: `${nuevoEstado ? "Activar" : "Desactivar"} estructura evidencia`,
+    html: `¿Desea ${accion} la estructura evidencia <b>${estructura.nombre}</b>?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (!resultado.isConfirmed) return;
 
   try {
     await mostrarCargandoAspecto(
