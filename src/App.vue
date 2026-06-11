@@ -16,6 +16,7 @@ import { useRoute, useRouter } from "vue-router";
 import { environment } from "@/environments/environment";
 import { useUserService } from "@/service/userService";
 import { useUserStore } from "@/stores/userStore";
+import { normalizarRoles } from "@/utils/roles";
 
 const userStore = useUserStore();
 const oas = ref(null);
@@ -39,11 +40,11 @@ const obtenerRolesUsuario = (detail) => {
   const roles = posiblesRoles.find((item) => Array.isArray(item) || typeof item === "string");
 
   if (Array.isArray(roles)) {
-    return roles;
+    return normalizarRoles(roles);
   }
 
   if (typeof roles === "string" && roles.trim()) {
-    return [roles];
+    return normalizarRoles(roles);
   }
 
   return [];

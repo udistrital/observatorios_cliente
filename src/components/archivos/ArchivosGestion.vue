@@ -2,9 +2,10 @@
     <v-container class="archivo">
         <div class="flow-nav">
             <v-btn
-                variant="text"
+                variant="tonal"
                 color="primary"
                 prepend-icon="mdi-arrow-left"
+                class="return-button"
                 @click="volverAEstructuras"
             >
                 Regresar a estructuras
@@ -67,7 +68,7 @@
                 <v-spacer></v-spacer>
                 <v-btn
                 color="primary"
-                v-if="estructuraSeleccionada"
+                v-if="estructuraSeleccionada && esAdministrador"
                 @click="agregarRegistro"
                 >
                 <v-icon left>mdi-plus</v-icon> Agregar Registro
@@ -98,6 +99,7 @@
                 </template>
                 <template v-slot:[`item.acciones`]="{ item }">
                 <v-btn
+                    v-if="esAdministrador"
                     variant="text"
                     icon
                     size="small"
@@ -108,6 +110,7 @@
                     <v-icon>mdi-eye</v-icon>
                 </v-btn>
                 <v-btn
+                    v-if="esAdministrador"
                     variant="text"
                     icon
                     size="small"
@@ -173,11 +176,14 @@ import { useRouter, useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useObservatorioStore } from "@/stores/observatorioStore";
+import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios } from "@/utils/roles";
 import AgregarArchivo from "./AgregarArchivo.vue";
 import RegistroArchiGestion from "./RegistroArchiGestion.vue";
 
 
 const observatorioStore = useObservatorioStore();
+const userStore = useUserStore();
 const headerst = ref([
   { title: "Nombre", key: "nombre", align: "center" },
   { title: "Estado", key: "activo", align: "center" },
@@ -240,6 +246,7 @@ const filtros = ref({});
 const camposBool = ref([]);
 
 const cargando = ref(false);
+const esAdministrador = computed(() => esAdminObservatorios(userStore.user?.role));
 const paginacion = reactive({
   page: 1,
   itemsPerPage: 10,
@@ -264,7 +271,9 @@ const traerEstructuras = async () => {
       observatorio: observatorioStore.observatorio?.observatorio_id,
     });
 
-    estructuras.value = data;
+    estructuras.value = esAdministrador.value
+      ? data
+      : data.filter((estructura) => estructura.activo !== false);
 
     if (estructuraStore.estructura) {
       const encontrada = data.find(
@@ -330,7 +339,10 @@ const traerDatos = async (estructura) => {
       }
     );
 
-    datos.value = response.results || [];
+    const resultados = response.results || [];
+    datos.value = esAdministrador.value
+      ? resultados
+      : resultados.filter((registro) => registro.activo !== false);
     paginacion.totalItems = Number(response.count) || 0;
     await nextTick();
   } catch (error) {
@@ -371,6 +383,7 @@ const cerrarModal = () => {
 };
 
 const agregarRegistro = () => {
+  if (!esAdministrador.value) return;
   _agregarRegistro.value = true;
 };
 
@@ -381,12 +394,16 @@ const verRegistro = (item) => {
 };
 
 const editarRegistro = (item) => {
+  if (!esAdministrador.value) return;
+
   _gestionRegistro.value = true;
   _modo.value = false;
   datosRegistro.value = item.raw;
 };
 
 const eliminarRegistro = async (item) => {
+  if (!esAdministrador.value) return;
+
   let id = item.raw.id;
 
   const resultado = await Swal.fire({
