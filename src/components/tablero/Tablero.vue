@@ -100,16 +100,7 @@
           </v-btn>
 
           <v-btn
-            color="error"
-            variant="tonal"
-            size="small"
-            class="btn-table-action"
-            prepend-icon="mdi-trash-can"
-            @click="eliminarEstructuraTabla"
-          >
-            Eliminar
-          </v-btn>
-          <v-btn
+            v-if="esTabla"
             color="primary"
             variant="tonal"
             size="small"
@@ -851,6 +842,96 @@ const copiarIdEstructura = async () => {
       html: `<p style="word-break:break-word">${idEstructura.value}</p>`,
       icon: "info",
       width: "420px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
+};
+
+const cambiarEstadoEstructura = async () => {
+  if (!esAdministrador.value || !estructuraSeleccionada.value?.id) return;
+
+  const nuevoEstado = estructuraSeleccionada.value.activo === false;
+  const accion = nuevoEstado ? "activar" : "desactivar";
+
+  const resultado = await Swal.fire({
+    title: `${nuevoEstado ? "Activar" : "Desactivar"} estructura`,
+    html: `¿Desea ${accion} la estructura <b>${nombreEstructura.value}</b>?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (!resultado.isConfirmed) return;
+
+  mostrarCargandoTablero(
+    nuevoEstado ? "Activando estructura" : "Desactivando estructura",
+    "Procesando el cambio de estado..."
+  );
+
+  try {
+    if (nuevoEstado) {
+      const response = await estructurasEvidenciasService.actualizar(
+        estructuraSeleccionada.value.id,
+        {
+          aspecto_id: estructuraSeleccionada.value.aspecto_id,
+          tipo_evidencia: estructuraSeleccionada.value.tipo_evidencia,
+          nombre: estructuraSeleccionada.value.nombre,
+          activo: true,
+          campos: estructuraSeleccionada.value.campos || [],
+          data: estructuraSeleccionada.value.data || [],
+        }
+      );
+
+      estructuraSeleccionada.value = {
+        ...estructuraSeleccionada.value,
+        ...response.estructura,
+        activo: true,
+      };
+    } else {
+      await estructurasEvidenciasService.desactivar(estructuraSeleccionada.value.id);
+      estructuraSeleccionada.value = {
+        ...estructuraSeleccionada.value,
+        activo: false,
+      };
+    }
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: nuevoEstado ? "¡Activada!" : "¡Desactivada!",
+      text: `La estructura fue ${nuevoEstado ? "activada" : "desactivada"} correctamente.`,
+      icon: "success",
+      width: "320px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  } catch (error) {
+    console.error("Error al cambiar estado de estructura:", error?.response?.data || error);
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      text: "No fue posible cambiar el estado de la estructura.",
+      icon: "error",
+      width: "350px",
       customClass: {
         popup: "popup-personalizado",
         title: "titulo-alerta-personalizado",
