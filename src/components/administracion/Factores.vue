@@ -98,10 +98,10 @@
             icon
             size="small"
             @click="desactivarFactor(item)"
-            color="primary"
+            color="warning"
             title="Desactivar factor"
           >
-            <v-icon>mdi-trash-can</v-icon>
+            <v-icon>mdi-cancel</v-icon>
           </v-btn>
 
           <v-btn
@@ -191,11 +191,17 @@
             />
 
             <v-text-field
-              v-model="formulario.calificacion"
+              :model-value="formulario.calificacion"
               label="Calificación"
+              type="text"
+              inputmode="decimal"
               variant="outlined"
               density="comfortable"
               :readonly="modo === 'ver'"
+              :rules="[reglas.float]"
+              @update:model-value="actualizarCalificacion"
+              @keydown="bloquearEntradaNoFloat"
+              @paste="bloquearPegadoNoFloat"
             />
 
             <v-switch
@@ -301,6 +307,61 @@ const headers = ref([
 
 const reglas = {
   requerido: (value) => !!value || "Este campo es obligatorio",
+  float: (value) =>
+    value === "" ||
+    value === null ||
+    value === undefined ||
+    /^\d+(\.\d+)?$/.test(String(value)) ||
+    "La calificación debe ser un número decimal.",
+};
+
+const limpiarValorFloat = (value) => {
+  const texto = String(value ?? "").replace(/[^\d.]/g, "");
+  const partes = texto.split(".");
+
+  if (partes.length <= 1) return partes[0];
+
+  return `${partes[0]}.${partes.slice(1).join("")}`;
+};
+
+const actualizarCalificacion = (value) => {
+  formulario.value.calificacion = limpiarValorFloat(value);
+};
+
+const bloquearEntradaNoFloat = (event) => {
+  const teclasPermitidas = [
+    "Backspace",
+    "Delete",
+    "Tab",
+    "Escape",
+    "Enter",
+    "ArrowLeft",
+    "ArrowRight",
+    "Home",
+    "End",
+  ];
+
+  if (teclasPermitidas.includes(event.key) || event.ctrlKey || event.metaKey) {
+    return;
+  }
+
+  const valor = event.target.value || "";
+  const seleccionInicio = event.target.selectionStart || 0;
+  const seleccionFin = event.target.selectionEnd || 0;
+  const siguienteValor =
+    valor.slice(0, seleccionInicio) + event.key + valor.slice(seleccionFin);
+
+  if (!/^\d*(\.\d*)?$/.test(siguienteValor)) {
+    event.preventDefault();
+  }
+};
+
+const bloquearPegadoNoFloat = (event) => {
+  const texto = event.clipboardData?.getData("text") || "";
+
+  if (!/^\d+(\.\d+)?$/.test(texto.trim())) {
+    event.preventDefault();
+  }
 };
 
 const tituloModal = computed(() => {
@@ -652,8 +713,8 @@ const desactivarFactor = async (item) => {
   const nombre = factor.nombre;
 
   const resultado = await Swal.fire({
-    title: "Deshabilitar Factor",
-    html: `¿Desea inhabilitar el factor <b>${nombre}</b>? No podrá acceder a este espacio después de hacerlo.`,
+    title: "Desactivar Factor",
+    html: `¿Desea desactivar el factor <b>${nombre}</b>? No podrá acceder a este espacio después de hacerlo.`,
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
@@ -674,8 +735,8 @@ const desactivarFactor = async (item) => {
     await factoresService.desactivar(id);
 
     await Swal.fire({
-      title: "¡Eliminado!",
-      text: "El factor ha sido deshabilitado correctamente.",
+      title: "¡Desactivado!",
+      text: "El factor ha sido desactivado correctamente.",
       icon: "success",
       width: "300px",
       customClass: {
@@ -720,8 +781,9 @@ const dirigirseFactor = (item) => {
   });
 
   router.push({
-    name: "estructuras",
+    name: factor.proceso_id ? "factorEstructurasGestion" : "estructuras",
     params: {
+      ...(factor.proceso_id ? { proceso_id: factor.proceso_id } : {}),
       factor_id: id,
     },
   });

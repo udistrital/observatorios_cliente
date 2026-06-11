@@ -55,17 +55,20 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import peticionAPI from "../../service/conexion_api";
+import { useRouter, useRoute } from "vue-router";
 import Swal from "sweetalert2";
 import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useFactorStore } from "@/stores/factorStore";
 import { usePanelStore } from "@/stores/panelStore";
+import { caracteristicasService } from "@/service/caracteristicas.service";
+import { aspectosService } from "@/service/aspectos.service";
+import { estructurasEvidenciasService } from "@/service/estructuras-evidencias.service";
 
 const panelStore = usePanelStore();
 const factorStore = useFactorStore();
 const estructuraStore = useEstructuraStore();
 const router = useRouter();
+const route = useRoute();
 const search = ref("");
 const estructuras = ref([]);
 const cargando = ref(false);
@@ -96,18 +99,28 @@ const traerEstructuras = async () => {
   });
 
   try {
-    const data = await peticionAPI(
-      "campos/estructuras/",
-      "GET",
-      null,
-      { factor: factorStore.factor?.factor_id }
+    const factorId = route.params.factor_id || factorStore.factor?.factor_id || factorStore.factor?.id;
+    const caracteristicas = (await caracteristicasService.listarPorFactor(factorId))
+      .filter((caracteristica) => caracteristica.activo !== false);
+    const aspectosPorCaracteristica = await Promise.all(
+      caracteristicas.map((caracteristica) => aspectosService.listarPorCaracteristica(caracteristica.id))
+    );
+    const aspectos = aspectosPorCaracteristica
+      .flat()
+      .filter((aspecto) => aspecto.activo !== false);
+    const estructurasPorAspecto = await Promise.all(
+      aspectos.map((aspecto) => estructurasEvidenciasService.listarPorAspecto(aspecto.id))
     );
 
-    estructuras.value = data.map((item) => ({
-      ...item,
-      tieneDatos: item.mapeo?.length > 0,
-      tieneArchivos: item.mapeo_archivos?.length > 0,
-    }));
+    estructuras.value = estructurasPorAspecto
+      .flat()
+      .filter((item) => item.activo !== false)
+      .map((item) => ({
+        ...item,
+        factor: factorId,
+        tieneDatos: item.tipo_evidencia === "Tabla",
+        tieneArchivos: item.tipo_evidencia === "Documental",
+      }));
   } catch (error) {
     console.error(error);
     Swal.fire(
@@ -126,19 +139,20 @@ const diriguirseEstructura = (item) => {
   estructuraStore.setEstructura({
     id: item.raw.id,
     nombre: item.raw.nombre,
-    mapeo: item.raw.mapeo,
+    mapeo: item.raw.campos || item.raw.mapeo || [],
   });
   panelStore.setPanel({
     id: item.raw.id,
-    idArchivos: item.raw.id_archivos,
+    idArchivos: item.raw.id_archivos || item.raw.id,
     nombreCaracteristica: item.columns.nombre,
     nombreFactor: factorStore.factor?.nombre,
-    factor: item.raw.factor,
+    factor: item.raw.factor || route.params.factor_id,
   });
   router.push({
-    name: "caracteristicaPrincipal",
+    name: route.params.proceso_id ? "factorCaracteristicaPrincipal" : "caracteristicaPrincipal",
     params: {
-      factor_id: item.raw.factor,
+      ...(route.params.proceso_id ? { proceso_id: route.params.proceso_id } : {}),
+      factor_id: route.params.factor_id || factorStore.factor?.factor_id || factorStore.factor?.id,
     },
   });
 };

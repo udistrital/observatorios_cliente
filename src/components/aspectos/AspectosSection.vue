@@ -7,6 +7,7 @@
       </div>
 
       <v-btn
+        v-if="puedeGestionar"
         color="primary"
         prepend-icon="mdi-plus"
         size="small"
@@ -24,7 +25,7 @@
     />
 
     <v-alert
-      v-if="!cargandoAspectos && aspectos.length === 0"
+      v-if="!cargandoAspectos && aspectosVisibles.length === 0"
       type="info"
       variant="tonal"
       class="mb-3"
@@ -33,11 +34,12 @@
     </v-alert>
 
     <AspectoCard
-      v-for="(aspecto, index) in aspectos"
+      v-for="(aspecto, index) in aspectosVisibles"
       :key="aspecto.id || index"
       :aspecto="aspecto"
       :index="index"
       :abierto="aspectoEstaAbierto(aspecto.id)"
+      :puede-gestionar="puedeGestionar"
       @toggle="toggleAspecto"
       @ver="verAspecto"
       @editar="editarAspecto"
@@ -60,7 +62,6 @@ import { useAspectos } from "./useAspectos";
 import { useAspectoDialogs } from "./useAspectoDialogs";
 import { estructurasEvidenciasService } from "@/service/estructuras-evidencias.service";
 import { useRouter, useRoute } from "vue-router";
-import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useFactorStore } from "@/stores/factorStore";
 
 const props = defineProps({
@@ -68,12 +69,15 @@ const props = defineProps({
     type: Object,
     required: true,
   },
+  puedeGestionar: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const router = useRouter();
 const route = useRoute();
 
-const estructuraStore = useEstructuraStore();
 const factorStore = useFactorStore();
 
 const factorId = computed(() => {
@@ -83,6 +87,10 @@ const factorId = computed(() => {
     route.params.factor_id ||
     route.params.id
   );
+});
+
+const procesoId = computed(() => {
+  return route.params.proceso_id || factorStore.factor?.proceso_id;
 });
 
 const caracteristicaId = computed(() => props.caracteristica?.id);
@@ -98,6 +106,19 @@ const {
   cambiarEstadoAspecto: cambiarEstadoAspectoApi,
   eliminarAspecto: eliminarAspectoApi,
 } = useAspectos(caracteristicaId);
+
+const aspectosVisibles = computed(() => {
+  const visibles = props.puedeGestionar
+    ? aspectos.value
+    : aspectos.value.filter((aspecto) => aspecto.activo !== false);
+
+  return visibles.map((aspecto) => ({
+    ...aspecto,
+    estructuras_evidencias: props.puedeGestionar
+      ? aspecto.estructuras_evidencias || []
+      : (aspecto.estructuras_evidencias || []).filter((estructura) => estructura.activo !== false),
+  }));
+});
 
 const {
   mostrarCargandoAspecto,
@@ -137,6 +158,8 @@ const cargar = async () => {
 };
 
 const crearAspecto = async () => {
+  if (!props.puedeGestionar) return;
+
   const resultado = await crearAspectoDialog();
 
   if (!resultado.isConfirmed) return;
@@ -169,6 +192,8 @@ const verAspecto = async (aspecto) => {
 };
 
 const editarAspecto = async (aspecto) => {
+  if (!props.puedeGestionar) return;
+
   const resultado = await editarAspectoDialog(aspecto);
 
   if (!resultado.isConfirmed) return;
@@ -199,6 +224,8 @@ const editarAspecto = async (aspecto) => {
 };
 
 const cambiarEstadoAspecto = async (aspecto) => {
+  if (!props.puedeGestionar) return;
+
   const resultado = await confirmarCambioEstadoAspectoDialog(aspecto);
 
   if (!resultado.isConfirmed) return;
@@ -232,6 +259,8 @@ const cambiarEstadoAspecto = async (aspecto) => {
 };
 
 const eliminarAspecto = async (aspecto) => {
+  if (!props.puedeGestionar) return;
+
   const resultado = await confirmarEliminarAspectoDialog(aspecto);
 
   if (!resultado.isConfirmed) return;
@@ -276,6 +305,8 @@ const actualizarEstructurasDelAspecto = (
 };
 
 const crearEstructuraEvidencia = async (aspecto) => {
+  if (!props.puedeGestionar) return;
+
   const resultado = await crearEstructuraEvidenciaDialog();
 
   if (!resultado.isConfirmed) return;
@@ -348,6 +379,8 @@ const verEstructuraEvidencia = async (estructura) => {
 };
 
 const editarEstructuraEvidencia = async (aspecto, estructura) => {
+  if (!props.puedeGestionar) return;
+
   const resultado = await crearEstructuraEvidenciaDialog({
     tipo_evidencia: estructura.tipo_evidencia,
     nombre: estructura.nombre,
@@ -397,7 +430,29 @@ const editarEstructuraEvidencia = async (aspecto, estructura) => {
 };
 
 const cambiarEstadoEstructuraEvidencia = async (aspecto, estructura) => {
+  if (!props.puedeGestionar) return;
+
   const nuevoEstado = estructura.activo === false;
+  const accion = nuevoEstado ? "activar" : "desactivar";
+
+  const resultado = await Swal.fire({
+    title: `${nuevoEstado ? "Activar" : "Desactivar"} estructura evidencia`,
+    html: `¿Desea ${accion} la estructura evidencia <b>${estructura.nombre}</b>?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+  });
+
+  if (!resultado.isConfirmed) return;
 
   try {
     await mostrarCargandoAspecto(
@@ -476,7 +531,7 @@ const irAEstructuraEvidencia = async (...args) => {
 
   const tipo = estructura.tipo_evidencia || estructura.tipo || "";
 
-  if (!["Tabla", "Documental"].includes(tipo)) {
+  if (!["Tabla", "Documental", "datos", "archivos"].includes(tipo)) {
     await Swal.fire({
       title: "Tipo de evidencia no soportado",
       text: "Solo se pueden abrir estructuras de tipo Tabla o Documental.",
@@ -493,17 +548,31 @@ const irAEstructuraEvidencia = async (...args) => {
     return;
   }
 
-  const ruta = router.resolve({
-    name: "tablero",
+  if (tipo === "Documental" || tipo === "archivos") {
+    router.push({
+      name: procesoId.value ? "factorTablero" : "tablero",
+      params: {
+        ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
+        factor_id: factorId.value,
+      },
+      query: {
+        estructura_id: estructuraId,
+      },
+    });
+
+    return;
+  }
+
+  router.push({
+    name: procesoId.value ? "factorTablero" : "tablero",
     params: {
+      ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
       factor_id: factorId.value,
     },
     query: {
       estructura_id: estructuraId,
     },
   });
-
-  window.open(ruta.href, "_blank", "noopener,noreferrer");
 };
 
 watch(

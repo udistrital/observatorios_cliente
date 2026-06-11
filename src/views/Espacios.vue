@@ -10,7 +10,7 @@
         <div class="info-grid">
           <section class="info-card">
             <div class="info-card__icon">
-              <v-icon size="24">mdi-information-outline</v-icon>
+              <v-icon size="24">mdi-sitemap-outline</v-icon>
             </div>
 
             <div>
@@ -45,113 +45,135 @@
     <div class="section-header">
       <div>
         <span class="section-header__label">Listado</span>
-        <h2>Factores de evaluación</h2>
+        <h2>Procesos institucionales</h2>
       </div>
 
-      <v-chip
-        size="small"
-        color="primary"
-        variant="tonal"
-        class="section-header__chip"
-      >
-        {{ factoresActivos.length }} activos
-      </v-chip>
+      <div class="section-header__actions">
+        <v-chip size="small" color="primary" variant="tonal" class="section-header__chip">
+          {{ procesosActivos.length }} activos
+        </v-chip>
+
+        <v-text-field
+          v-model="search"
+          class="buscador__procesos"
+          append-inner-icon="mdi-magnify"
+          label="Buscar proceso"
+          variant="outlined"
+          density="compact"
+          hide-details
+        />
+
+        <v-btn
+          v-if="esAdministrador"
+          color="primary"
+          prepend-icon="mdi-plus"
+          @click="abrirCrearProceso"
+        >
+          Crear Proceso
+        </v-btn>
+      </div>
     </div>
 
-    <v-skeleton-loader
-      v-if="cargando"
-      type="card, card, card"
-      class="mt-4"
-    />
+    <v-skeleton-loader v-if="cargando" type="card, card, card" class="mt-4" />
 
     <v-alert
-      v-if="!cargando && factoresActivos.length === 0"
+      v-if="!cargando && procesosFiltrados.length === 0"
       type="info"
       variant="tonal"
       class="mt-4"
     >
-      No se encontraron factores activos.
-      <span v-if="esAdministrador">
-        Puede ingresar a Administración para crear o gestionar los factores.
-      </span>
+      No se encontraron procesos activos.
+      <span v-if="esAdministrador">Puede crear un proceso desde este panel.</span>
     </v-alert>
 
-    <div
-      v-if="!cargando && mostrarGridEspacios"
-      class="espacios-grid"
-    >
+    <div v-if="!cargando && procesosFiltrados.length > 0" class="espacios-grid">
       <article
-        v-if="esAdministrador"
-        class="espacio-card espacio-card--admin"
-        @click="verAdministracion"
-      >
-        <div class="espacio-card__top">
-          <div class="espacio-card__icon espacio-card__icon--admin">
-            <img src="../assets/img/logo-admin.png" alt="administración" />
-          </div>
-
-          <v-chip
-            size="x-small"
-            color="primary"
-            variant="tonal"
-          >
-            Admin
-          </v-chip>
-        </div>
-
-        <div class="espacio-card__content">
-          <span class="espacio-card__label">Gestión</span>
-          <h3>Administración</h3>
-          <p>
-            Gestionar factores, características, aspectos y estructuras de
-            evidencias.
-          </p>
-        </div>
-
-        <div class="espacio-card__footer">
-          <span>Entrar</span>
-          <v-icon size="18">mdi-arrow-right</v-icon>
-        </div>
-      </article>
-
-      <article
-        v-for="(factor, index) in factoresActivos"
-        :key="factor.factor_id || factor.id || index"
+        v-for="(proceso, index) in procesosFiltrados"
+        :key="proceso.proceso_id || proceso.id || index"
         class="espacio-card"
-        @click="dirigirseFactor(factor)"
+        :class="{ 'espacio-card--inactive': proceso.activo === false }"
+        @click="proceso.activo !== false && dirigirseProceso(proceso)"
       >
         <div class="espacio-card__top">
           <div class="espacio-card__icon">
-            <v-icon size="30">mdi-format-list-bulleted</v-icon>
+            <v-icon size="30">mdi-clipboard-text-outline</v-icon>
           </div>
 
           <v-chip
             size="x-small"
-            color="success"
+            :color="proceso.activo === false ? 'error' : 'success'"
             variant="tonal"
           >
-            Activo
+            {{ proceso.activo === false ? "Inactivo" : "Activo" }}
           </v-chip>
         </div>
 
         <div class="espacio-card__content">
-          <span class="espacio-card__label">
-            {{ obtenerEtiquetaFactor(factor, index) }}
-          </span>
-
-          <h3>{{ factor.nombre }}</h3>
-
-          <p>
-            {{ obtenerDescripcionFactor(factor) }}
-          </p>
+          <span class="espacio-card__label">{{ obtenerEtiquetaProceso(proceso, index) }}</span>
+          <h3>{{ proceso.nombre }}</h3>
+          <p>{{ obtenerDescripcionProceso(proceso) }}</p>
         </div>
 
-        <div class="espacio-card__footer">
-          <span>Consultar</span>
-          <v-icon size="18">mdi-arrow-right</v-icon>
+        <div v-if="proceso.dependencia_responsable || proceso.fecha_inicio || proceso.fecha_fin" class="espacio-card__meta">
+          <span v-if="proceso.dependencia_responsable">
+            <v-icon size="14">mdi-domain</v-icon>
+            {{ proceso.dependencia_responsable }}
+          </span>
+          <span v-if="proceso.fecha_inicio || proceso.fecha_fin">
+            <v-icon size="14">mdi-calendar-range</v-icon>
+            {{ proceso.fecha_inicio || "Sin inicio" }} - {{ proceso.fecha_fin || "Sin fin" }}
+          </span>
+        </div>
+
+        <div class="espacio-card__footer" @click.stop>
+          <div v-if="esAdministrador" class="espacio-card__crud">
+            <v-btn variant="text" icon size="small" color="primary" title="Ver proceso" @click="verProceso(proceso)">
+              <v-icon>mdi-eye</v-icon>
+            </v-btn>
+            <v-btn variant="text" icon size="small" color="primary" title="Editar proceso" @click="editarProceso(proceso)">
+              <v-icon>mdi-pencil</v-icon>
+            </v-btn>
+            <v-btn
+              v-if="proceso.activo !== false"
+              variant="text"
+              icon
+              size="small"
+              color="primary"
+              title="Desactivar proceso"
+              @click="desactivarProceso(proceso)"
+            >
+              <v-icon>mdi-cancel</v-icon>
+            </v-btn>
+            <v-btn
+              v-else
+              variant="text"
+              icon
+              size="small"
+              color="primary"
+              title="Reactivar proceso"
+              @click="reactivarProceso(proceso)"
+            >
+              <v-icon>mdi-sync</v-icon>
+            </v-btn>
+          </div>
+
+          <v-btn
+            v-if="proceso.activo !== false"
+            variant="text"
+            color="primary"
+            append-icon="mdi-arrow-right"
+            @click="dirigirseProceso(proceso)"
+          >
+            Factores
+          </v-btn>
         </div>
       </article>
     </div>
+
+    <ProcesoFormDialog
+      ref="procesoFormDialogRef"
+      @proceso-guardado="traerProcesos"
+    />
   </section>
 </template>
 
@@ -160,25 +182,48 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
 
-import { factoresService } from "@/service/factores.service";
-import { useFactorStore } from "@/stores/factorStore";
+import ProcesoFormDialog from "@/components/procesos/ProcesoFormDialog.vue";
+import { procesosService } from "@/service/procesos.service";
 import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios, normalizarRoles } from "@/utils/roles";
 
 const router = useRouter();
-
 const userStore = useUserStore();
-const factorStore = useFactorStore();
 
-const factores = ref([]);
+const procesos = ref([]);
 const roleUsuario = ref([]);
 const cargando = ref(false);
+const procesoFormDialogRef = ref(null);
+const search = ref("");
 
-const ROL_ADMIN = "ADMIN_OBSERVATORIOS";
+const esAdministrador = computed(() => esAdminObservatorios(roleUsuario.value));
 
-const mostrarCargandoFactores = () => {
+const procesosActivos = computed(() => procesos.value.filter((proceso) => proceso.activo !== false));
+
+const procesosVisibles = computed(() => {
+  if (esAdministrador.value) return procesos.value;
+  return procesosActivos.value;
+});
+
+const procesosFiltrados = computed(() => {
+  if (!search.value) return procesosVisibles.value;
+
+  const textoBusqueda = search.value.toLowerCase();
+
+  return procesosVisibles.value.filter((proceso) => {
+    return (
+      proceso.nombre?.toLowerCase().includes(textoBusqueda) ||
+      proceso.descripcion?.toLowerCase().includes(textoBusqueda) ||
+      proceso.dependencia_responsable?.toLowerCase().includes(textoBusqueda) ||
+      String(proceso.proceso_id || proceso.id || "").toLowerCase().includes(textoBusqueda)
+    );
+  });
+});
+
+const mostrarCargandoProcesos = () => {
   Swal.fire({
-    title: "Cargando factores",
-    text: "Consultando los factores de evaluación…",
+    title: "Cargando procesos",
+    text: "Consultando los procesos institucionales...",
     allowOutsideClick: false,
     allowEscapeKey: false,
     width: "340px",
@@ -192,44 +237,26 @@ const mostrarCargandoFactores = () => {
   });
 };
 
-const cerrarCargandoFactores = () => {
+const cerrarCargandoProcesos = () => {
   Swal.close();
 };
 
-const esAdministrador = computed(() => {
-  return roleUsuario.value.includes(ROL_ADMIN);
-});
-
-const factoresActivos = computed(() => {
-  return factores.value.filter((factor) => factor.activo);
-});
-
-const mostrarGridEspacios = computed(() => {
-  return esAdministrador.value || factoresActivos.value.length > 0;
-});
-
-const verAdministracion = () => {
-  router.push("/administracion/factores");
-};
-
-const traerFactores = async () => {
+const traerProcesos = async () => {
   cargando.value = true;
-  factores.value = [];
-
-  mostrarCargandoFactores();
+  procesos.value = [];
+  mostrarCargandoProcesos();
 
   try {
-    const data = await factoresService.listar();
-    factores.value = Array.isArray(data) ? data : [];
+    const data = await procesosService.listar();
+    procesos.value = Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error("Error al cargar factores:", error);
-    factores.value = [];
-
-    cerrarCargandoFactores();
+    console.error("Error al cargar procesos:", error?.response?.data || error);
+    procesos.value = [];
+    cerrarCargandoProcesos();
 
     await Swal.fire({
       title: "Error",
-      text: "No fue posible cargar los factores de evaluación.",
+      text: "No fue posible cargar los procesos institucionales.",
       icon: "error",
       width: "340px",
       customClass: {
@@ -239,91 +266,135 @@ const traerFactores = async () => {
       },
       buttonsStyling: false,
     });
-
-    return;
   } finally {
     cargando.value = false;
-    cerrarCargandoFactores();
+    cerrarCargandoProcesos();
   }
 };
 
-const dirigirseFactor = (factor) => {
-  const factorId = factor.factor_id || factor.id;
+const obtenerProcesoId = (proceso) => proceso.proceso_id || proceso.id;
 
-  factorStore.setFactor({
-    id: factor.id,
-    factor_id: factorId,
-    nombre: factor.nombre,
-    descripcion: factor.descripcion,
-    calificacion: factor.calificacion,
-    activo: factor.activo,
-    numero: factor.numero,
-    caracteristicas: Array.isArray(factor.caracteristicas)
-      ? factor.caracteristicas
-      : [],
+const dirigirseProceso = (proceso) => {
+  const procesoId = obtenerProcesoId(proceso);
+  if (!procesoId) return;
+
+  router.push({
+    name: "procesoFactores",
+    params: {
+      proceso_id: procesoId,
+    },
+  });
+};
+
+const obtenerEtiquetaProceso = (proceso, index) => {
+  return proceso.proceso_id || proceso.id || `Proceso ${index + 1}`;
+};
+
+const obtenerDescripcionProceso = (proceso) => {
+  if (proceso.descripcion) return proceso.descripcion;
+
+  const totalFactores = Array.isArray(proceso.factores) ? proceso.factores.length : 0;
+  if (totalFactores > 0) return `${totalFactores} factor(es) asociado(s) a este proceso.`;
+
+  return "Consultar los factores y evidencias asociados a este proceso.";
+};
+
+const abrirCrearProceso = () => {
+  if (!esAdministrador.value) return;
+  procesoFormDialogRef.value?.abrir("crear");
+};
+
+const verProceso = (proceso) => {
+  procesoFormDialogRef.value?.abrir("ver", proceso);
+};
+
+const editarProceso = (proceso) => {
+  if (!esAdministrador.value) return;
+  procesoFormDialogRef.value?.abrir("editar", proceso);
+};
+
+const cambiarEstadoProceso = async (proceso, activo) => {
+  if (!esAdministrador.value) return;
+
+  const id = obtenerProcesoId(proceso);
+  if (!id) return;
+
+  const accion = activo ? "reactivar" : "desactivar";
+  const resultado = await Swal.fire({
+    title: activo ? "Reactivar Proceso" : "Desactivar Proceso",
+    html: `¿Desea ${accion} el proceso <b>${proceso.nombre}</b>?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "Confirmar",
+    cancelButtonText: "Cancelar",
+    width: "350px",
+    customClass: {
+      popup: "popup-personalizado",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
   });
 
-  if (esAdministrador.value) {
-    router.push({
-      name: "estructuras",
-      params: {
-        factor_id: factorId,
+  if (!resultado.isConfirmed) return;
+
+  try {
+    if (activo) {
+      await procesosService.actualizarParcial(id, { activo: true });
+    } else {
+      await procesosService.desactivar(id);
+    }
+
+    await traerProcesos();
+
+    await Swal.fire({
+      title: activo ? "¡Activado!" : "¡Desactivado!",
+      text: activo
+        ? "El proceso se ha reactivado correctamente."
+        : "El proceso se ha desactivado correctamente.",
+      icon: "success",
+      width: "300px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
       },
+      buttonsStyling: false,
     });
-  } else {
-    router.push({
-      name: "estructurasVista",
-      params: {
-        factor_id: factorId,
+  } catch (error) {
+    console.error("Error al cambiar estado del proceso:", error?.response?.data || error);
+
+    Swal.fire({
+      title: "Error",
+      text: "No fue posible actualizar el estado del proceso.",
+      icon: "error",
+      width: "350px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
       },
+      buttonsStyling: false,
     });
   }
 };
 
-const obtenerEtiquetaFactor = (factor, index) => {
-  if (factor.numero) {
-    return `Factor ${factor.numero}`;
-  }
-
-  const nombre = factor.nombre || "";
-
-  const coincidencia = nombre.match(/factor\s*\d+/i);
-
-  if (coincidencia) {
-    return coincidencia[0];
-  }
-
-  return `Factor ${index + 1}`;
-};
-
-const obtenerDescripcionFactor = (factor) => {
-  if (factor.descripcion) {
-    return factor.descripcion;
-  }
-
-  const totalCaracteristicas = Array.isArray(factor.caracteristicas)
-    ? factor.caracteristicas.length
-    : 0;
-
-  if (totalCaracteristicas > 0) {
-    return `${totalCaracteristicas} característica(s) asociada(s) a este factor.`;
-  }
-
-  return "Consultar la información asociada a este factor de evaluación.";
-};
+const desactivarProceso = (proceso) => cambiarEstadoProceso(proceso, false);
+const reactivarProceso = (proceso) => cambiarEstadoProceso(proceso, true);
 
 watch(
   () => userStore.user?.role,
   (nuevoRol) => {
     if (Array.isArray(nuevoRol) && nuevoRol.length) {
-      roleUsuario.value = nuevoRol;
+      roleUsuario.value = normalizarRoles(nuevoRol);
     }
   },
   { immediate: true }
 );
 
 onMounted(() => {
-  traerFactores();
+  traerProcesos();
 });
 </script>
 
@@ -362,15 +433,12 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.hero-card__label {
-  opacity: 0.86;
-}
-
 .hero-card__header h1 {
   margin: 0;
   font-size: 26px;
   font-weight: 900;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .hero-card__body {
@@ -412,7 +480,9 @@ onMounted(() => {
   color: #2e8b74;
 }
 
-.info-card__label {
+.info-card__label,
+.section-header__label,
+.espacio-card__label {
   color: #607d9a;
 }
 
@@ -422,6 +492,7 @@ onMounted(() => {
   font-size: 13px;
   font-weight: 600;
   line-height: 1.48;
+  overflow-wrap: anywhere;
 }
 
 .section-header {
@@ -441,10 +512,19 @@ onMounted(() => {
   color: #2f4774;
   font-size: 24px;
   font-weight: 900;
+  overflow-wrap: anywhere;
 }
 
-.section-header__label {
-  color: #607d9a;
+.section-header > div:first-child {
+  min-width: 0;
+}
+
+.section-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
 }
 
 .section-header__chip {
@@ -452,9 +532,14 @@ onMounted(() => {
   font-weight: 800;
 }
 
+.buscador__procesos {
+  max-width: 320px;
+  min-width: 240px;
+}
+
 .espacios-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(245px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
   gap: 16px;
   margin-top: 14px;
 }
@@ -463,17 +548,15 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 210px;
+  min-width: 0;
+  min-height: 250px;
   padding: 16px;
   border: 1px solid #d7e1ef;
   border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 6px 18px rgba(25, 55, 90, 0.08);
   cursor: pointer;
-  transition:
-    transform 0.18s ease,
-    box-shadow 0.18s ease,
-    border-color 0.18s ease;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
 }
 
 .espacio-card:hover {
@@ -482,19 +565,28 @@ onMounted(() => {
   box-shadow: 0 10px 24px rgba(25, 55, 90, 0.14);
 }
 
-.espacio-card--admin {
-  border-left: 5px solid #315f99;
-  background: #f7fbff;
+.espacio-card--inactive {
+  cursor: default;
+  opacity: 0.74;
 }
 
-.espacio-card__top {
+.espacio-card__top,
+.espacio-card__footer,
+.espacio-card__crud,
+.espacio-card__meta span {
   display: flex;
   align-items: center;
+}
+
+.espacio-card__top,
+.espacio-card__footer {
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
 
 .espacio-card__icon {
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -505,24 +597,10 @@ onMounted(() => {
   color: #315f99;
 }
 
-.espacio-card__icon--admin {
-  background: #ffffff;
-  border: 1px solid #cfe0ef;
-}
-
-.espacio-card__icon--admin img {
-  width: 30px;
-  height: 30px;
-  object-fit: contain;
-}
-
 .espacio-card__content {
   margin-top: 16px;
   min-width: 0;
-}
-
-.espacio-card__label {
-  color: #607d9a;
+  overflow: hidden;
 }
 
 .espacio-card h3 {
@@ -536,6 +614,7 @@ onMounted(() => {
   line-height: 1.3;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
 }
 
 .espacio-card p {
@@ -548,19 +627,47 @@ onMounted(() => {
   line-height: 1.45;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
+  overflow-wrap: anywhere;
+}
+
+.espacio-card__meta {
+  display: grid;
+  gap: 6px;
+  margin-top: 14px;
+  min-width: 0;
+  overflow: hidden;
+  color: #607d8b;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.espacio-card__meta span {
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .espacio-card__footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
+  flex-wrap: wrap;
   margin-top: 16px;
   padding-top: 12px;
   border-top: 1px solid #e2e8f0;
-  color: #315f99;
-  font-size: 12px;
-  font-weight: 900;
+}
+
+.espacio-card__crud {
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+.espacio-card .v-chip {
+  max-width: 100%;
+}
+
+.espacio-card .v-btn {
+  min-width: 0;
 }
 
 @media (max-width: 900px) {
@@ -573,8 +680,10 @@ onMounted(() => {
     flex-direction: column;
   }
 
-  .espacios-grid {
-    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  .section-header__actions,
+  .buscador__procesos {
+    width: 100%;
+    max-width: none;
   }
 }
 

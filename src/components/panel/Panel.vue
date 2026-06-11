@@ -10,7 +10,7 @@
     <div class="cabecera">
       <v-spacer />
       <v-btn
-        v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
+        v-if="esAdministrador"
         color="primary"
         prepend-icon="mdi-plus"
         @click="crearPanel"
@@ -60,7 +60,7 @@
               @click="verPanel(item)"
               color="primary"
               title="Ver panel"
-              v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
+              v-if="esAdministrador"
             >
               <v-icon>mdi-eye</v-icon>
             </v-btn>
@@ -71,11 +71,11 @@
               @click="editarPanel(item)"
               color="primary"
               title="Editar panel"
-              v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
+              v-if="esAdministrador"
             >
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
-            <div v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')" class="">
+            <div v-if="esAdministrador" class="">
               <v-btn
                 v-if="item.columns.activo"
                 variant="text"
@@ -140,7 +140,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
 import CrearPanel from "./CrearPanel.vue";
@@ -148,15 +148,17 @@ import PanelGestion from "./PanelGestion.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import { usePanelStore } from "@/stores/panelStore";
 import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios } from "@/utils/roles";
 
 const userStore = useUserStore();
 const panelStore = usePanelStore();
 const observatorioStore = useObservatorioStore();
 const router = useRouter();
+const route = useRoute();
 const search = ref("");
 const paneles = ref([]);
 const cargando = ref(false);
-const roleUsuario = ref("");
+const esAdministrador = computed(() => esAdminObservatorios(userStore.user?.role));
 
 const headers = ref([
   { title: "Nombre", key: "nombre", align: "center" },
@@ -165,8 +167,12 @@ const headers = ref([
 ]);
 
 const filteredObservatories = computed(() => {
-  if (!search.value) return paneles.value;
-  return paneles.value.filter((obs) =>
+  const panelesVisibles = esAdministrador.value
+    ? paneles.value
+    : paneles.value.filter((panel) => panel.activo !== false);
+
+  if (!search.value) return panelesVisibles;
+  return panelesVisibles.filter((obs) =>
     obs.nombre.toLowerCase().includes(search.value.toLowerCase())
   );
 });
@@ -198,6 +204,7 @@ const cerrarModal = () => {
 };
 
 const crearPanel = () => {
+  if (!esAdministrador.value) return;
   _crearPanel.value = true;
 };
 
@@ -208,12 +215,16 @@ const verPanel = (item) => {
 };
 
 const editarPanel = (item) => {
+  if (!esAdministrador.value) return;
+
   _gestionPanel.value = true;
   _modo.value = true;
   datosPanel.value = item.raw;
 };
 
 const reactivarPanel = async (item) => {
+  if (!esAdministrador.value) return;
+
   let id = item.raw.id;
   let nombre = item.raw.nombre;
   const resultado = await Swal.fire({
@@ -258,6 +269,8 @@ const reactivarPanel = async (item) => {
   }
 };
 const eliminarPanel = async (item) => {
+  if (!esAdministrador.value) return;
+
   let id = item.raw.id;
   let nombre = item.raw.nombre;
 
@@ -311,11 +324,15 @@ const diriguirsePanel = (item) => {
     observatorio: item.raw.observatorio,
     columnas: item.raw.columnas,
   });
-  router.push(`panel/principal`);
+  router.push({
+    name: route.params.proceso_id ? "factorPanelPrincipal" : "panelPrincipal",
+    params: route.params.proceso_id
+      ? { proceso_id: route.params.proceso_id, factor_id: route.params.factor_id }
+      : { factor_id: route.params.factor_id },
+  });
 };
 onMounted(() => {
   traerPaneles();
-  roleUsuario.value = userStore.user.role;
 });
 </script>
 

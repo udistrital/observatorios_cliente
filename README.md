@@ -1,6 +1,11 @@
 
 # Proyecto Observatorios
 
+## Punto de entrada técnico
+- `AGENTS.md`
+- `docs/README.md`
+- `docs/specs/README.md`
+
 Este repositorio contiene el cliente del sistema de gestión para observatorios. Su función principal es consumir los endpoints del API de `observatorios_crud`, permitiendo a los usuarios interactuar con los datos de manera intuitiva y eficiente.
 
 ## Especificaciones Técnicas

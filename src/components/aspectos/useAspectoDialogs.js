@@ -195,9 +195,11 @@ export function useAspectoDialogs() {
     });
   };
 
-  const crearEstructuraEvidenciaDialog = async () => {
+  const crearEstructuraEvidenciaDialog = async (estructura = null) => {
+    const esEdicion = Boolean(estructura?.id || estructura?.tipo_evidencia || estructura?.nombre);
+
     return Swal.fire({
-      title: "Crear Estructura Evidencia",
+      title: esEdicion ? "Editar Estructura Evidencia" : "Crear Estructura Evidencia",
       html: `
         <div style="text-align:left">
           <label style="font-weight:600">Tipo de evidencia</label>
@@ -205,6 +207,7 @@ export function useAspectoDialogs() {
             id="tipoEvidencia"
             class="swal2-select"
             style="width:100%; margin: 8px 0 14px;"
+            ${esEdicion ? "disabled" : ""}
           >
             <option value="">Seleccione un tipo</option>
             <option value="Documental">Documental</option>
@@ -225,10 +228,14 @@ export function useAspectoDialogs() {
       width: "500px",
       customClass: clases,
       buttonsStyling: false,
+      didOpen: () => {
+        document.getElementById("tipoEvidencia").value = estructura?.tipo_evidencia || "";
+        document.getElementById("nombreEstructuraEvidencia").value = estructura?.nombre || "";
+      },
       preConfirm: () => {
-        const tipoEvidencia = document
-          .getElementById("tipoEvidencia")
-          ?.value?.trim();
+        const tipoEvidencia = esEdicion
+          ? estructura.tipo_evidencia
+          : document.getElementById("tipoEvidencia")?.value?.trim();
 
         const nombre = document
           .getElementById("nombreEstructuraEvidencia")

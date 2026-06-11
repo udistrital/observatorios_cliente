@@ -15,6 +15,7 @@
       </v-btn>
 
       <v-btn
+        v-if="puedeGestionar"
         variant="tonal"
         icon
         size="small"
@@ -26,6 +27,7 @@
       </v-btn>
 
       <v-btn
+        v-if="puedeGestionar"
         variant="tonal"
         icon
         size="small"
@@ -38,6 +40,7 @@
         </v-icon>
       </v-btn>
 
+      <!--
       <v-btn
         variant="tonal"
         icon
@@ -48,6 +51,7 @@
       >
         <v-icon>mdi-delete-forever</v-icon>
       </v-btn>
+      -->
     </div>
   </div>
 </template>
@@ -57,6 +61,10 @@ defineProps({
   caracteristica: {
     type: Object,
     required: true,
+  },
+  puedeGestionar: {
+    type: Boolean,
+    default: false,
   },
 });
 

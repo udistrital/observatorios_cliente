@@ -35,6 +35,7 @@
       >
         <AspectoActions
           :aspecto="aspecto"
+          :puede-gestionar="puedeGestionar"
           @ver="$emit('ver', aspecto)"
           @editar="$emit('editar', aspecto)"
           @cambiar-estado="$emit('cambiar-estado', aspecto)"
@@ -43,6 +44,7 @@
 
         <AspectoEstructurasTable
           :estructuras="aspecto.estructuras_evidencias || []"
+          :puede-gestionar="puedeGestionar"
           @crear="$emit('crear-estructura', aspecto)"
           @ver="$emit('ver-estructura', $event)"
           @editar="$emit('editar-estructura', aspecto, $event)"
@@ -68,6 +70,10 @@ defineProps({
     required: true,
   },
   abierto: {
+    type: Boolean,
+    default: false,
+  },
+  puedeGestionar: {
     type: Boolean,
     default: false,
   },

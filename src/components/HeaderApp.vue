@@ -38,7 +38,7 @@
           link
           :to="item.direccion"
           :class="{ 'active-item': route.path.includes(item.direccion) }"
-          v-if="item.generalUSers || roleUsuario.includes('ADMIN_OBSERVATORIOS')"
+          v-if="item.generalUSers || esAdministrador"
         >
           <div class="dawer__item" >
             <v-icon class="mr-2 dawer__icon">{{ item.icono }}</v-icon>
@@ -54,20 +54,22 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import logoAdmin from "@/assets/img/logo-admin.png";
 import logoDefault from "@/assets/img/logo.png";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import { useUserService } from "@/service/userService";
 import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios, normalizarRoles } from "@/utils/roles";
 
 const userStore = useUserStore();
 const userService = useUserService();
 const isHovering = ref(false);
 const route = useRoute();
 const observatorioStore = useObservatorioStore();
-const roleUsuario = ref("");
+const roleUsuario = ref([]);
+const esAdministrador = computed(() => esAdminObservatorios(roleUsuario.value));
 
 
 const observatorioId = computed(() => {
@@ -76,7 +78,7 @@ const observatorioId = computed(() => {
   );
 });
 
-const rutasNavbar = ["/", "/espacios"];
+const rutasNavbar = ["/", "/espacios", "/procesos"];
 const verNavbar = computed(() => !rutasNavbar.includes(route.path));
 
 const imagenSrc = computed(() => {
@@ -95,7 +97,7 @@ const menuItems = [
   {
     texto: "Inicio",
     icono: "mdi-home",
-    direccion: "/espacios",
+    direccion: "/procesos",
     admin: true,
     general: true,
     generalUSers: true,
@@ -133,8 +135,6 @@ const menuItems = [
 
 watch(verNavbar, (newValue) => {
   if (newValue === true) {
-    roleUsuario.value = userStore.user.role;
-
     const base64Data = localStorage.getItem('menu');
     if (base64Data) {
       try {
@@ -150,6 +150,14 @@ watch(verNavbar, (newValue) => {
     }
   }
 });
+
+watch(
+  () => userStore.user?.role,
+  (roles) => {
+    roleUsuario.value = normalizarRoles(roles);
+  },
+  { immediate: true }
+);
 
 const dynamicMenuItems = computed(() => {
   const esAdmin = route.path.includes("administracion/");
@@ -167,9 +175,6 @@ const dynamicMenuItems = computed(() => {
     return item;
   });
 });
-onMounted(() => {
-  roleUsuario.value = userStore.user?.role;
-})
 </script>
 
 <style scoped>

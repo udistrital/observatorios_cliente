@@ -1,8 +1,21 @@
 <template>
   <section class="factor-page">
+    <div class="flow-nav">
+      <v-btn
+        variant="tonal"
+        color="primary"
+        prepend-icon="mdi-arrow-left"
+        class="return-button"
+        @click="volverAFactores"
+      >
+        Regresar a factores
+      </v-btn>
+    </div>
+
     <!-- FACTOR -->
     <FactorCard
       :factor="factor"
+      :puede-gestionar="esAdministrador"
       @ver="verFactor"
       @editar="editarFactor"
       @cambiar-estado="cambiarEstadoFactor"
@@ -16,6 +29,7 @@
       </div>
 
       <v-btn
+        v-if="esAdministrador"
         color="primary"
         prepend-icon="mdi-plus"
         class="btn-main"
@@ -48,6 +62,7 @@
       :index="index"
       :clave="claveCaracteristica(estructura, index)"
       :abierta="caracteristicaEstaAbierta(claveCaracteristica(estructura, index))"
+      :puede-gestionar="esAdministrador"
       @toggle="toggleCaracteristica"
       @ver="verCaracteristica"
       @editar="editarCaracteristica"
@@ -56,7 +71,7 @@
     >
       <template #default="{ caracteristica: estructura, index }">
         <!-- ASPECTOS -->
-        <AspectosSection :caracteristica="estructura" />
+        <AspectosSection :caracteristica="estructura" :puede-gestionar="esAdministrador" />
       </template>
     </CaracteristicaCard>
 
@@ -103,8 +118,11 @@ import CaracteristicaCard from "@/components/caracteristicas/CaracteristicaCard.
 import { useCaracteristicas } from "@/components/caracteristicas/useCaracteristicas";
 import { useCaracteristicaDialogs } from "@/components/caracteristicas/useCaracteristicaDialogs";
 import AspectosSection from "@/components/aspectos/AspectosSection.vue";
+import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios } from "@/utils/roles";
 
 const estructuraStore = useEstructuraStore();
+const userStore = useUserStore();
 
 const router = useRouter();
 const route = useRoute();
@@ -114,6 +132,24 @@ const search = ref("");
 const factorId = computed(() => {
   return route.params.factor_id || route.params.id;
 });
+
+const procesoId = computed(() => {
+  return route.params.proceso_id || factor.value?.proceso_id;
+});
+
+const volverAFactores = () => {
+  if (procesoId.value) {
+    router.push({
+      name: "procesoFactores",
+      params: {
+        proceso_id: procesoId.value,
+      },
+    });
+    return;
+  }
+
+  router.back();
+};
 
 const {
   factor,
@@ -160,12 +196,15 @@ const _modo = ref(false);
 const datosEstructura = ref({});
 
 const caracteristicasAbiertas = ref([]);
+const esAdministrador = computed(() => esAdminObservatorios(userStore.user?.role));
 
 const verFactor = async () => {
   await verFactorDialog(factor.value);
 };
 
 const editarFactor = async () => {
+  if (!esAdministrador.value) return;
+
   const resultado = await editarFactorDialog(factor.value);
 
   if (!resultado.isConfirmed) return;
@@ -198,6 +237,8 @@ const editarFactor = async () => {
 };
 
 const cambiarEstadoFactor = async () => {
+  if (!esAdministrador.value) return;
+
   const resultado = await confirmarCambioEstadoFactorDialog(factor.value);
 
   if (!resultado.isConfirmed) return;
@@ -228,9 +269,13 @@ const cambiarEstadoFactor = async () => {
 };
 
 const filteredEstructuras = computed(() => {
-  if (!search.value) return estructuras.value;
+  const estructurasVisibles = esAdministrador.value
+    ? estructuras.value
+    : estructuras.value.filter((estructura) => estructura.activo !== false);
 
-  return estructuras.value.filter((estructura) =>
+  if (!search.value) return estructurasVisibles;
+
+  return estructurasVisibles.filter((estructura) =>
     estructura.nombre?.toLowerCase().includes(search.value.toLowerCase())
   );
 });
@@ -320,6 +365,8 @@ const obtenerEstructurasDelAspecto = (aspecto, aspectoIndex) => {
 };
 
 const crearEstructuraDelAspecto = (estructuraPadre, aspecto, aspectoIndex, tipo) => {
+  if (!esAdministrador.value) return;
+
   datosEstructura.value = {
     factor: factorId.value,
     aspectoPadre: aspecto,
@@ -346,6 +393,8 @@ const verEstructuraDelAspecto = (estructuraAsociada) => {
 };
 
 const editarEstructuraDelAspecto = (estructuraAsociada) => {
+  if (!esAdministrador.value) return;
+
   datosEstructura.value = {
     ...estructuraAsociada,
     tipo: estructuraAsociada.tipo === "archivos" ? "archivos" : "datos",
@@ -356,6 +405,8 @@ const editarEstructuraDelAspecto = (estructuraAsociada) => {
 };
 
 const cambiarEstadoEstructuraDelAspecto = async (estructuraAsociada) => {
+  if (!esAdministrador.value) return;
+
   const nuevoEstado = estructuraAsociada.activo === false;
   const accion = nuevoEstado ? "activar" : "desactivar";
 
@@ -421,6 +472,8 @@ const cambiarEstadoEstructuraDelAspecto = async (estructuraAsociada) => {
 };
 
 const eliminarEstructuraDelAspecto = async (estructuraAsociada) => {
+  if (!esAdministrador.value) return;
+
   const resultado = await Swal.fire({
     title: "Eliminar estructura",
     html: `¿Desea eliminar la estructura <b>${estructuraAsociada.nombre}</b>?`,
@@ -514,7 +567,12 @@ const irAEstructuraDelAspecto = async (estructuraAsociada) => {
       mapeo_archivos: estructuraAsociada.mapeo_archivos || [],
     });
 
-    router.push(`/${factorId.value}/archivos`);
+    router.push({
+      name: procesoId.value ? "factorArchivosGestion" : "archivosGestion",
+      params: procesoId.value
+        ? { proceso_id: procesoId.value, factor_id: factorId.value }
+        : { factor_id: factorId.value },
+    });
     return;
   }
 
@@ -535,17 +593,16 @@ const irAEstructuraDelAspecto = async (estructuraAsociada) => {
     return;
   }
 
-  const ruta = router.resolve({
-    name: "tablero",
+  router.push({
+    name: procesoId.value ? "factorTablero" : "tablero",
     params: {
+      ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
       factor_id: factorId.value,
     },
     query: {
       estructura_id: estructuraId,
     },
   });
-
-  window.open(ruta.href, "_blank", "noopener,noreferrer");
 };
 
 const traerEstructuras = async () => {
@@ -577,6 +634,7 @@ const cerrarModal = () => {
 };
 
 const crearEstructura = () => {
+  if (!esAdministrador.value) return;
   _crearEstructura.value = true;
 };
 
@@ -593,6 +651,8 @@ const verEstructura = (item) => {
 };
 
 const editarEstructura = (item) => {
+  if (!esAdministrador.value) return;
+
   const estructura = obtenerItem(item);
 
   _gestionEstructura.value = true;
@@ -601,6 +661,8 @@ const editarEstructura = (item) => {
 };
 
 const reactivarEstructura = async (item) => {
+  if (!esAdministrador.value) return;
+
   const estructura = obtenerItem(item);
   const id = estructura.id;
   const nombre = estructura.nombre;
@@ -647,6 +709,8 @@ const reactivarEstructura = async (item) => {
 };
 
 const eliminarEstructura = async (item) => {
+  if (!esAdministrador.value) return;
+
   const estructura = obtenerItem(item);
   const id = estructura.id;
   const nombre = estructura.nombre;
@@ -703,13 +767,21 @@ const diriguirseEstructura = (item) => {
     mapeo: estructura.mapeo,
   });
 
-  router.push(`/${factorId.value}/tablero`);
+  router.push({
+    name: procesoId.value ? "factorTablero" : "tablero",
+    params: {
+      ...(procesoId.value ? { proceso_id: procesoId.value } : {}),
+      factor_id: factorId.value,
+    },
+  });
 };
 
 
 /* Inicio listado de caracteristicas */
 
 const abrirCrearCaracteristica = async () => {
+  if (!esAdministrador.value) return;
+
   const resultado = await crearCaracteristicaDialog();
 
   if (!resultado.isConfirmed) return;
@@ -734,6 +806,8 @@ const verCaracteristica = async (item) => {
 };
 
 const editarCaracteristica = async (item) => {
+  if (!esAdministrador.value) return;
+
   const caracteristica = obtenerItem(item);
 
   const resultado = await editarCaracteristicaDialog(caracteristica);
@@ -759,6 +833,8 @@ const editarCaracteristica = async (item) => {
 };
 
 const cambiarEstadoCaracteristica = async (item) => {
+  if (!esAdministrador.value) return;
+
   const caracteristica = obtenerItem(item);
 
   const resultado = await confirmarCambioEstadoCaracteristicaDialog(
@@ -784,6 +860,8 @@ const cambiarEstadoCaracteristica = async (item) => {
 };
 
 const eliminarCaracteristica = async (item) => {
+  if (!esAdministrador.value) return;
+
   const caracteristica = obtenerItem(item);
 
   const resultado = await confirmarEliminarCaracteristicaDialog(
@@ -819,7 +897,12 @@ const diriguirseArchivos = (item) => {
     mapeo_archivos: estructura.mapeo_archivos,
   });
 
-  router.push(`/${factorId.value}/archivos`);
+  router.push({
+    name: procesoId.value ? "factorArchivosGestion" : "archivosGestion",
+    params: procesoId.value
+      ? { proceso_id: procesoId.value, factor_id: factorId.value }
+      : { factor_id: factorId.value },
+  });
 };
 
 onMounted(async () => {
@@ -853,6 +936,12 @@ onMounted(async () => {
   margin: 16px auto 48px;
   font-family: Arial, Helvetica, sans-serif;
   color: #263238;
+}
+
+.flow-nav {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
 }
 
 /* FACTOR */

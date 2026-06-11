@@ -36,6 +36,7 @@
       >
         <CaracteristicaActions
           :caracteristica="caracteristica"
+          :puede-gestionar="puedeGestionar"
           @ver="$emit('ver', caracteristica)"
           @editar="$emit('editar', caracteristica)"
           @cambiar-estado="$emit('cambiar-estado', caracteristica)"
@@ -71,6 +72,10 @@ defineProps({
     required: true,
   },
   abierta: {
+    type: Boolean,
+    default: false,
+  },
+  puedeGestionar: {
     type: Boolean,
     default: false,
   },
