@@ -10,6 +10,7 @@
     <div class="factor-card__content">
       <FactorActions
         :factor="factor"
+        :puede-gestionar="puedeGestionar"
         @ver="$emit('ver', factor)"
         @editar="$emit('editar', factor)"
         @cambiar-estado="$emit('cambiar-estado', factor)"
@@ -28,6 +29,10 @@ defineProps({
   factor: {
     type: Object,
     required: true,
+  },
+  puedeGestionar: {
+    type: Boolean,
+    default: false,
   },
 });
 

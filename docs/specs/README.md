@@ -6,6 +6,7 @@ Organizar especificaciones AS-IS y futuras del frontend `observatorios_cliente` 
 ## Estructura
 - `specs/plantillas/spec_template.md`: plantilla oficial para nuevas specs.
 - `specs/PROY-ASIS-*_*.md`: especificaciones de comportamiento vigente.
+- `specs/PROY-TOBE-*_*.md`: especificaciones de evolución funcional.
 - `specs/backlog_specs.md`: pipeline priorizado de nuevas specs.
 
 ## Mapa documental SDD
@@ -28,3 +29,7 @@ Organizar especificaciones AS-IS y futuras del frontend `observatorios_cliente` 
 - `PROY-ASIS-004_vision_y_alcance.md`
 - `PROY-ASIS-005_requerimientos_funcionales.md`
 - `PROY-ASIS-006_datos_y_contratos.md`
+
+## Inventario TO-BE vigente
+- `PROY-TOBE-005_gestion_procesos_panel_principal.md`
+- `PROY-TOBE-006_visualizacion_no_admin.md`

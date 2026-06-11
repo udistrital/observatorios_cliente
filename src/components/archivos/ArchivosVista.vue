@@ -172,7 +172,7 @@ const traerEstructuras = async () => {
       }
     );
 
-    estructuras.value = data;
+    estructuras.value = data.filter((estructura) => estructura.activo !== false);
 
     if (estructuraStore.estructura) {
       const encontrada = data.find(
@@ -259,7 +259,7 @@ const traerDatos = async (estructura, mostrarLoader = false) => {
       }
     );
 
-    datos.value = response.results || [];
+    datos.value = (response.results || []).filter((registro) => registro.activo !== false);
     paginacion.totalItems = Number(response.count) || 0;
     await nextTick();
   } catch (error) {

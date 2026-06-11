@@ -3,6 +3,7 @@ import { useObservatorioStore } from "@/stores/observatorioStore";
 import { useFactorStore } from "@/stores/factorStore";
 import { factoresService } from "@/service/factores.service";
 import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios, normalizarRoles } from "@/utils/roles";
 
 const routes = [
   {
@@ -169,7 +170,7 @@ router.beforeEach(async (to, from, next) => {
     intentos++;
   }
 
-  const roleUsuario = userStore.user?.role || [];
+  const roleUsuario = normalizarRoles(userStore.user?.role || []);
 
   const rutasPermitidas = [
     "procesos",
@@ -208,7 +209,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  const esAdmin = roleUsuario.includes("ADMIN_OBSERVATORIOS");
+  const esAdmin = esAdminObservatorios(roleUsuario);
 
   if (!esAdmin && !rutasPermitidas.includes(to.name) && !esRutaPanel) {
     return next({ name: "procesos" });

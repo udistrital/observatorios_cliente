@@ -185,6 +185,7 @@ import Swal from "sweetalert2";
 import ProcesoFormDialog from "@/components/procesos/ProcesoFormDialog.vue";
 import { procesosService } from "@/service/procesos.service";
 import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios, normalizarRoles } from "@/utils/roles";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -195,9 +196,7 @@ const cargando = ref(false);
 const procesoFormDialogRef = ref(null);
 const search = ref("");
 
-const ROL_ADMIN = "ADMIN_OBSERVATORIOS";
-
-const esAdministrador = computed(() => roleUsuario.value.includes(ROL_ADMIN));
+const esAdministrador = computed(() => esAdminObservatorios(roleUsuario.value));
 
 const procesosActivos = computed(() => procesos.value.filter((proceso) => proceso.activo !== false));
 
@@ -301,6 +300,7 @@ const obtenerDescripcionProceso = (proceso) => {
 };
 
 const abrirCrearProceso = () => {
+  if (!esAdministrador.value) return;
   procesoFormDialogRef.value?.abrir("crear");
 };
 
@@ -309,10 +309,13 @@ const verProceso = (proceso) => {
 };
 
 const editarProceso = (proceso) => {
+  if (!esAdministrador.value) return;
   procesoFormDialogRef.value?.abrir("editar", proceso);
 };
 
 const cambiarEstadoProceso = async (proceso, activo) => {
+  if (!esAdministrador.value) return;
+
   const id = obtenerProcesoId(proceso);
   if (!id) return;
 
@@ -384,7 +387,7 @@ watch(
   () => userStore.user?.role,
   (nuevoRol) => {
     if (Array.isArray(nuevoRol) && nuevoRol.length) {
-      roleUsuario.value = nuevoRol;
+      roleUsuario.value = normalizarRoles(nuevoRol);
     }
   },
   { immediate: true }
