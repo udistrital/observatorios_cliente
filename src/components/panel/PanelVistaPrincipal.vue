@@ -13,7 +13,7 @@
         @click="toggleSwapy"
         :variant="swapyActivo ? 'flat' : 'outlined'"
         color="primary"
-        v-if="roleUsuario.includes('ADMIN_OBSERVATORIOS')"
+        v-if="esAdministrador"
       >
         {{ swapyActivo ? "Guardar" : "Modificar Panel" }}
       </v-btn>
@@ -99,7 +99,7 @@
   
   <script setup>
 import { createSwapy } from "swapy";
-import { onMounted, onUnmounted, ref } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import peticionAPI from "@/service/conexion_api";
 import { usePanelStore } from "@/stores/panelStore";
@@ -108,6 +108,7 @@ import ContenedorGrafica from "./graficas/ContenedorGrafica.vue";
 import { useObservatorioStore } from "@/stores/observatorioStore";
 import Swal from "sweetalert2";
 import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios } from "@/utils/roles";
 
 const userStore = useUserStore();
 const observatorioStore = useObservatorioStore();
@@ -125,7 +126,7 @@ const contenedor = ref();
 const isHovering = ref(false);
 const swapyActivo = ref(false);
 const nuevoOrden = ref([]);
-const roleUsuario = ref('')
+const esAdministrador = computed(() => esAdminObservatorios(userStore.user?.role));
 const resultado = ref(0);
 const miElemento = ref(null);
 
@@ -136,6 +137,8 @@ const calcularAncho = () => {
 
 
 const editarGrafica = (grafica) => {
+    if (!esAdministrador.value) return;
+
     graficaStore.setGrafica(grafica)
     router.push({
       name: route.params.proceso_id ? "factorPanelGraficas" : "panelGraficas",
@@ -157,6 +160,8 @@ const editarGrafica = (grafica) => {
 }
 
 const eliminarGrafica = (graficaId) => {
+  if (!esAdministrador.value) return;
+
   const panelId = panelStore.panel?.id;
 
   Swal.fire({
@@ -199,6 +204,8 @@ const eliminarGrafica = (graficaId) => {
 }
 
 const toggleSwapy = () => {
+  if (!esAdministrador.value) return;
+
   if (swapyActivo.value) {
     if (swapy.value) {
       swapy.value.destroy();
@@ -218,6 +225,8 @@ const toggleSwapy = () => {
 };
 
 const modificarPanel = () => {
+  if (!esAdministrador.value) return;
+
   peticionAPI(`dashboards/${panelStore.panel.id}/`, "PUT", {
     orden: nuevoOrden.value,
   })
@@ -278,14 +287,15 @@ const graficos = ref([]);
 const obtenerGraficos = async () => {
   try {
     const response = await peticionAPI(`/graficos/${panelStore.panel.id}/`);
-    graficos.value = response;
+    graficos.value = esAdministrador.value
+      ? response
+      : response.filter((grafico) => grafico.activo !== false);
   } catch (error) {
     console.error("Error al obtener los gráficos:", error);
   }
 };
 
 onMounted(() => {
-  roleUsuario.value = userStore.user.role
   obtenerGraficos();
   calcularAncho();
 });
@@ -295,6 +305,8 @@ onUnmounted(() => {
   
 });
 const crearGrafica = (columna, fila) => {
+  if (!esAdministrador.value) return;
+
   router.push({
     name: route.params.proceso_id ? "factorPanelGraficas" : "panelGraficas",
     params: route.params.proceso_id

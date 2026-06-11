@@ -1,5 +1,17 @@
 <template>
   <section class="proceso-factores">
+    <div class="flow-nav">
+      <v-btn
+        variant="tonal"
+        color="primary"
+        prepend-icon="mdi-arrow-left"
+        class="return-button"
+        @click="volverProcesos"
+      >
+        Regresar a procesos
+      </v-btn>
+    </div>
+
     <article class="hero-card">
       <div class="hero-card__header">
         <span class="hero-card__label">Proceso seleccionado</span>
@@ -47,10 +59,6 @@
         <v-chip size="small" color="primary" variant="tonal" class="section-header__chip">
           {{ factoresActivosDelProceso.length }} activos
         </v-chip>
-
-        <v-btn variant="text" prepend-icon="mdi-arrow-left" color="primary" @click="volverProcesos">
-          Procesos
-        </v-btn>
 
         <v-btn
           v-if="esAdministrador"
@@ -258,6 +266,7 @@ import { procesosService } from "@/service/procesos.service";
 import { FactorModel } from "@/model/factor.model";
 import { useFactorStore } from "@/stores/factorStore";
 import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios, normalizarRoles } from "@/utils/roles";
 
 const route = useRoute();
 const router = useRouter();
@@ -275,8 +284,6 @@ const modo = ref("crear");
 const factorSeleccionado = ref(null);
 const formRef = ref(null);
 const roleUsuario = ref([]);
-
-const ROL_ADMIN = "ADMIN_OBSERVATORIOS";
 
 const formulario = ref({
   id: null,
@@ -348,7 +355,7 @@ const bloquearPegadoNoFloat = (event) => {
   }
 };
 
-const esAdministrador = computed(() => roleUsuario.value.includes(ROL_ADMIN));
+const esAdministrador = computed(() => esAdminObservatorios(roleUsuario.value));
 
 const tituloModal = computed(() => {
   if (modo.value === "crear") return "Crear Factor";
@@ -464,6 +471,7 @@ const limpiarFormulario = () => {
 };
 
 const abrirCrearFactor = () => {
+  if (!esAdministrador.value) return;
   limpiarFormulario();
   modo.value = "crear";
   modalFactor.value = true;
@@ -491,6 +499,7 @@ const verFactor = (item) => {
 };
 
 const editarFactor = (item) => {
+  if (!esAdministrador.value) return;
   const factor = obtenerRaw(item);
   modo.value = "editar";
   factorSeleccionado.value = factor;
@@ -504,7 +513,7 @@ const cerrarModal = () => {
 };
 
 const guardarFactor = async () => {
-  if (modo.value === "ver") return;
+  if (modo.value === "ver" || !esAdministrador.value) return;
 
   const validacion = await formRef.value?.validate();
   if (validacion && validacion.valid === false) return;
@@ -569,6 +578,8 @@ const guardarFactor = async () => {
 };
 
 const cambiarEstadoFactor = async (item, activo) => {
+  if (!esAdministrador.value) return;
+
   const factor = obtenerRaw(item);
   const id = factor.factor_id || factor.id;
   const accion = activo ? "reactivar" : "desactivar";
@@ -635,7 +646,7 @@ const dirigirseFactor = (item) => {
   });
 
   router.push({
-    name: esAdministrador.value ? "factorEstructurasGestion" : "factorEstructuras",
+    name: "factorEstructurasGestion",
     params: {
       proceso_id: procesoId.value,
       factor_id: id,
@@ -651,7 +662,7 @@ watch(
   () => userStore.user?.role,
   (nuevoRol) => {
     if (Array.isArray(nuevoRol) && nuevoRol.length) {
-      roleUsuario.value = nuevoRol;
+      roleUsuario.value = normalizarRoles(nuevoRol);
     }
   },
   { immediate: true }
@@ -669,6 +680,12 @@ onMounted(async () => {
   margin: 16px auto 48px;
   font-family: Arial, Helvetica, sans-serif;
   color: #263238;
+}
+
+.flow-nav {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 12px;
 }
 
 .hero-card {

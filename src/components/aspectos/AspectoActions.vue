@@ -15,6 +15,7 @@
       </v-btn>
 
       <v-btn
+        v-if="puedeGestionar"
         variant="tonal"
         icon
         size="small"
@@ -26,6 +27,7 @@
       </v-btn>
 
       <v-btn
+        v-if="puedeGestionar"
         variant="tonal"
         icon
         size="small"
@@ -59,6 +61,10 @@ defineProps({
   aspecto: {
     type: Object,
     required: true,
+  },
+  puedeGestionar: {
+    type: Boolean,
+    default: false,
   },
 });
 

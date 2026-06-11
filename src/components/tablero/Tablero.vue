@@ -2,9 +2,10 @@
   <section class="tablero-page">
     <div class="flow-nav">
       <v-btn
-        variant="text"
+        variant="tonal"
         color="primary"
         prepend-icon="mdi-arrow-left"
+        class="return-button"
         @click="volverAEstructuras"
       >
         Regresar a estructuras
@@ -50,7 +51,7 @@
           </div>
         </div>
 
-        <div class="table-card__actions">
+        <div v-if="esAdministrador" class="table-card__actions">
           <v-btn
             color="primary"
             variant="tonal"
@@ -183,6 +184,7 @@
             </v-btn>
 
             <v-btn
+              v-if="esAdministrador"
               variant="tonal"
               icon
               size="x-small"
@@ -196,6 +198,7 @@
             </v-btn>
 
             <v-btn
+              v-if="esAdministrador"
               variant="tonal"
               icon
               size="x-small"
@@ -212,6 +215,7 @@
       <div class="table-card__footer">
         <v-btn
           v-if="estructuraSeleccionada && headers.length > 0"
+          v-show="esAdministrador"
           color="primary"
           variant="outlined"
           size="small"
@@ -291,6 +295,8 @@ import Swal from "sweetalert2";
 
 import peticionAPI from "@/service/conexion_api";
 import { useEstructuraStore } from "@/stores/estructuraStore";
+import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios } from "@/utils/roles";
 
 import AgregarRegistro from "./AgregarRegistro.vue";
 import RegistroGestion from "./RegistroGestion.vue";
@@ -309,6 +315,7 @@ import gestorDocumentalApi from "@/service/gestorDocumentalService";
 const route = useRoute();
 const router = useRouter();
 const estructuraStore = useEstructuraStore();
+const userStore = useUserStore();
 const idTipoDocumentoGestorDocumental = environment.ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL;
 
 const sortBy = ref(null);
@@ -330,6 +337,7 @@ const filtros = ref({});
 const camposBool = ref([]);
 
 const cargando = ref(false);
+const esAdministrador = computed(() => esAdminObservatorios(userStore.user?.role));
 
 const paginacion = reactive({
   page: 1,
@@ -697,9 +705,13 @@ const traerDatos = async (estructura = null) => {
       }
     );
 
-    datos.value = Array.isArray(response.results)
+    const resultados = Array.isArray(response.results)
       ? response.results
       : [];
+
+    datos.value = esAdministrador.value
+      ? resultados
+      : resultados.filter((registro) => registro.activo !== false);
 
     paginacion.totalItems = Number(response.count) || 0;
 
@@ -850,6 +862,8 @@ const copiarIdEstructura = async () => {
 };
 
 const limpiarEstructura = async () => {
+  if (!esAdministrador.value) return;
+
   const resultado = await Swal.fire({
     title: "Limpiar registros",
     html: `¿Desea eliminar todos los registros de <b>${nombreEstructura.value}</b>?`,
@@ -892,6 +906,8 @@ const limpiarEstructura = async () => {
 };
 
 const eliminarRegistro = async (item) => {
+  if (!esAdministrador.value) return;
+
   const id = item.raw.id;
 
   const resultado = await Swal.fire({
@@ -939,10 +955,12 @@ const eliminarRegistro = async (item) => {
 };
 
 const agregarRegistro = () => {
+  if (!esAdministrador.value) return;
   _agregarRegistro.value = true;
 };
 
 const cargarArchivos = () => {
+  if (!esAdministrador.value) return;
   _cargarRegistro.value = true;
 };
 
@@ -953,6 +971,8 @@ const verRegistro = (item) => {
 };
 
 const editarRegistro = (item) => {
+  if (!esAdministrador.value) return;
+
   _gestionRegistro.value = true;
   _modo.value = false;
   datosRegistro.value = item.raw;
@@ -1305,6 +1325,8 @@ const sincronizarCampoHashDocumental = async (estructura) => {
 };
 
 const crearCamposEstructura = async () => {
+  if (!esAdministrador.value) return;
+
   const resultado = await abrirFormularioCampos(
     camposFormulario.value,
     {
@@ -1357,6 +1379,8 @@ const crearCamposEstructura = async () => {
 };
 
 const editarCamposEstructura = async () => {
+  if (!esAdministrador.value) return;
+
   const resultado = await abrirFormularioCampos(camposFormulario.value);
 
   if (!resultado.isConfirmed) return;
@@ -1632,6 +1656,8 @@ const obtenerHashRegistro = (registro = {}) => {
 };
 
 const editarRegistroDocumental = async (item) => {
+  if (!esAdministrador.value) return;
+
   const registroActual = item?.raw || item;
   const idRegistro = obtenerIdRegistro(item);
   const hashAnterior = obtenerHashRegistro(registroActual);
@@ -1870,6 +1896,8 @@ const abrirFormularioDocumento = async (
 };
 
 const agregarRegistroDocumental = async () => {
+  if (!esAdministrador.value) return;
+
   if (!esDocumental.value) return;
 
   if (!tieneCampoHash(camposFormulario.value)) {

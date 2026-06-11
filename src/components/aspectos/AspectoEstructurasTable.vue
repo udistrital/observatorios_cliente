@@ -9,6 +9,7 @@
       </div>
 
       <v-btn
+        v-if="puedeGestionar"
         color="primary"
         prepend-icon="mdi-plus"
         size="small"
@@ -86,6 +87,7 @@
             </v-btn>
 
             <v-btn
+              v-if="puedeGestionar"
               variant="tonal"
               icon
               size="x-small"
@@ -97,6 +99,7 @@
             </v-btn>
 
             <v-btn
+              v-if="puedeGestionar"
               variant="tonal"
               icon
               size="x-small"
@@ -194,6 +197,10 @@ const props = defineProps({
   estructuras: {
     type: Array,
     default: () => [],
+  },
+  puedeGestionar: {
+    type: Boolean,
+    default: false,
   },
 });
 

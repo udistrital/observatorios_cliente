@@ -74,6 +74,28 @@ html, body {
   padding-right: 20px;
 }
 
+/* ========================== Navegación de retorno ====================== */
+.return-button.v-btn {
+  border: 1px solid rgba(77, 79, 134, 0.28) !important;
+  border-radius: 999px !important;
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-claro) 100%) !important;
+  color: var(--color-acentuado) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.01em;
+  box-shadow: 0 6px 16px rgba(39, 40, 63, 0.12) !important;
+}
+
+.return-button.v-btn:hover {
+  border-color: rgba(77, 79, 134, 0.44) !important;
+  background: linear-gradient(135deg, #ffffff 0%, #dfe5f7 100%) !important;
+  box-shadow: 0 8px 20px rgba(39, 40, 63, 0.18) !important;
+  transform: translateY(-1px);
+}
+
+.return-button.v-btn .v-icon {
+  color: var(--color-acentuado) !important;
+}
+
 
 /* ========================== Personalización de  SweetAlert ====================== */
 

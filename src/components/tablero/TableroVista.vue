@@ -133,7 +133,7 @@ const traerDatos = async (estructura) => {
         ...filtros.value,
       }
     );
-    datos.value = response.results;
+    datos.value = (response.results || []).filter((registro) => registro.activo !== false);
     
     camposBool.value.forEach((campo) => {
       datos.value.forEach((item) => {
