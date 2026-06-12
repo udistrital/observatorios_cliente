@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <ng-uui-oas ref="oas"></ng-uui-oas>
-    <ng-uui-notioas ref="notioas"></ng-uui-notioas>
+    <!-- <ng-uui-notioas ref="notioas"></ng-uui-notioas> -->
     <header-app />
     <div class="main">
       <router-view></router-view>
@@ -20,7 +20,7 @@ import { normalizarRoles } from "@/utils/roles";
 
 const userStore = useUserStore();
 const oas = ref(null);
-const notioas = ref(null);
+//const notioas = ref(null);
 const route = useRoute();
 const router = useRouter();
 const userService = useUserService();
@@ -79,38 +79,13 @@ watchEffect(() => {
       }
     }, 300);
 
-    oas.value.addEventListener("option", (event) => {
-      const detail = event.detail;
-      if (detail?.Url) {
-        router.push(detail.Url);
-      }
-    });
-    const handleMenu = (event) => {
-      const detail = event.detail;
+    oas.value.addEventListener("logout", () => {
+      userStore.clearUser();
 
-      if (Array.isArray(detail)) {
-        userService.updatePermisos(detail);
-      } else {
-      }
-    };
+      localStorage.removeItem("access_token");
+      sessionStorage.removeItem("access_token");
 
-    oas.value.addEventListener("menu", handleMenu);
-
-    const base64Data = localStorage.getItem("menu");
-    if (base64Data) {
-      try {
-        const jsonString = atob(base64Data);
-        const jsonObject = JSON.parse(jsonString);
-
-        if (Array.isArray(jsonObject)) {
-          userService.updatePermisos(jsonObject);
-        } else {
-        }
-      } catch (e) {
-      }
-    }
-
-    oas.value.addEventListener("logout", (event) => {
+      router.push({ name: "root" });
     });
   } else {
   }

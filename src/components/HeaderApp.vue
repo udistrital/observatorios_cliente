@@ -1,5 +1,6 @@
 <template>
   <div>
+    <!--
     <v-navigation-drawer
       class="floating-drawer"
       @mouseenter="isHovering = true"
@@ -49,7 +50,7 @@
         </v-list-item>
         </div>
       </v-list>
-    </v-navigation-drawer>
+    </v-navigation-drawer>-->
   </div>
 </template>
 
@@ -133,7 +134,7 @@ const menuItems = [
   },
 ];
 
-watch(verNavbar, (newValue) => {
+/*watch(verNavbar, (newValue) => {
   if (newValue === true) {
     const base64Data = localStorage.getItem('menu');
     if (base64Data) {
@@ -149,7 +150,7 @@ watch(verNavbar, (newValue) => {
       }
     }
   }
-});
+});*/
 
 watch(
   () => userStore.user?.role,
@@ -159,7 +160,7 @@ watch(
   { immediate: true }
 );
 
-const dynamicMenuItems = computed(() => {
+/*const dynamicMenuItems = computed(() => {
   const esAdmin = route.path.includes("administracion/");
 
   const itemsFiltrados = menuItems.filter(item => esAdmin ? item.admin : item.general);
@@ -174,7 +175,7 @@ const dynamicMenuItems = computed(() => {
     }
     return item;
   });
-});
+});*/
 </script>
 
 <style scoped>

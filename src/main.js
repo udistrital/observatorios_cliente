@@ -16,7 +16,7 @@ pinia.use(piniaPluginPersistedstate);
 app.use(SweetAlertPlugin);
 app.use(vuetify)
 
-app.use(router);
 app.use(pinia);
+app.use(router);
 
 app.mount('#app')
