@@ -162,15 +162,75 @@ router.beforeEach(async (to, from, next) => {
   const factorStore = useFactorStore();
   const userStore = useUserStore();
 
-  const { factor_id } = to.params;
+  const rutaLogin = "root";
 
-  let intentos = 0;
-  while (!userStore.user?.role && intentos < 10) {
-    await new Promise((resolve) => setTimeout(resolve, 50));
-    intentos++;
+  const obtenerAccessToken = () => {
+    return (
+      localStorage.getItem("access_token") ||
+      sessionStorage.getItem("access_token") ||
+      ""
+    );
+  };
+
+  const esperarToken = async () => {
+    let accessToken = obtenerAccessToken();
+    let intentosToken = 0;
+
+    while (!accessToken && intentosToken < 20) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      accessToken = obtenerAccessToken();
+      intentosToken++;
+    }
+
+    return accessToken;
+  };
+
+  const esperarUsuario = async () => {
+    let intentosUsuario = 0;
+
+    while (!userStore.user?.role && intentosUsuario < 20) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      intentosUsuario++;
+    }
+
+    return userStore.user;
+  };
+
+  const accessToken = await esperarToken();
+
+  if (to.name === rutaLogin) {
+    if (accessToken) {
+      return next({ name: "procesos" });
+    }
+
+    return next();
   }
 
-  const roleUsuario = normalizarRoles(userStore.user?.role || []);
+  if (!accessToken) {
+    userStore.clearUser?.();
+
+    return next({
+      name: rutaLogin,
+      query: {
+        redirect: to.fullPath,
+      },
+    });
+  }
+
+  const usuario = await esperarUsuario();
+
+  if (!usuario) {
+    userStore.clearUser?.();
+
+    return next({
+      name: rutaLogin,
+      query: {
+        redirect: to.fullPath,
+      },
+    });
+  }
+
+  const roleUsuario = normalizarRoles(usuario?.role || []);
 
   const rutasPermitidas = [
     "procesos",
@@ -193,27 +253,13 @@ router.beforeEach(async (to, from, next) => {
   ];
 
   const esRutaPanel = to.path.includes("/panel");
-
-  if (to.path === "/") {
-    let intentosToken = 0;
-    let accessToken = localStorage.getItem("access_token");
-
-    while (!accessToken && intentosToken < 20) {
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      accessToken = localStorage.getItem("access_token");
-      intentosToken++;
-    }
-
-    if (accessToken) {
-      return next({ name: "procesos" });
-    }
-  }
-
   const esAdmin = esAdminObservatorios(roleUsuario);
 
   if (!esAdmin && !rutasPermitidas.includes(to.name) && !esRutaPanel) {
     return next({ name: "procesos" });
   }
+
+  const { factor_id } = to.params;
 
   if (factor_id) {
     const factorActual = factorStore.factor;
@@ -237,7 +283,7 @@ router.beforeEach(async (to, from, next) => {
     }
   }
 
-  next();
+  return next();
 });
 
 export default router;
