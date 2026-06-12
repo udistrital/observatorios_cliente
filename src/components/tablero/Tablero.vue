@@ -1040,6 +1040,95 @@ const esJsonTabla = (tipo) => {
   ].includes(tipo);
 };
 
+const convertirValorPorTipo = (campo, valorRaw) => {
+  const nombre = campo.nombre_campo;
+  const tipo = campo.tipo_campo || "text";
+
+  const valor = String(valorRaw ?? "").trim();
+
+  if (valor === "") {
+    return null;
+  }
+
+  if (esEnteroTabla(tipo)) {
+    if (!/^-?\d+$/.test(valor)) {
+      throw new Error(`${nombre}: debe ser un número entero. No use letras, decimales ni notación científica.`);
+    }
+
+    const numero = Number(valor);
+
+    if (!Number.isSafeInteger(numero)) {
+      throw new Error(`${nombre}: debe ser un número entero válido.`);
+    }
+
+    const limites = {
+      byte: {
+        min: -128,
+        max: 127,
+      },
+      short: {
+        min: -32768,
+        max: 32767,
+      },
+      integer: {
+        min: -2147483648,
+        max: 2147483647,
+      },
+    };
+
+    const limite = limites[tipo];
+
+    if (limite && (numero < limite.min || numero > limite.max)) {
+      throw new Error(
+        `${nombre}: el valor debe estar entre ${limite.min} y ${limite.max}.`
+      );
+    }
+
+    return numero;
+  }
+
+  if (esDecimalTabla(tipo)) {
+    const valorNormalizado = valor.replace(",", ".");
+
+    if (!/^-?\d+(\.\d+)?$/.test(valorNormalizado)) {
+      throw new Error(`${nombre}: debe ser un número decimal válido. No use letras ni notación científica.`);
+    }
+
+    const numero = Number(valorNormalizado);
+
+    if (!Number.isFinite(numero)) {
+      throw new Error(`${nombre}: debe ser un número decimal válido.`);
+    }
+
+    return numero;
+  }
+
+  if (tipo === "boolean") {
+    if (valor === "true") return true;
+    if (valor === "false") return false;
+
+    throw new Error(`${nombre}: debe seleccionar Verdadero o Falso.`);
+  }
+
+  if (esFechaTabla(tipo)) {
+    if (Number.isNaN(Date.parse(valor))) {
+      throw new Error(`${nombre}: debe ser una fecha válida.`);
+    }
+
+    return valor;
+  }
+
+  if (esJsonTabla(tipo)) {
+    try {
+      return JSON.parse(valor);
+    } catch {
+      throw new Error(`${nombre}: debe ser un JSON válido.`);
+    }
+  }
+
+  return valor;
+};
+
 const obtenerMensajeErrorTabla = (
   error,
   mensajeDefecto = "No fue posible procesar el registro."
@@ -1102,9 +1191,10 @@ const construirInputRegistroTabla = (campo, registro = {}, esSoloLectura = false
       <label class="registro-label">${nombre}</label>
       <input
         id="registro_${nombre}"
-        type="number"
-        step="${esDecimalTabla(tipo) ? "any" : "1"}"
-        class="registro-input"
+        type="text"
+        inputmode="${esDecimalTabla(tipo) ? "decimal" : "numeric"}"
+        data-tipo-campo="${tipo}"
+        class="registro-input input-numerico"
         placeholder="${nombre}"
         value="${valor}"
         ${disabled}
@@ -1142,46 +1232,9 @@ const construirInputRegistroTabla = (campo, registro = {}, esSoloLectura = false
 
 const obtenerValorRegistroTabla = (campo) => {
   const nombre = campo.nombre_campo;
-  const tipo = campo.tipo_campo || "text";
   const input = document.getElementById(`registro_${nombre}`);
 
-  const valor = input?.value ?? "";
-
-  if (valor === "") {
-    return null;
-  }
-
-  if (esEnteroTabla(tipo)) {
-    if (!/^-?\d+$/.test(String(valor))) {
-      throw new Error(`${nombre}: debe ser un número entero.`);
-    }
-
-    return parseInt(valor, 10);
-  }
-
-  if (esDecimalTabla(tipo)) {
-    if (Number.isNaN(Number(valor))) {
-      throw new Error(`${nombre}: debe ser un número válido.`);
-    }
-
-    return Number(valor);
-  }
-
-  if (tipo === "boolean") {
-    if (valor === "true") return true;
-    if (valor === "false") return false;
-    return null;
-  }
-
-  if (esJsonTabla(tipo)) {
-    try {
-      return JSON.parse(valor);
-    } catch {
-      throw new Error(`${nombre}: debe ser un JSON válido.`);
-    }
-  }
-
-  return valor;
+  return convertirValorPorTipo(campo, input?.value);
 };
 
 const construirPayloadRegistroTabla = (campos) => {
@@ -1192,6 +1245,61 @@ const construirPayloadRegistroTabla = (campos) => {
   });
 
   return payload;
+};
+
+const limpiarValorNumerico = (valor, tipo) => {
+  let limpio = String(valor || "");
+
+  if (esEnteroTabla(tipo)) {
+    limpio = limpio.replace(/[^\d-]/g, "");
+    limpio = limpio.replace(/(?!^)-/g, "");
+
+    if (limpio.includes("-") && limpio.indexOf("-") !== 0) {
+      limpio = limpio.replaceAll("-", "");
+    }
+
+    return limpio;
+  }
+
+  if (esDecimalTabla(tipo)) {
+    limpio = limpio.replace(/[^\d.,-]/g, "");
+    limpio = limpio.replace(/(?!^)-/g, "");
+
+    if (limpio.includes("-") && limpio.indexOf("-") !== 0) {
+      limpio = limpio.replaceAll("-", "");
+    }
+
+    const partes = limpio.split(/[.,]/);
+    const separador = limpio.includes(",") ? "," : ".";
+
+    if (partes.length > 1) {
+      limpio = `${partes[0]}${separador}${partes.slice(1).join("")}`;
+    }
+
+    return limpio;
+  }
+
+  return limpio;
+};
+
+const aplicarRestriccionInputsNumericos = () => {
+  document.querySelectorAll(".input-numerico").forEach((input) => {
+    const tipo = input.dataset.tipoCampo;
+
+    input.addEventListener("input", () => {
+      const valorLimpio = limpiarValorNumerico(input.value, tipo);
+
+      if (input.value !== valorLimpio) {
+        input.value = valorLimpio;
+      }
+    });
+
+    input.addEventListener("paste", () => {
+      setTimeout(() => {
+        input.value = limpiarValorNumerico(input.value, tipo);
+      }, 0);
+    });
+  });
 };
 
 const abrirFormularioRegistroTabla = async (
@@ -1243,6 +1351,9 @@ const abrirFormularioRegistroTabla = async (
       cancelButton: "cancelacion-alerta-personalizado",
     },
     buttonsStyling: false,
+    didOpen: () => {
+      aplicarRestriccionInputsNumericos();
+    },
     preConfirm: esVer
       ? undefined
       : () => {
@@ -2242,30 +2353,44 @@ const eliminarArchivoGestorDocumental = async (hash) => {
   await gestorDocumentalApi.delete(`document/${hash}`);
 };
 
-const construirInputDocumento = (campo, registro = {}) => {
-  const nombre = campo.nombre_campo;
-  const tipo = campo.tipo_campo;
-  const valor = escaparHtml(registro?.[nombre] ?? "");
+const construirIdCampoDocumento = (campo, index) => {
+  const base = campo.campo_id || campo.nombre_campo || index;
 
-  if (nombre === "hash") {
-    return `
-      <label class="documento-label">${nombre}</label>
-      <input
-        id="documento_${nombre}"
-        class="documento-input"
-        value="${valor || "Se llenará automáticamente al cargar el documento"}"
-        disabled
-      />
-    `;
+  return `documento_${String(base)
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^A-Za-z0-9_-]/g, "_")}_${index}`;
+};
+
+const construirInputDocumento = (campo, registro = {}, index = 0) => {
+  const nombre = campo.nombre_campo;
+  const tipo = campo.tipo_campo || "text";
+  const valor = escaparHtml(registro?.[nombre] ?? "");
+  const inputId = construirIdCampoDocumento(campo, index);
+
+  if (esCampoHash(campo)) {
+    return "";
   }
 
   if (tipo === "boolean") {
-    const seleccionadoTrue = String(valor) === "true" ? "selected" : "";
-    const seleccionadoFalse = String(valor) === "false" ? "selected" : "";
+    const seleccionadoTrue =
+      registro?.[nombre] === true || String(registro?.[nombre]) === "true"
+        ? "selected"
+        : "";
+
+    const seleccionadoFalse =
+      registro?.[nombre] === false || String(registro?.[nombre]) === "false"
+        ? "selected"
+        : "";
 
     return `
       <label class="documento-label">${nombre}</label>
-      <select id="documento_${nombre}" class="documento-input">
+      <select
+        id="${inputId}"
+        class="documento-input"
+        data-nombre-campo="${escaparHtml(nombre)}"
+        data-tipo-campo="${tipo}"
+      >
         <option value="">Seleccione</option>
         <option value="true" ${seleccionadoTrue}>Sí</option>
         <option value="false" ${seleccionadoFalse}>No</option>
@@ -2277,23 +2402,26 @@ const construirInputDocumento = (campo, registro = {}) => {
     return `
       <label class="documento-label">${nombre}</label>
       <input
-        id="documento_${nombre}"
+        id="${inputId}"
         type="date"
         class="documento-input"
+        data-nombre-campo="${escaparHtml(nombre)}"
+        data-tipo-campo="${tipo}"
         value="${valor}"
       />
     `;
   }
 
-  if (
-    ["integer", "long", "short", "byte", "double", "float", "half_float", "scaled_float"].includes(tipo)
-  ) {
+  if (esEnteroTabla(tipo) || esDecimalTabla(tipo)) {
     return `
       <label class="documento-label">${nombre}</label>
       <input
-        id="documento_${nombre}"
-        type="number"
-        class="documento-input"
+        id="${inputId}"
+        type="text"
+        inputmode="${esDecimalTabla(tipo) ? "decimal" : "numeric"}"
+        data-nombre-campo="${escaparHtml(nombre)}"
+        data-tipo-campo="${tipo}"
+        class="documento-input input-numerico"
         placeholder="${nombre}"
         value="${valor}"
       />
@@ -2303,8 +2431,10 @@ const construirInputDocumento = (campo, registro = {}) => {
   return `
     <label class="documento-label">${nombre}</label>
     <input
-      id="documento_${nombre}"
+      id="${inputId}"
       class="documento-input"
+      data-nombre-campo="${escaparHtml(nombre)}"
+      data-tipo-campo="${tipo}"
       placeholder="${nombre}"
       value="${valor}"
     />
@@ -2485,7 +2615,7 @@ const abrirFormularioDocumento = async (
   const esEdicion = opciones.modo === "editar";
 
   const camposHtml = campos
-    .map((campo) => construirInputDocumento(campo, registro))
+    .map((campo, index) => construirInputDocumento(campo, registro, index))
     .join("");
 
   return Swal.fire({
@@ -2527,6 +2657,9 @@ const abrirFormularioDocumento = async (
       cancelButton: "cancelacion-alerta-personalizado",
     },
     buttonsStyling: false,
+    didOpen: () => {
+      aplicarRestriccionInputsNumericos();
+    },
     preConfirm: () => {
       const file = document.getElementById("documentoArchivo")?.files?.[0];
 
@@ -2548,17 +2681,23 @@ const abrirFormularioDocumento = async (
 
       const datosFormulario = {};
 
-      campos.forEach((campo) => {
-        const nombre = campo.nombre_campo;
-        const input = document.getElementById(`documento_${nombre}`);
+      try {
+        campos.forEach((campo, index) => {
+          const nombre = campo.nombre_campo;
+          const inputId = construirIdCampoDocumento(campo, index);
+          const input = document.getElementById(inputId);
 
-        if (nombre === "hash") {
-          datosFormulario[nombre] = registro?.hash || registro?.Hash || "";
-          return;
-        }
+          if (esCampoHash(campo)) {
+            datosFormulario[nombre] = registro?.hash || registro?.Hash || "";
+            return;
+          }
 
-        datosFormulario[nombre] = input?.value ?? "";
-      });
+          datosFormulario[nombre] = convertirValorPorTipo(campo, input?.value);
+        });
+      } catch (error) {
+        Swal.showValidationMessage(error.message);
+        return false;
+      }
 
       return {
         file,
