@@ -1,13 +1,8 @@
 <template>
   <section class="tablero-page">
     <div class="flow-nav">
-      <v-btn
-        variant="tonal"
-        color="primary"
-        prepend-icon="mdi-arrow-left"
-        class="return-button"
-        @click="volverAEstructuras"
-      >
+      <v-btn variant="tonal" color="primary" prepend-icon="mdi-arrow-left" class="return-button"
+        @click="volverAEstructuras">
         Regresar a estructuras
       </v-btn>
     </div>
@@ -41,162 +36,83 @@
           <div class="table-card__title-row">
             <h2>{{ nombreEstructura }}</h2>
 
-            <v-chip
-              size="small"
-              :color="colorTipoEvidencia"
-              variant="tonal"
-            >
+            <v-chip size="small" :color="colorTipoEvidencia" variant="tonal">
               {{ tipoEvidencia }}
             </v-chip>
           </div>
         </div>
 
         <div v-if="esAdministrador" class="table-card__actions">
-          <v-btn
-            color="primary"
-            variant="tonal"
-            size="small"
-            class="btn-table-action"
-            prepend-icon="mdi-table-column-plus-after"
-            @click="crearCamposEstructura"
-          >
+          <v-btn color="primary" variant="tonal" size="small" class="btn-table-action"
+            prepend-icon="mdi-table-column-plus-after" @click="crearCamposEstructura">
             Agregar campos
           </v-btn>
 
-          <v-btn
-            color="primary"
-            variant="tonal"
-            size="small"
-            class="btn-table-action"
-            prepend-icon="mdi-table-edit"
-            :disabled="headers.length === 0"
-            @click="editarCamposEstructura"
-          >
+          <v-btn color="primary" variant="tonal" size="small" class="btn-table-action" prepend-icon="mdi-table-edit"
+            :disabled="!estructuraSeleccionada || camposEstructura.length === 0" @click="editarCamposEstructura">
             Editar campos
           </v-btn>
 
-          <v-btn
-            v-if="esDocumental"
-            color="primary"
-            variant="tonal"
-            size="small"
-            class="btn-table-action"
-            prepend-icon="mdi-file-upload"
-            :disabled="camposFormulario.length === 0 || !estructuraActiva"
-            @click="agregarRegistroDocumental"
-          >
+          <v-btn v-if="esDocumental" color="primary" variant="tonal" size="small" class="btn-table-action"
+            prepend-icon="mdi-file-upload" :disabled="camposFormulario.length === 0 || !estructuraActiva"
+            @click="agregarRegistroDocumental">
             Cargar documento
           </v-btn>
 
-          <v-btn
-            :color="estructuraActiva ? 'warning' : 'success'"
-            variant="tonal"
-            size="small"
-            class="btn-table-action"
-            :prepend-icon="estructuraActiva ? 'mdi-cancel' : 'mdi-sync'"
-            @click="cambiarEstadoEstructura"
-          >
+          <v-btn :color="estructuraActiva ? 'warning' : 'success'" variant="tonal" size="small" class="btn-table-action"
+            :prepend-icon="estructuraActiva ? 'mdi-cancel' : 'mdi-sync'" @click="cambiarEstadoEstructura">
             {{ estructuraActiva ? "Desactivar" : "Activar" }}
           </v-btn>
 
-          <v-btn
-            v-if="esTabla"
-            color="primary"
-            variant="tonal"
-            size="small"
-            class="btn-table-action"
-            prepend-icon="mdi-plus-box"
-            :disabled="camposFormulario.length === 0"
-            @click="agregarRegistro"
-          >
+          <v-btn v-if="esTabla" color="primary" variant="tonal" size="small" class="btn-table-action"
+            prepend-icon="mdi-plus-box" :disabled="camposFormulario.length === 0" @click="agregarRegistro">
             Agregar registro
           </v-btn>
         </div>
       </div>
 
-      <v-alert
-        v-if="!estructuraSeleccionada"
-        type="info"
-        variant="tonal"
-        class="ma-4"
-      >
+      <v-alert v-if="!estructuraSeleccionada" type="info" variant="tonal" class="ma-4">
         No se ha seleccionado ninguna estructura.
       </v-alert>
 
-      <v-alert
-        v-else-if="headers.length === 0"
-        type="info"
-        variant="tonal"
-        class="ma-4"
-      >
+      <v-alert v-else-if="headers.length === 0" type="info" variant="tonal" class="ma-4">
         La estructura tipo tabla ya fue creada y asociada al aspecto, pero aún
         no tiene campos configurados para mostrar registros.
       </v-alert>
 
-      <v-data-table-server
-        v-else
-        v-model:items-per-page="paginacion.itemsPerPage"
-        :headers="headers"
-        :items="datos"
-        :items-length="paginacion.totalItems"
-        :loading="cargando"
-        density="compact"
-        items-per-page-text="Elementos por página:"
-        item-value="id"
-        :items-per-page-options="[
+      <v-data-table-server v-else v-model:items-per-page="paginacion.itemsPerPage" :headers="headers" :items="datos"
+        :items-length="paginacion.totalItems" :loading="cargando" density="compact"
+        items-per-page-text="Elementos por página:" item-value="id" :items-per-page-options="[
           { title: '10', value: 10 },
           { title: '25', value: 25 },
           { title: '50', value: 50 },
           { title: '100', value: 100 }
-        ]"
-        class="tabla-registros"
-        no-data-text="No se encontraron datos"
-        @update:page="actualizarPagina"
-        @update:items-per-page="actualizarItemsPorPagina"
-        @update:sort-by="actualizarOrden"
-      >
+        ]" class="tabla-registros" no-data-text="No se encontraron datos" @update:page="actualizarPagina"
+        @update:items-per-page="actualizarItemsPorPagina" @update:sort-by="actualizarOrden">
         <template #loading>
           <v-skeleton-loader type="table" />
         </template>
 
         <template #item.acciones="{ item }">
           <div class="acciones-tabla">
-            <v-btn
-              variant="tonal"
-              icon
-              size="x-small"
-              color="primary"
+            <v-btn variant="tonal" icon size="x-small" color="primary"
               :title="esDocumental ? 'Ver documento' : 'Ver registro'"
-              @click="esDocumental ? verArchivoDocumental(item) : verRegistro(item)"
-            >
+              @click="esDocumental ? verArchivoDocumental(item) : verRegistro(item)">
               <v-icon size="16">
                 {{ esDocumental ? "mdi-file-eye" : "mdi-eye" }}
               </v-icon>
             </v-btn>
 
-            <v-btn
-              v-if="esAdministrador"
-              variant="tonal"
-              icon
-              size="x-small"
-              color="primary"
+            <v-btn v-if="esAdministrador" variant="tonal" icon size="x-small" color="primary"
               :title="esDocumental ? 'Editar documento' : 'Editar registro'"
-              @click="esDocumental ? editarRegistroDocumental(item) : editarRegistro(item)"
-            >
+              @click="esDocumental ? editarRegistroDocumental(item) : editarRegistro(item)">
               <v-icon size="16">
                 {{ esDocumental ? "mdi-file-document-edit" : "mdi-pencil" }}
               </v-icon>
             </v-btn>
 
-            <v-btn
-              v-if="esAdministrador"
-              variant="tonal"
-              icon
-              size="x-small"
-              color="error"
-              title="Eliminar registro"
-              @click="eliminarRegistro(item)"
-            >
+            <v-btn v-if="esAdministrador" variant="tonal" icon size="x-small" color="error" title="Eliminar registro"
+              @click="eliminarRegistro(item)">
               <v-icon size="16">mdi-trash-can</v-icon>
             </v-btn>
           </div>
@@ -204,77 +120,29 @@
       </v-data-table-server>
 
       <div class="table-card__footer">
-        <v-btn
-          v-if="estructuraSeleccionada && headers.length > 0"
-          v-show="esAdministrador"
-          color="primary"
-          variant="outlined"
-          size="small"
-          prepend-icon="mdi-broom"
-          @click="limpiarEstructura"
-        >
+        <v-btn v-if="estructuraSeleccionada && headers.length > 0" v-show="esAdministrador" color="primary"
+          variant="outlined" size="small" prepend-icon="mdi-broom" @click="limpiarEstructura">
           Limpiar estructura
         </v-btn>
       </div>
     </article>
 
-    <v-dialog
-      v-model="_cargarRegistro"
-      scrollable
-      max-width="500px"
-      max-height="70vh"
-      transition="dialog-transition"
-    >
-      <CargarArchivo
-        @cerrar="cerrarModal"
-        :campos="camposFormulario"
-        :idEstructura="idEstructura"
-      />
+    <v-dialog v-model="_cargarRegistro" scrollable max-width="500px" max-height="70vh" transition="dialog-transition">
+      <CargarArchivo @cerrar="cerrarModal" :campos="camposFormulario" :idEstructura="idEstructura" />
     </v-dialog>
 
-    <v-dialog
-      v-model="_agregarRegistro"
-      scrollable
-      max-width="500px"
-      max-height="70vh"
-      transition="dialog-transition"
-    >
-      <AgregarRegistro
-        @cerrar="cerrarModal"
-        :campos="camposFormulario"
-        :idEstructura="idEstructura"
-      />
+    <v-dialog v-model="_agregarRegistro" scrollable max-width="500px" max-height="70vh" transition="dialog-transition">
+      <AgregarRegistro @cerrar="cerrarModal" :campos="camposFormulario" :idEstructura="idEstructura" />
     </v-dialog>
 
-    <v-dialog
-      v-model="_gestionRegistro"
-      scrollable
-      max-width="500px"
-      max-height="70vh"
-      transition="dialog-transition"
-    >
-      <RegistroGestion
-        @cerrar="cerrarModal"
-        :esVer="_modo"
-        :idEstructura="idEstructura"
-        :campos="camposFormulario"
-        :registro="datosRegistro"
-      />
+    <v-dialog v-model="_gestionRegistro" scrollable max-width="500px" max-height="70vh" transition="dialog-transition">
+      <RegistroGestion @cerrar="cerrarModal" :esVer="_modo" :idEstructura="idEstructura" :campos="camposFormulario"
+        :registro="datosRegistro" />
     </v-dialog>
 
-    <v-dialog
-      v-model="_agregarFilro"
-      scrollable
-      max-width="500px"
-      max-height="70vh"
-      transition="dialog-transition"
-    >
-      <FiltrarDatos
-        @cerrar="cerrarModal"
-        @filtrar="aplicarFiltro"
-        :campos="camposFormulario"
-        :idEstructura="idEstructura"
-      />
+    <v-dialog v-model="_agregarFilro" scrollable max-width="500px" max-height="70vh" transition="dialog-transition">
+      <FiltrarDatos @cerrar="cerrarModal" @filtrar="aplicarFiltro" :campos="camposFormulario"
+        :idEstructura="idEstructura" />
     </v-dialog>
   </section>
 </template>
@@ -314,6 +182,7 @@ const sortDesc = ref(false);
 
 const estructuraSeleccionada = ref(null);
 const camposFormulario = ref([]);
+const camposEstructura = ref([]);
 const idEstructura = ref("");
 const datos = ref([]);
 const headers = ref([]);
@@ -604,7 +473,11 @@ const verArchivoDocumental = async (item) => {
 };
 
 const esCampoHash = (campo) => {
-  return campo?.nombre_campo === "hash";
+  return String(campo?.nombre_campo || "").trim().toLowerCase() === "hash";
+};
+
+const esCampoReservado = (campo) => {
+  return esDocumental.value && esCampoHash(campo);
 };
 
 const tieneCampoHash = (campos = []) => {
@@ -651,14 +524,19 @@ const traerDatos = async (estructura = null) => {
   estructuraSeleccionada.value = estructuraActiva;
   estructuraStore.setEstructura(estructuraActiva);
 
-  const campos = obtenerCampos(estructuraActiva)
-    .filter((campo) => campo.activo !== false)
-    .sort((a, b) => Number(a.orden || 999999) - Number(b.orden || 999999));
+  const camposTodos = obtenerCampos(estructuraActiva).sort((a, b) => Number(a.orden || 999999) - Number(b.orden || 999999));
 
-  camposFormulario.value = campos;
+  const camposActivos = camposTodos.filter((campo) => campo.activo !== false);
+
+  const camposVisibles = esDocumental.value
+    ? camposActivos.filter((campo) => !esCampoHash(campo))
+    : camposActivos;
+
+  camposEstructura.value = camposTodos;
+  camposFormulario.value = camposActivos;
   idEstructura.value = estructuraActiva.id;
 
-  headers.value = campos.map((campo) => ({
+  headers.value = camposVisibles.map((campo) => ({
     title: campo.nombre_campo,
     key: campo.nombre_campo,
     value: campo.nombre_campo,
@@ -989,16 +867,39 @@ const limpiarEstructura = async () => {
 const eliminarRegistro = async (item) => {
   if (!esAdministrador.value) return;
 
-  const id = item.raw.id;
+  const registro = item?.raw || item;
+  const id = obtenerIdRegistro(item);
+  const hashDocumento = esDocumental.value
+    ? obtenerHashRegistro(registro)
+    : "";
+
+  if (!id) {
+    await Swal.fire({
+      title: "Registro sin ID",
+      text: "No fue posible identificar el registro que desea eliminar.",
+      icon: "error",
+      width: "340px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    return;
+  }
 
   const resultado = await Swal.fire({
-    title: "Eliminar registro",
-    html: "¿Desea eliminar el registro?",
+    title: esDocumental.value ? "Eliminar documento" : "Eliminar registro",
+    html: esDocumental.value
+      ? "¿Desea eliminar el registro y el archivo asociado en Gestor Documental?"
+      : "¿Desea eliminar el registro?",
     icon: "warning",
     showCancelButton: true,
     confirmButtonText: "Confirmar",
     cancelButtonText: "Cancelar",
-    width: "350px",
+    width: "390px",
     customClass: {
       popup: "popup-personalizado",
       title: "titulo-alerta-personalizado",
@@ -1010,17 +911,378 @@ const eliminarRegistro = async (item) => {
 
   if (!resultado.isConfirmed) return;
 
+  mostrarCargandoTablero(
+    esDocumental.value ? "Eliminando documento" : "Eliminando registro",
+    "Procesando la eliminación…"
+  );
+
+  let errorEliminandoArchivo = null;
+
   try {
     await camposService.eliminarRegistro(
       idEstructura.value,
       id
     );
 
+    if (esDocumental.value && hashDocumento) {
+      try {
+        await eliminarArchivoGestorDocumental(hashDocumento);
+      } catch (error) {
+        errorEliminandoArchivo = error;
+        console.warn(
+          "El registro fue eliminado, pero no fue posible eliminar el archivo del Gestor Documental:",
+          error
+        );
+      }
+    }
+
+    cerrarCargandoTablero();
+
+    if (errorEliminandoArchivo) {
+      await Swal.fire({
+        title: "Eliminado con advertencia",
+        text: "El registro fue eliminado, pero no fue posible eliminar el archivo asociado del Gestor Documental.",
+        icon: "warning",
+        width: "430px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    } else {
+      await Swal.fire({
+        title: "¡Eliminado!",
+        text: esDocumental.value
+          ? "El registro y el archivo asociado fueron eliminados correctamente."
+          : "El registro fue eliminado correctamente.",
+        icon: "success",
+        width: "360px",
+        customClass: {
+          popup: "popup-personalizado",
+          title: "titulo-alerta-personalizado",
+          confirmButton: "confirmacion-alerta-personalizado",
+        },
+        buttonsStyling: false,
+      });
+    }
+
+    await traerDatos(estructuraSeleccionada.value);
+  } catch (error) {
+    console.error("Error al eliminar registro:", error);
+
+    cerrarCargandoTablero();
+
     await Swal.fire({
-      title: "¡Eliminado!",
-      text: "El registro fue eliminado correctamente.",
+      title: "Error",
+      text: esDocumental.value
+        ? "No fue posible eliminar el documento."
+        : "No fue posible eliminar el registro.",
+      icon: "error",
+      width: "360px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
+};
+
+const cargarArchivos = () => {
+  if (!esAdministrador.value) return;
+  _cargarRegistro.value = true;
+};
+
+const esTextoTabla = (tipo) => {
+  return [
+    "text",
+    "keyword",
+    "constant_keyword",
+    "token_count",
+    "binary",
+  ].includes(tipo);
+};
+
+const esEnteroTabla = (tipo) => {
+  return ["long", "integer", "short", "byte"].includes(tipo);
+};
+
+const esDecimalTabla = (tipo) => {
+  return [
+    "double",
+    "float",
+    "half_float",
+    "scaled_float",
+  ].includes(tipo);
+};
+
+const esFechaTabla = (tipo) => {
+  return ["date", "date_nanos"].includes(tipo);
+};
+
+const esJsonTabla = (tipo) => {
+  return [
+    "object",
+    "nested",
+    "flattened",
+    "geo_point",
+    "geo_shape",
+    "shape",
+    "integer_range",
+    "float_range",
+    "long_range",
+    "double_range",
+    "date_range",
+    "ip_range",
+  ].includes(tipo);
+};
+
+const obtenerMensajeErrorTabla = (
+  error,
+  mensajeDefecto = "No fue posible procesar el registro."
+) => {
+  const detalle = error?.response?.data?.detalle;
+
+  if (!detalle) {
+    return mensajeDefecto;
+  }
+
+  if (typeof detalle === "string") {
+    return detalle;
+  }
+
+  return Object.entries(detalle)
+    .map(([campo, mensaje]) => `${campo}: ${mensaje}`)
+    .join("<br>");
+};
+
+const construirInputRegistroTabla = (campo, registro = {}, esSoloLectura = false) => {
+  const nombre = campo.nombre_campo;
+  const tipo = campo.tipo_campo || "text";
+  const valorPlano = registro?.[nombre] ?? "";
+  const valor = escaparHtml(valorPlano);
+  const disabled = esSoloLectura ? "disabled" : "";
+
+  if (tipo === "boolean") {
+    const seleccionadoTrue = valorPlano === true || String(valorPlano) === "true" ? "selected" : "";
+    const seleccionadoFalse = valorPlano === false || String(valorPlano) === "false" ? "selected" : "";
+
+    return `
+      <label class="registro-label">${nombre}</label>
+      <select
+        id="registro_${nombre}"
+        class="registro-input"
+        ${disabled}
+      >
+        <option value="">Seleccione</option>
+        <option value="true" ${seleccionadoTrue}>Verdadero</option>
+        <option value="false" ${seleccionadoFalse}>Falso</option>
+      </select>
+    `;
+  }
+
+  if (esFechaTabla(tipo)) {
+    return `
+      <label class="registro-label">${nombre}</label>
+      <input
+        id="registro_${nombre}"
+        type="date"
+        class="registro-input"
+        value="${valor}"
+        ${disabled}
+      />
+    `;
+  }
+
+  if (esEnteroTabla(tipo) || esDecimalTabla(tipo)) {
+    return `
+      <label class="registro-label">${nombre}</label>
+      <input
+        id="registro_${nombre}"
+        type="number"
+        step="${esDecimalTabla(tipo) ? "any" : "1"}"
+        class="registro-input"
+        placeholder="${nombre}"
+        value="${valor}"
+        ${disabled}
+      />
+    `;
+  }
+
+  if (esJsonTabla(tipo)) {
+    const valorJson = valorPlano && typeof valorPlano === "object"
+      ? escaparHtml(JSON.stringify(valorPlano, null, 2))
+      : valor;
+
+    return `
+      <label class="registro-label">${nombre} (${tipo})</label>
+      <textarea
+        id="registro_${nombre}"
+        class="registro-input registro-textarea"
+        placeholder="${nombre}"
+        ${disabled}
+      >${valorJson}</textarea>
+    `;
+  }
+
+  return `
+    <label class="registro-label">${nombre}</label>
+    <input
+      id="registro_${nombre}"
+      class="registro-input"
+      placeholder="${nombre}"
+      value="${valor}"
+      ${disabled}
+    />
+  `;
+};
+
+const obtenerValorRegistroTabla = (campo) => {
+  const nombre = campo.nombre_campo;
+  const tipo = campo.tipo_campo || "text";
+  const input = document.getElementById(`registro_${nombre}`);
+
+  const valor = input?.value ?? "";
+
+  if (valor === "") {
+    return null;
+  }
+
+  if (esEnteroTabla(tipo)) {
+    if (!/^-?\d+$/.test(String(valor))) {
+      throw new Error(`${nombre}: debe ser un número entero.`);
+    }
+
+    return parseInt(valor, 10);
+  }
+
+  if (esDecimalTabla(tipo)) {
+    if (Number.isNaN(Number(valor))) {
+      throw new Error(`${nombre}: debe ser un número válido.`);
+    }
+
+    return Number(valor);
+  }
+
+  if (tipo === "boolean") {
+    if (valor === "true") return true;
+    if (valor === "false") return false;
+    return null;
+  }
+
+  if (esJsonTabla(tipo)) {
+    try {
+      return JSON.parse(valor);
+    } catch {
+      throw new Error(`${nombre}: debe ser un JSON válido.`);
+    }
+  }
+
+  return valor;
+};
+
+const construirPayloadRegistroTabla = (campos) => {
+  const payload = {};
+
+  campos.forEach((campo) => {
+    payload[campo.nombre_campo] = obtenerValorRegistroTabla(campo);
+  });
+
+  return payload;
+};
+
+const abrirFormularioRegistroTabla = async (
+  registro = {},
+  opciones = {
+    modo: "crear",
+  }
+) => {
+  const esEdicion = opciones.modo === "editar";
+  const esVer = opciones.modo === "ver";
+
+  const campos = normalizarCampos(camposFormulario.value)
+    .filter((campo) => campo.activo !== false);
+
+  const camposHtml = campos
+    .map((campo) => construirInputRegistroTabla(campo, registro, esVer))
+    .join("");
+
+  return Swal.fire({
+    title: esVer
+      ? "Ver registro"
+      : esEdicion
+        ? "Editar registro"
+        : "Agregar registro",
+    html: `
+      <div class="registro-popup">
+        <p class="registro-help">
+          ${esVer
+        ? "Consulte la información registrada."
+        : esEdicion
+          ? "Actualice los campos del registro."
+          : "Complete los campos para crear el registro."
+      }
+        </p>
+
+        <div class="registro-fields">
+          ${camposHtml}
+        </div>
+      </div>
+    `,
+    showCancelButton: !esVer,
+    confirmButtonText: esVer ? "Cerrar" : "Guardar",
+    cancelButtonText: "Cancelar",
+    width: "620px",
+    customClass: {
+      popup: "popup-personalizado popup-registro",
+      title: "titulo-alerta-personalizado",
+      confirmButton: "confirmacion-alerta-personalizado",
+      cancelButton: "cancelacion-alerta-personalizado",
+    },
+    buttonsStyling: false,
+    preConfirm: esVer
+      ? undefined
+      : () => {
+        try {
+          return construirPayloadRegistroTabla(campos);
+        } catch (error) {
+          Swal.showValidationMessage(error.message);
+          return false;
+        }
+      },
+  });
+};
+
+const agregarRegistro = async () => {
+  if (!esAdministrador.value) return;
+
+  if (!esTabla.value) return;
+
+  const resultado = await abrirFormularioRegistroTabla();
+
+  if (!resultado.isConfirmed) return;
+
+  mostrarCargandoTablero(
+    "Creando registro",
+    "Guardando la información del registro…"
+  );
+
+  try {
+    await camposService.crearRegistro(
+      idEstructura.value,
+      resultado.value
+    );
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "¡Creado!",
+      text: "El registro fue creado correctamente.",
       icon: "success",
-      width: "300px",
+      width: "320px",
       customClass: {
         popup: "popup-personalizado",
         title: "titulo-alerta-personalizado",
@@ -1029,34 +1291,112 @@ const eliminarRegistro = async (item) => {
       buttonsStyling: false,
     });
 
-    traerDatos();
+    await traerDatos(estructuraSeleccionada.value);
   } catch (error) {
-    console.error(error);
+    console.error("Error al crear registro:", error);
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      html: obtenerMensajeErrorTabla(error, "No fue posible crear el registro."),
+      icon: "error",
+      width: "420px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
   }
 };
 
-const agregarRegistro = () => {
-  if (!esAdministrador.value) return;
-  _agregarRegistro.value = true;
+const verRegistro = async (item) => {
+  const registro = item?.raw || item;
+
+  await abrirFormularioRegistroTabla(registro, {
+    modo: "ver",
+  });
 };
 
-const cargarArchivos = () => {
-  if (!esAdministrador.value) return;
-  _cargarRegistro.value = true;
-};
-
-const verRegistro = (item) => {
-  _gestionRegistro.value = true;
-  _modo.value = true;
-  datosRegistro.value = item.raw;
-};
-
-const editarRegistro = (item) => {
+const editarRegistro = async (item) => {
   if (!esAdministrador.value) return;
 
-  _gestionRegistro.value = true;
-  _modo.value = false;
-  datosRegistro.value = item.raw;
+  if (!esTabla.value) return;
+
+  const registroActual = item?.raw || item;
+  const idRegistro = obtenerIdRegistro(item);
+
+  if (!idRegistro) {
+    await Swal.fire({
+      title: "Registro sin ID",
+      text: "No fue posible identificar el registro que desea editar.",
+      icon: "error",
+      width: "340px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    return;
+  }
+
+  const resultado = await abrirFormularioRegistroTabla(registroActual, {
+    modo: "editar",
+  });
+
+  if (!resultado.isConfirmed) return;
+
+  mostrarCargandoTablero(
+    "Editando registro",
+    "Actualizando la información del registro…"
+  );
+
+  try {
+    await camposService.actualizarRegistro(
+      idEstructura.value,
+      idRegistro,
+      resultado.value
+    );
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "¡Actualizado!",
+      text: "El registro fue actualizado correctamente.",
+      icon: "success",
+      width: "320px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    await traerDatos(estructuraSeleccionada.value);
+  } catch (error) {
+    console.error("Error al editar registro:", error);
+
+    cerrarCargandoTablero();
+
+    await Swal.fire({
+      title: "Error",
+      html: obtenerMensajeErrorTabla(error, "No fue posible actualizar el registro."),
+      icon: "error",
+      width: "420px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
 };
 
 const cerrarModal = () => {
@@ -1074,7 +1414,7 @@ const agregarFiltro = () => {
   _agregarFilro.value = true;
 };
 
-const TIPOS_DATO = [
+/*const TIPOS_DATO = [
   { label: "Texto", value: "text" },
   { label: "Archivo PDF", value: "file" },
   { label: "Palabra clave", value: "keyword" },
@@ -1105,6 +1445,14 @@ const TIPOS_DATO = [
   { label: "Palabra clave constante", value: "constant_keyword" },
   { label: "Aplanado", value: "flattened" },
   { label: "Forma", value: "shape" },
+];*/
+
+const TIPOS_DATO = [
+  { label: "Texto largo", value: "text" },
+  { label: "Entero", value: "integer" },
+  { label: "Decimal", value: "double" },
+  { label: "Booleano", value: "boolean" },
+  { label: "Fecha", value: "date" },
 ];
 
 const escaparHtml = (valor = "") => {
@@ -1130,16 +1478,72 @@ const construirOpcionesTipoDato = (tipoSeleccionado = "text") => {
     .join("");
 };
 
-const construirFilaCampo = (campo = {}, index = 0, esExistente = false) => {
+const construirFilaCampo = (
+  campo = {},
+  index = 0,
+  esExistente = false,
+  opciones = {}
+) => {
   const campoId = escaparHtml(campo.campo_id || "");
   const orden = Number(campo.orden || index + 1);
   const nombre = escaparHtml(campo.nombre_campo || "");
   const tipo = campo.tipo_campo || "text";
   const activo = campo.activo !== false;
 
+  const hashReservado = esCampoReservado(campo);
+
+  const permitirAcciones =
+    opciones.permitirAcciones !== false && !hashReservado;
+
+  const bloquearExistente =
+    opciones.bloquearExistentes === true && esExistente;
+
+  const disabled = bloquearExistente || hashReservado ? "disabled" : "";
+
+  const claseFilaSoloLectura =
+    bloquearExistente || hashReservado ? " campo-row--readonly" : "";
+
+  const claseEstado = activo
+    ? "campo-disable campo-disable--active"
+    : "campo-disable campo-disable--inactive";
+
+  const textoEstado = activo ? "Desactivar" : "Activar";
+
+  const tituloEstado = activo
+    ? "Quita el campo de la vista, pero conserva la data histórica"
+    : "Activa el campo para mostrarlo nuevamente en la tabla";
+
+  const accionesHtml = hashReservado
+    ? `
+      <span class="campo-reservado">Reservado</span>
+      <span class="campo-action-placeholder"></span>
+    `
+    : permitirAcciones
+      ? `
+        <button
+          type="button"
+          class="${claseEstado}"
+          title="${tituloEstado}"
+        >
+          ${textoEstado}
+        </button>
+
+        <button
+          type="button"
+          class="campo-delete"
+          title="Marca el campo para eliminarlo junto con su información relacionada"
+        >
+          Eliminar
+        </button>
+      `
+      : `
+        <span class="campo-action-placeholder"></span>
+        <span class="campo-action-placeholder"></span>
+      `;
+
   return `
     <div
-      class="campo-row"
+      class="campo-row${claseFilaSoloLectura}"
       data-index="${index}"
       data-campo-id="${campoId}"
       data-orden="${orden}"
@@ -1147,6 +1551,7 @@ const construirFilaCampo = (campo = {}, index = 0, esExistente = false) => {
       data-original="${nombre}"
       data-activo="${activo ? "true" : "false"}"
       data-existente="${esExistente ? "true" : "false"}"
+      data-reservado="${hashReservado ? "true" : "false"}"
       style="${activo ? "" : "opacity:0.45"}"
     >
       <div class="campo-field">
@@ -1154,37 +1559,29 @@ const construirFilaCampo = (campo = {}, index = 0, esExistente = false) => {
           class="campo-input campo-nombre"
           placeholder="Nombre del campo"
           value="${nombre}"
+          ${disabled}
         />
       </div>
 
       <div class="campo-field campo-select-wrapper">
         <label>Tipo de dato</label>
-        <select class="campo-input campo-tipo">
+        <select class="campo-input campo-tipo" ${disabled}>
           ${construirOpcionesTipoDato(tipo)}
         </select>
       </div>
 
-      <button
-        type="button"
-        class="campo-disable"
-        title="Quita el campo de la vista, pero conserva la data histórica"
-      >
-        ${activo ? "Desactivar" : "Activar"}
-      </button>
-
-      <button
-        type="button"
-        class="campo-delete"
-        title="Quita el campo y borra esa columna en la data"
-      >
-        Eliminar
-      </button>
+      ${accionesHtml}
     </div>
   `;
 };
 
-const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
+const abrirFormularioCampos = async (camposIniciales = [], opciones = {}) => {
   const camposBase = normalizarCampos(camposIniciales);
+
+  const esModoAgregar = opciones.modo === "agregar";
+  const permitirAcciones = opciones.permitirAcciones !== false;
+  const mostrarBotonAgregar = opciones.mostrarBotonAgregar !== false;
+  const bloquearExistentes = opciones.bloquearExistentes === true;
 
   const camposRender = [...camposBase];
 
@@ -1204,26 +1601,33 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
         <p class="campos-popup__help">
           Agrega o administra los campos que tendrá la estructura.
           <br>
+          <b>Activar</b> activa el campo de la tabla.
+          <br>
           <b>Desactivar</b> quita el campo de la tabla, pero conserva la data histórica.
           <br>
-          <b>Eliminar</b> quita el campo y borra esa columna en todos los registros.
+          <b>Eliminar</b> marca el campo para borrado. La columna y su información relacionada solo se eliminarán al presionar Guardar.
         </p>
 
         <div id="camposContainer" class="campos-container">
           ${camposRender
-            .map((campo, index) =>
-              construirFilaCampo(campo, index, Boolean(campo.nombre_campo))
-            )
-            .join("")}
+        .map((campo, index) =>
+          construirFilaCampo(campo, index, Boolean(campo.nombre_campo), { permitirAcciones, bloquearExistentes, })
+        )
+        .join("")}
         </div>
 
-        <button
-          id="btnAgregarCampo"
-          type="button"
-          class="btn-agregar-campo"
-        >
-          + Agregar campo
-        </button>
+        ${mostrarBotonAgregar
+        ? `
+            <button
+              id="btnAgregarCampo"
+              type="button"
+              class="btn-agregar-campo"
+            >
+              + Agregar campo
+            </button>
+          `
+        : ""
+      }
       </div>
     `,
     showCancelButton: true,
@@ -1241,6 +1645,104 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
       const container = document.getElementById("camposContainer");
       const btnAgregar = document.getElementById("btnAgregarCampo");
 
+      const cerrarAvisosEliminacion = () => {
+        container
+          .querySelectorAll(".campo-delete-alert")
+          .forEach((aviso) => aviso.remove());
+      };
+
+      const obtenerIdentificadorEliminacion = (fila) => {
+        return fila.dataset.campoId || fila.dataset.original || "";
+      };
+
+      const bloquearFilaEliminada = (fila, botonEliminar) => {
+        fila.dataset.pendienteEliminar = "true";
+        fila.classList.add("campo-row--delete-pending");
+        fila.style.opacity = "0.55";
+
+        fila.querySelectorAll(".campo-input").forEach((input) => {
+          input.disabled = true;
+        });
+
+        const botonDesactivar = fila.querySelector(".campo-disable");
+
+        if (botonDesactivar) {
+          botonDesactivar.disabled = true;
+        }
+
+        botonEliminar.textContent = "Cancelar";
+        botonEliminar.title = "Cancelar eliminación pendiente";
+      };
+
+      const cancelarEliminacionFila = (fila, botonEliminar) => {
+        fila.dataset.pendienteEliminar = "false";
+        fila.classList.remove("campo-row--delete-pending");
+        fila.style.opacity = fila.dataset.activo === "false" ? "0.45" : "1";
+
+        fila.querySelectorAll(".campo-input").forEach((input) => {
+          input.disabled = false;
+        });
+
+        const botonDesactivar = fila.querySelector(".campo-disable");
+
+        if (botonDesactivar) {
+          botonDesactivar.disabled = false;
+        }
+
+        botonEliminar.textContent = "Eliminar";
+        botonEliminar.title = "Quita el campo y borra esa columna en la data";
+      };
+
+      const mostrarAvisoEliminarCampo = (fila, botonEliminar) => {
+        cerrarAvisosEliminacion();
+
+        const nombreCampo =
+          fila.querySelector(".campo-nombre")?.value?.trim() ||
+          fila.dataset.original ||
+          "este campo";
+
+        const aviso = document.createElement("div");
+        aviso.className = "campo-delete-alert";
+
+        aviso.innerHTML = `
+          <div class="campo-delete-alert__content">
+            <strong>Eliminar campo "${escaparHtml(nombreCampo)}"</strong>
+            <p>
+              Si acepta, este campo quedará marcado para eliminación.
+              La columna y toda la información relacionada con este campo
+              se eliminarán únicamente cuando presione <b>Guardar</b>.
+            </p>
+          </div>
+
+          <div class="campo-delete-alert__actions">
+            <button
+              type="button"
+              class="campo-delete-alert__cancel"
+            >
+              Cancelar
+            </button>
+
+            <button
+              type="button"
+              class="campo-delete-alert__confirm"
+            >
+              Aceptar eliminación
+            </button>
+          </div>
+        `;
+
+        fila.insertAdjacentElement("afterend", aviso);
+
+        aviso.querySelector(".campo-delete-alert__cancel").onclick = () => {
+          aviso.remove();
+        };
+
+        aviso.querySelector(".campo-delete-alert__confirm").onclick = () => {
+          bloquearFilaEliminada(fila, botonEliminar);
+          aviso.remove();
+        };
+      };
+
       const enlazarEventos = () => {
         const botonesDesactivar = container.querySelectorAll(".campo-disable");
         const botonesEliminar = container.querySelectorAll(".campo-delete");
@@ -1248,55 +1750,100 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
         botonesDesactivar.forEach((boton) => {
           boton.onclick = () => {
             const fila = boton.closest(".campo-row");
+
+            if (fila.dataset.pendienteEliminar === "true") {
+              return;
+            }
+
             const estaActivo = fila.dataset.activo !== "false";
 
-            fila.dataset.activo = estaActivo ? "false" : "true";
-            fila.style.opacity = estaActivo ? "0.45" : "1";
-            boton.textContent = estaActivo ? "Activar" : "Desactivar";
+            const quedaActivo = !estaActivo;
+
+            fila.dataset.activo = quedaActivo ? "true" : "false";
+            fila.style.opacity = quedaActivo ? "1" : "0.45";
+
+            boton.textContent = quedaActivo ? "Desactivar" : "Activar";
+
+            boton.title = quedaActivo
+              ? "Quita el campo de la vista, pero conserva la data histórica"
+              : "Activa el campo para mostrarlo nuevamente en la tabla";
+
+            boton.classList.toggle("campo-disable--active", quedaActivo);
+            boton.classList.toggle("campo-disable--inactive", !quedaActivo);
           };
         });
 
         botonesEliminar.forEach((boton) => {
           boton.onclick = () => {
             const fila = boton.closest(".campo-row");
-            const campoId = fila.dataset.campoId;
-            const nombreOriginal = fila.dataset.original;
 
-            if (campoId) {
-              eliminadosData.push(campoId);
-            } else if (nombreOriginal) {
-              eliminadosData.push(nombreOriginal);
+            if (fila.dataset.pendienteEliminar === "true") {
+              cancelarEliminacionFila(fila, boton);
+              return;
             }
 
-            fila.remove();
+            const identificador = obtenerIdentificadorEliminacion(fila);
+
+            if (!identificador) {
+              fila.remove();
+              return;
+            }
+
+            mostrarAvisoEliminarCampo(fila, boton);
           };
         });
       };
 
-      btnAgregar.onclick = () => {
-        const total = container.querySelectorAll(".campo-row").length;
+      if (btnAgregar) {
+        btnAgregar.onclick = () => {
+          const total = container.querySelectorAll(".campo-row").length;
 
-        container.insertAdjacentHTML(
-          "beforeend",
-          construirFilaCampo(
-            { nombre_campo: "", tipo_campo: "text" },
-            total,
-            false
-          )
-        );
+          container.insertAdjacentHTML(
+            "beforeend",
+            construirFilaCampo(
+              { nombre_campo: "", tipo_campo: "text" },
+              total,
+              false,
+              {
+                permitirAcciones: false,
+                bloquearExistentes: false,
+              }
+            )
+          );
 
-        enlazarEventos();
-      };
+          enlazarEventos();
+        };
+      }
 
       enlazarEventos();
     },
     preConfirm: () => {
       const filas = Array.from(document.querySelectorAll(".campo-row"));
 
-      const campos = filas.map((fila, index) => {
-        const nombreCampo = fila.querySelector(".campo-nombre")?.value?.trim();
+      const eliminadosPendientes = filas
+        .filter((fila) => {
+          return (
+            fila.dataset.pendienteEliminar === "true" &&
+            fila.dataset.reservado !== "true"
+          );
+        })
+        .map((fila) => fila.dataset.campoId || fila.dataset.original || "")
+        .filter(Boolean);
+
+      const filasParaGuardar = filas.filter((fila) => {
+        return fila.dataset.pendienteEliminar !== "true";
+      });
+
+      const campos = filasParaGuardar.map((fila, index) => {
+        const nombreCampo = fila
+          .querySelector(".campo-nombre")
+          ?.value
+          ?.trim()
+          ?.replace(/\s+/g, " ");
+
         const tipoCampo = fila.querySelector(".campo-tipo")?.value || "text";
         const tipoOriginal = fila.dataset.tipoOriginal || tipoCampo;
+        const cambioTipo = tipoOriginal !== tipoCampo;
 
         return {
           campo_id: fila.dataset.campoId || null,
@@ -1304,7 +1851,11 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
           nombre_campo: nombreCampo,
           tipo_campo: tipoCampo,
           activo: fila.dataset.activo !== "false",
-          migrar_data: tipoOriginal !== tipoCampo ? false : false,
+          migrar_data: cambioTipo,
+
+          // Esta propiedad es SOLO temporal para validar en frontend.
+          // No se envía al API.
+          reservado: fila.dataset.reservado === "true",
         };
       });
 
@@ -1315,23 +1866,50 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
         return false;
       }
 
-      const regexNombre = /^[A-Za-z_][A-Za-z0-9_]*$/;
+      const regexNombre =
+        /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ_][A-Za-zÁÉÍÓÚÜÑáéíóúüñ0-9_ ]*$/;
 
-      const campoInvalido = camposValidos.find(
-        (campo) => !regexNombre.test(campo.nombre_campo)
-      );
+      const campoInvalido = camposValidos.find((campo) => {
+        const nombre = campo.nombre_campo;
+
+        return (
+          !regexNombre.test(nombre) ||
+          nombre.includes("  ") ||
+          nombre.trim() !== nombre
+        );
+      });
 
       if (campoInvalido) {
         Swal.showValidationMessage(
           `El campo '${campoInvalido.nombre_campo}' no es válido. ` +
-          "Use letras, números y guion bajo. Debe iniciar con letra o guion bajo."
+          "Use letras, números y espacios. Debe iniciar con letra. " +
+          "No use espacios al inicio, al final ni espacios dobles."
+        );
+
+        return false;
+      }
+
+      const campoHashNoReservado = camposValidos.find((campo) => {
+        return (
+          esDocumental.value &&
+          String(campo.nombre_campo || "").trim().toLowerCase() === "hash" &&
+          !campo.reservado
+        );
+      });
+
+      if (campoHashNoReservado) {
+        Swal.showValidationMessage(
+          "El campo 'hash' es reservado para el Gestor Documental y no puede ser creado, editado ni eliminado manualmente."
         );
 
         return false;
       }
 
       const nombres = camposValidos.map((campo) =>
-        campo.nombre_campo.toLowerCase()
+        campo.nombre_campo
+          .trim()
+          .replace(/\s+/g, " ")
+          .toLowerCase()
       );
 
       const nombresUnicos = new Set(nombres);
@@ -1341,9 +1919,13 @@ const abrirFormularioCampos = async (camposIniciales = [], opciones = {} ) => {
         return false;
       }
 
+      const camposParaEnviar = camposValidos.map(({ reservado, ...campo }) => campo);
+
       return {
-        campos: camposValidos,
-        eliminar_data_campos: [...new Set(eliminadosData)],
+        campos: camposParaEnviar,
+        eliminar_data_campos: esModoAgregar
+          ? []
+          : [...new Set(eliminadosPendientes)],
       };
     },
   });
@@ -1409,9 +1991,13 @@ const crearCamposEstructura = async () => {
   if (!esAdministrador.value) return;
 
   const resultado = await abrirFormularioCampos(
-    camposFormulario.value,
+    camposEstructura.value,
     {
+      modo: "agregar",
       agregarFilaVacia: true,
+      permitirAcciones: false,
+      mostrarBotonAgregar: true,
+      bloquearExistentes: true,
     }
   );
 
@@ -1462,7 +2048,15 @@ const crearCamposEstructura = async () => {
 const editarCamposEstructura = async () => {
   if (!esAdministrador.value) return;
 
-  const resultado = await abrirFormularioCampos(camposFormulario.value);
+  const resultado = await abrirFormularioCampos(
+    camposEstructura.value,
+    {
+      modo: "editar",
+      permitirAcciones: true,
+      mostrarBotonAgregar: false,
+      bloquearExistentes: false,
+    }
+  );
 
   if (!resultado.isConfirmed) return;
 
@@ -1519,7 +2113,7 @@ const actualizarMetadataEstructura = async (data = {}) => {
     tipo_evidencia: tipoEvidencia.value,
     nombre: nombreEstructura.value,
     activo: estructuraActiva.value,
-    mapeo: normalizarCampos(camposFormulario.value),
+    mapeo: normalizarCampos(camposEstructura.value),
     ...data,
   };
 
@@ -1626,8 +2220,8 @@ const subirArchivoGestorDocumental = async ({
   if (status && String(status) !== "200") {
     throw new Error(
       response?.message ||
-        response?.error ||
-        "El Gestor Documental no pudo guardar el archivo."
+      response?.error ||
+      "El Gestor Documental no pudo guardar el archivo."
     );
   }
 
@@ -1887,7 +2481,7 @@ const abrirFormularioDocumento = async (
     archivoRequerido: true,
   }
 ) => {
-  const campos = normalizarCampos(camposFormulario.value);
+  const campos = normalizarCampos(camposFormulario.value).filter((campo) => !esCampoHash(campo));
   const esEdicion = opciones.modo === "editar";
 
   const camposHtml = campos
@@ -1899,11 +2493,10 @@ const abrirFormularioDocumento = async (
     html: `
       <div class="documento-popup">
         <p class="documento-help">
-          ${
-            esEdicion
-              ? "Actualice los campos del documento. Seleccione un nuevo PDF solo si desea reemplazar el archivo actual."
-              : "Seleccione el archivo PDF y complete los campos de la estructura."
-          }
+          ${esEdicion
+        ? "Actualice los campos del documento. Seleccione un nuevo PDF solo si desea reemplazar el archivo actual."
+        : "Seleccione el archivo PDF y complete los campos de la estructura."
+      }
           <br>
           El campo <b>hash</b> se actualiza automáticamente con el identificador retornado por el Gestor Documental.
         </p>
@@ -2405,32 +2998,10 @@ onMounted(async () => {
 
 .campo-row {
   display: grid !important;
-  grid-template-columns: minmax(220px, 1fr) minmax(220px, 260px) 96px 86px !important;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 260px) 100px 100px !important;
   align-items: center !important;
   gap: 10px !important;
   width: 100% !important;
-}
-
-.campo-disable,
-.campo-delete {
-  display: inline-flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  height: 40px !important;
-  border: none !important;
-  border-radius: 9px !important;
-  font-size: 11px !important;
-  font-weight: 800 !important;
-  cursor: pointer !important;
-}
-
-.campo-disable {
-  background: #fff8e1 !important;
-  color: #8a6d1d !important;
-}
-
-.campo-disable:hover {
-  background: #ffecb3 !important;
 }
 
 .campo-field {
@@ -2481,30 +3052,149 @@ onMounted(async () => {
   cursor: pointer !important;
 }
 
+.campo-disable,
 .campo-delete {
-  display: flex !important;
+  display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
-  width: 36px !important;
-  height: 44px !important;
+  width: 100% !important;
+  min-width: 86px !important;
+  height: 40px !important;
+  box-sizing: border-box !important;
   border: none !important;
   border-radius: 9px !important;
-  background: transparent !important;
-  color: #7a95c9 !important;
-  font-size: 24px !important;
-  font-weight: 700 !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  line-height: 1 !important;
+  white-space: nowrap !important;
   cursor: pointer !important;
   transition: background-color 0.2s ease, color 0.2s ease !important;
 }
 
-.campo-delete:hover {
-  background: #f1f5fb !important;
-  color: #d32f2f !important;
+.campo-disable--active {
+  background: #fff8e1 !important;
+  color: #8a6d1d !important;
 }
 
-.campo-delete--disabled {
+.campo-disable--active:hover {
+  background: #ffecb3 !important;
+}
+
+.campo-disable--inactive {
+  background: #e8f5e9 !important;
+  color: #1b5e20 !important;
+}
+
+.campo-disable--inactive:hover {
+  background: #c8e6c9 !important;
+}
+
+.campo-row--readonly {
+  background: #f8fafc !important;
+}
+
+.campo-row--readonly .campo-input:disabled {
+  background: #eef3f8 !important;
+  color: #607d8b !important;
   cursor: not-allowed !important;
-  opacity: 0.35 !important;
+}
+
+.campo-action-placeholder {
+  display: block !important;
+  width: 100% !important;
+  min-width: 86px !important;
+}
+
+.campo-delete {
+  background: #fdecea !important;
+  color: #b71c1c !important;
+}
+
+.campo-delete:hover {
+  background: #ffcdd2 !important;
+  color: #8a1010 !important;
+}
+
+.campo-action-placeholder {
+  display: block !important;
+  width: 100% !important;
+  min-width: 86px !important;
+}
+
+.campo-row--delete-pending {
+  border: 1px dashed #d32f2f !important;
+  border-radius: 10px !important;
+  padding: 8px !important;
+  background: #fff5f5 !important;
+}
+
+.campo-row--delete-pending .campo-delete {
+  background: #eceff1 !important;
+  color: #455a64 !important;
+}
+
+.campo-row--delete-pending .campo-disable {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+.campo-delete-alert {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 14px !important;
+  border: 1px solid #ffcdd2 !important;
+  border-left: 5px solid #d32f2f !important;
+  border-radius: 10px !important;
+  background: #fff5f5 !important;
+}
+
+.campo-delete-alert__content strong {
+  display: block !important;
+  margin-bottom: 4px !important;
+  color: #b71c1c !important;
+  font-size: 13px !important;
+  font-weight: 900 !important;
+}
+
+.campo-delete-alert__content p {
+  margin: 0 !important;
+  color: #5f6b73 !important;
+  font-size: 12px !important;
+  line-height: 1.4 !important;
+}
+
+.campo-delete-alert__actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.campo-delete-alert__cancel,
+.campo-delete-alert__confirm {
+  height: 36px !important;
+  padding: 0 12px !important;
+  border: none !important;
+  border-radius: 8px !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  cursor: pointer !important;
+  white-space: nowrap !important;
+}
+
+.campo-delete-alert__cancel {
+  background: #eceff1 !important;
+  color: #455a64 !important;
+}
+
+.campo-delete-alert__confirm {
+  background: #d32f2f !important;
+  color: #ffffff !important;
+}
+
+.campo-delete-alert__confirm:hover {
+  background: #b71c1c !important;
 }
 
 .btn-agregar-campo {
@@ -2541,6 +3231,15 @@ onMounted(async () => {
 
   .campo-delete {
     justify-self: flex-end !important;
+  }
+
+  .campo-delete-alert {
+    grid-template-columns: 1fr !important;
+  }
+
+  .campo-delete-alert__actions {
+    justify-content: flex-end !important;
+    flex-wrap: wrap !important;
   }
 }
 </style>
@@ -2596,5 +3295,68 @@ onMounted(async () => {
 
 .documento-fields {
   margin-top: 14px;
+}
+
+.registro-popup {
+  width: 100%;
+  text-align: left;
+}
+
+.registro-help {
+  margin: 0 0 16px;
+  color: #607d8b;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.registro-label {
+  display: block;
+  margin: 10px 0 6px;
+  color: #455a64;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.registro-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #b0bec5;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #37474f;
+  font-size: 13px;
+}
+
+.registro-textarea {
+  min-height: 90px;
+  resize: vertical;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.registro-input:disabled {
+  background: #f3f7fc;
+  color: #607d8b;
+  cursor: not-allowed;
+}
+
+.registro-fields {
+  margin-top: 14px;
+}
+
+.campo-reservado {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 100% !important;
+  min-width: 86px !important;
+  height: 40px !important;
+  box-sizing: border-box !important;
+  border-radius: 9px !important;
+  background: #e3f2fd !important;
+  color: #0d47a1 !important;
+  font-size: 11px !important;
+  font-weight: 900 !important;
+  text-transform: uppercase !important;
 }
 </style>
