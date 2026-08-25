@@ -25,6 +25,7 @@
         <div>ID</div>
         <div>Tipo de evidencia</div>
         <div>Nombre</div>
+        <div>Orden</div>
         <div>Estado</div>
         <div>Acciones</div>
       </div>
@@ -61,6 +62,10 @@
           <span class="estructura-nombre">
             {{ item.nombre || "Sin nombre registrado" }}
           </span>
+        </div>
+
+        <div class="tabla-evidencias__cell">
+          {{ item.orden ?? "-" }}
         </div>
 
         <div class="tabla-evidencias__cell">
@@ -192,6 +197,7 @@
 
 <script setup>
 import { computed, ref, watch } from "vue";
+import { ordenarPorOrden } from "@/utils/orden";
 
 const props = defineProps({
   estructuras: {
@@ -216,13 +222,16 @@ const paginaActual = ref(1);
 const itemsPorPagina = ref(5);
 
 const items = computed(() => {
-  return props.estructuras.map((estructura, index) => ({
-    ...estructura,
-    id: estructura.id || `estructura_${index + 1}`,
-    tipo_evidencia: estructura.tipo_evidencia || "Sin tipo",
-    nombre: estructura.nombre || `Estructura ${index + 1}`,
-    activo: estructura.activo !== false,
-  }));
+  return ordenarPorOrden(
+    props.estructuras.map((estructura, index) => ({
+      ...estructura,
+      id: estructura.id || `estructura_${index + 1}`,
+      tipo_evidencia: estructura.tipo_evidencia || "Sin tipo",
+      nombre: estructura.nombre || `Estructura ${index + 1}`,
+      orden: estructura.orden ?? null,
+      activo: estructura.activo !== false,
+    }))
+  );
 });
 
 const totalPaginas = computed(() => {
@@ -384,7 +393,7 @@ const obtenerColorAccionIr = (tipo = "") => {
 .tabla-evidencias__header,
 .tabla-evidencias__row {
   display: grid;
-  grid-template-columns: 24% 20% 22% 14% 20%;
+  grid-template-columns: 25% 17% 23% 10% 10% 15%;
   width: 100%;
 }
 
@@ -517,7 +526,7 @@ const obtenerColorAccionIr = (tipo = "") => {
   .tabla-evidencias__header,
   .tabla-evidencias__row {
     min-width: 820px;
-    grid-template-columns: 24% 20% 22% 14% 20%;
+    grid-template-columns: 25% 17% 23% 10% 10% 15%;
   }
 
   .tabla-evidencias__footer {
