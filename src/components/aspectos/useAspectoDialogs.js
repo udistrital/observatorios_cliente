@@ -37,22 +37,104 @@ export function useAspectoDialogs() {
     Swal.close();
   };
 
+  const inputOrdenHtml = (
+    puedeEditarOrden = false,
+    id = "orden",
+    valor = ""
+  ) => {
+    const disabled = puedeEditarOrden ? "" : "disabled";
+
+    return `
+      <div style="margin-bottom:14px">
+        <label
+          for="${id}"
+          style="display:block; margin-bottom:6px; font-weight:600"
+        >
+          Orden
+        </label>
+
+        <input
+          id="${id}"
+          class="swal2-input"
+          type="number"
+          min="0"
+          placeholder="Ej: 1"
+          value="${valor ?? ""}"
+          ${disabled}
+          style="display:block; width:100%; box-sizing:border-box; margin:0"
+        >
+      </div>
+    `;
+  };
+
+  const leerOrdenDesdeDialog = (
+    id = "orden",
+    puedeEditarOrden = false
+  ) => {
+    if (!puedeEditarOrden) {
+      return undefined;
+    }
+
+    const orden = document.getElementById(id)?.value?.trim();
+
+    if (orden && !/^\d+$/.test(orden)) {
+      Swal.showValidationMessage(
+        "El orden debe ser un número entero mayor o igual a cero."
+      );
+      return false;
+    }
+
+    return orden ? Number(orden) : null;
+  };
+
   const verAspectoDialog = async (aspecto) => {
+    const orden =
+      aspecto.orden !== null && aspecto.orden !== undefined
+        ? aspecto.orden
+        : "Sin orden registrado.";
+
     return Swal.fire({
       title: escaparHtml(aspecto.nombre || "Aspecto"),
       html: `
         <div style="text-align:left">
-          <p><b>ID:</b></p>
-          <p style="word-break:break-word">${escaparHtml(aspecto.id || "Sin ID")}</p>
+          <div style="margin-bottom:12px">
+            <b>ID:</b>
+            <div style="word-break:break-word; margin-top:4px">
+              ${escaparHtml(aspecto.id || "Sin ID")}
+            </div>
+          </div>
 
-          <p><b>Característica:</b></p>
-          <p style="word-break:break-word">${escaparHtml(aspecto.caracteristica_id || "Sin característica")}</p>
+          <div style="margin-bottom:12px">
+            <b>Orden:</b>
+            <div style="margin-top:4px">
+              ${escaparHtml(orden)}
+            </div>
+          </div>
 
-          <p><b>Estado:</b></p>
-          <p>${aspecto.activo !== false ? "Activo" : "Inactivo"}</p>
+          <div style="margin-bottom:12px">
+            <b>Característica:</b>
+            <div style="word-break:break-word; margin-top:4px">
+              ${escaparHtml(aspecto.caracteristica_id || "Sin característica")}
+            </div>
+          </div>
 
-          <p><b>Estructuras de evidencias:</b></p>
-          <p>${Array.isArray(aspecto.estructuras_evidencias) ? aspecto.estructuras_evidencias.length : 0}</p>
+          <div style="margin-bottom:12px">
+            <b>Estado:</b>
+            <div style="margin-top:4px">
+              ${aspecto.activo !== false ? "Activo" : "Inactivo"}
+            </div>
+          </div>
+
+          <div>
+            <b>Estructuras de evidencias:</b>
+            <div style="margin-top:4px">
+              ${
+                Array.isArray(aspecto.estructuras_evidencias)
+                  ? aspecto.estructuras_evidencias.length
+                  : 0
+              }
+            </div>
+          </div>
         </div>
       `,
       icon: "info",
@@ -62,17 +144,34 @@ export function useAspectoDialogs() {
     });
   };
 
-  const crearAspectoDialog = async () => {
+  const crearAspectoDialog = async (opciones = {}) => {
+    const puedeEditarOrden = opciones.puedeEditarOrden === true;
+
     return Swal.fire({
       title: "Crear Aspecto",
       html: `
         <div style="text-align:left">
-          <label style="font-weight:600">Nombre</label>
-          <input
-            id="nombreAspecto"
-            class="swal2-input"
-            placeholder="Nombre del aspecto"
-          >
+          <div style="margin-bottom:14px">
+            <label
+              for="nombreAspecto"
+              style="display:block; margin-bottom:6px; font-weight:600"
+            >
+              Nombre
+            </label>
+
+            <input
+              id="nombreAspecto"
+              class="swal2-input"
+              placeholder="Nombre del aspecto"
+              style="display:block; width:100%; box-sizing:border-box; margin:0"
+            >
+          </div>
+
+          ${inputOrdenHtml(
+            puedeEditarOrden,
+            "ordenAspecto",
+            ""
+          )}
         </div>
       `,
       showCancelButton: true,
@@ -86,29 +185,61 @@ export function useAspectoDialogs() {
           .getElementById("nombreAspecto")
           ?.value?.trim();
 
+        const orden = leerOrdenDesdeDialog(
+          "ordenAspecto",
+          puedeEditarOrden
+        );
+
+        if (orden === false) {
+          return false;
+        }
+
         if (!nombre) {
           Swal.showValidationMessage("El nombre del aspecto es obligatorio.");
           return false;
         }
 
-        return {
+        const payload = {
           nombre,
         };
+
+        if (puedeEditarOrden) {
+          payload.orden = orden;
+        }
+
+        return payload;
       },
     });
   };
 
-  const editarAspectoDialog = async (aspecto) => {
+  const editarAspectoDialog = async (aspecto, opciones = {}) => {
+    const puedeEditarOrden = opciones.puedeEditarOrden === true;
+
     return Swal.fire({
       title: "Editar Aspecto",
       html: `
         <div style="text-align:left">
-          <label style="font-weight:600">Nombre</label>
-          <input
-            id="editarNombreAspecto"
-            class="swal2-input"
-            placeholder="Nombre del aspecto"
-          >
+          <div style="margin-bottom:14px">
+            <label
+              for="editarNombreAspecto"
+              style="display:block; margin-bottom:6px; font-weight:600"
+            >
+              Nombre
+            </label>
+
+            <input
+              id="editarNombreAspecto"
+              class="swal2-input"
+              placeholder="Nombre del aspecto"
+              style="display:block; width:100%; box-sizing:border-box; margin:0"
+            >
+          </div>
+
+          ${inputOrdenHtml(
+            puedeEditarOrden,
+            "editarOrdenAspecto",
+            aspecto.orden ?? ""
+          )}
         </div>
       `,
       showCancelButton: true,
@@ -120,20 +251,38 @@ export function useAspectoDialogs() {
       didOpen: () => {
         document.getElementById("editarNombreAspecto").value =
           aspecto.nombre || "";
+
+        document.getElementById("editarOrdenAspecto").value =
+          aspecto.orden ?? "";
       },
       preConfirm: () => {
         const nombre = document
           .getElementById("editarNombreAspecto")
           ?.value?.trim();
 
+        const orden = leerOrdenDesdeDialog(
+          "editarOrdenAspecto",
+          puedeEditarOrden
+        );
+
+        if (orden === false) {
+          return false;
+        }
+
         if (!nombre) {
           Swal.showValidationMessage("El nombre del aspecto es obligatorio.");
           return false;
         }
 
-        return {
+        const payload = {
           nombre,
         };
+
+        if (puedeEditarOrden) {
+          payload.orden = orden;
+        }
+
+        return payload;
       },
     });
   };
@@ -195,42 +344,82 @@ export function useAspectoDialogs() {
     });
   };
 
-  const crearEstructuraEvidenciaDialog = async (estructura = null) => {
-    const esEdicion = Boolean(estructura?.id || estructura?.tipo_evidencia || estructura?.nombre);
+  const crearEstructuraEvidenciaDialog = async (
+    estructura = null,
+    opciones = {}
+  ) => {
+    const esEdicion = Boolean(
+      estructura?.id ||
+      estructura?.tipo_evidencia ||
+      estructura?.nombre
+    );
+
+    const puedeEditarOrden = opciones.puedeEditarOrden === true;
 
     return Swal.fire({
-      title: esEdicion ? "Editar Estructura Evidencia" : "Crear Estructura Evidencia",
+      title: esEdicion
+        ? "Editar Estructura Evidencia"
+        : "Crear Estructura Evidencia",
       html: `
         <div style="text-align:left">
-          <label style="font-weight:600">Tipo de evidencia</label>
-          <select
-            id="tipoEvidencia"
-            class="swal2-select"
-            style="width:100%; margin: 8px 0 14px;"
-            ${esEdicion ? "disabled" : ""}
-          >
-            <option value="">Seleccione un tipo</option>
-            <option value="Documental">Documental</option>
-            <option value="Tabla">Tabla</option>
-          </select>
+          <div style="margin-bottom:14px">
+            <label
+              for="tipoEvidencia"
+              style="display:block; margin-bottom:6px; font-weight:600"
+            >
+              Tipo de evidencia
+            </label>
 
-          <label style="font-weight:600">Nombre</label>
-          <input
-            id="nombreEstructuraEvidencia"
-            class="swal2-input"
-            placeholder="Nombre de la estructura evidencia"
-          >
+            <select
+              id="tipoEvidencia"
+              class="swal2-select"
+              style="display:block; width:100%; box-sizing:border-box; margin:0"
+              ${esEdicion ? "disabled" : ""}
+            >
+              <option value="">Seleccione un tipo</option>
+              <option value="Documental">Documental</option>
+              <option value="Tabla">Tabla</option>
+            </select>
+          </div>
+
+          <div style="margin-bottom:14px">
+            <label
+              for="nombreEstructuraEvidencia"
+              style="display:block; margin-bottom:6px; font-weight:600"
+            >
+              Nombre
+            </label>
+
+            <input
+              id="nombreEstructuraEvidencia"
+              class="swal2-input"
+              placeholder="Nombre de la estructura evidencia"
+              style="display:block; width:100%; box-sizing:border-box; margin:0"
+            >
+          </div>
+
+          ${inputOrdenHtml(
+            puedeEditarOrden,
+            "ordenEstructuraEvidencia",
+            estructura?.orden ?? ""
+          )}
         </div>
       `,
       showCancelButton: true,
       confirmButtonText: "Guardar",
       cancelButtonText: "Cancelar",
-      width: "500px",
+      width: "520px",
       customClass: clases,
       buttonsStyling: false,
       didOpen: () => {
-        document.getElementById("tipoEvidencia").value = estructura?.tipo_evidencia || "";
-        document.getElementById("nombreEstructuraEvidencia").value = estructura?.nombre || "";
+        document.getElementById("tipoEvidencia").value =
+          estructura?.tipo_evidencia || "";
+
+        document.getElementById("nombreEstructuraEvidencia").value =
+          estructura?.nombre || "";
+
+        document.getElementById("ordenEstructuraEvidencia").value =
+          estructura?.orden ?? "";
       },
       preConfirm: () => {
         const tipoEvidencia = esEdicion
@@ -240,6 +429,15 @@ export function useAspectoDialogs() {
         const nombre = document
           .getElementById("nombreEstructuraEvidencia")
           ?.value?.trim();
+
+        const orden = leerOrdenDesdeDialog(
+          "ordenEstructuraEvidencia",
+          puedeEditarOrden
+        );
+
+        if (orden === false) {
+          return false;
+        }
 
         if (!tipoEvidencia) {
           Swal.showValidationMessage("Debe seleccionar el tipo de evidencia.");
@@ -251,11 +449,17 @@ export function useAspectoDialogs() {
           return false;
         }
 
-        return {
+        const payload = {
           tipo_evidencia: tipoEvidencia,
           nombre,
           activo: true,
         };
+
+        if (puedeEditarOrden) {
+          payload.orden = orden;
+        }
+
+        return payload;
       },
     });
   };

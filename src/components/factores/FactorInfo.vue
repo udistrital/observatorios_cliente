@@ -33,6 +33,7 @@ const descripcion = computed(() => {
 const calificacion = computed(() => {
   return props.factor.calificacion || "Sin calificación registrada.";
 });
+
 </script>
 
 <style scoped>

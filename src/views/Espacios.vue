@@ -172,6 +172,7 @@
 
     <ProcesoFormDialog
       ref="procesoFormDialogRef"
+      :puede-editar-orden="esAdministrador"
       @proceso-guardado="traerProcesos"
     />
   </section>
@@ -181,6 +182,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import Swal from "sweetalert2";
+import { ordenarPorOrden } from "@/utils/orden";
 
 import ProcesoFormDialog from "@/components/procesos/ProcesoFormDialog.vue";
 import { procesosService } from "@/service/procesos.service";
@@ -206,18 +208,24 @@ const procesosVisibles = computed(() => {
 });
 
 const procesosFiltrados = computed(() => {
-  if (!search.value) return procesosVisibles.value;
+  const visibles = procesosVisibles.value;
 
-  const textoBusqueda = search.value.toLowerCase();
+  const filtrados = search.value
+    ? visibles.filter((proceso) => {
+        const textoBusqueda = search.value.toLowerCase();
 
-  return procesosVisibles.value.filter((proceso) => {
-    return (
-      proceso.nombre?.toLowerCase().includes(textoBusqueda) ||
-      proceso.descripcion?.toLowerCase().includes(textoBusqueda) ||
-      proceso.dependencia_responsable?.toLowerCase().includes(textoBusqueda) ||
-      String(proceso.proceso_id || proceso.id || "").toLowerCase().includes(textoBusqueda)
-    );
-  });
+        return (
+          proceso.nombre?.toLowerCase().includes(textoBusqueda) ||
+          proceso.descripcion?.toLowerCase().includes(textoBusqueda) ||
+          proceso.dependencia_responsable?.toLowerCase().includes(textoBusqueda) ||
+          String(proceso.proceso_id || proceso.id || "")
+            .toLowerCase()
+            .includes(textoBusqueda)
+        );
+      })
+    : visibles;
+
+  return ordenarPorOrden(filtrados);
 });
 
 const mostrarCargandoProcesos = () => {
