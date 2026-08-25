@@ -5,18 +5,37 @@ import { useFactorStore } from "@/stores/factorStore";
 export function useFactor(factorId) {
   const factorStore = useFactorStore();
 
-  const factor = computed(() => {
-    return factorStore.factor || {
-      id: factorId.value,
-      nombre: "Factor",
-      descripcion: "",
-      calificacion: "",
-      activo: true,
-      caracteristicas: [],
-    };
+  const obtenerIdFactor = (factor) => {
+    return factor?.factor_id || factor?.id;
+  };
+
+  const crearFactorBase = () => ({
+    id: factorId.value,
+    factor_id: factorId.value,
+    nombre: "Factor",
+    descripcion: "",
+    calificacion: "",
+    orden: null,
+    activo: true,
+    caracteristicas: [],
   });
 
-  const cargarFactor = async () => {
+  const factor = computed(() => {
+    const factorActual = factorStore.factor;
+
+    if (
+      factorActual &&
+      obtenerIdFactor(factorActual) === factorId.value
+    ) {
+      return factorActual;
+    }
+
+    return crearFactorBase();
+  });
+
+  const cargarFactor = async (opciones = {}) => {
+    const force = opciones.force === true;
+
     if (!factorId.value) {
       factorStore.setFactor(null);
       return null;
@@ -26,13 +45,14 @@ export function useFactor(factorId) {
 
     const yaTieneFactor =
       factorActual &&
-      factorActual.id === factorId.value;
+      obtenerIdFactor(factorActual) === factorId.value;
 
-    if (yaTieneFactor) {
+    if (yaTieneFactor && !force) {
       return factorActual;
     }
 
     const factorEncontrado = await factoresService.obtener(factorId.value);
+
     factorStore.setFactor(factorEncontrado);
 
     return factorEncontrado;

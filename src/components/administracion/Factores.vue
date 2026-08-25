@@ -133,6 +133,7 @@
 
     <ProcesoFormDialog
       ref="procesoFormDialogRef"
+      :puede-editar-orden="esAdministrador"
       @proceso-creado="alCrearProceso"
     />
 
@@ -178,6 +179,18 @@
               density="comfortable"
               :readonly="modo === 'ver'"
               :rules="[reglas.requerido]"
+            />
+
+            <v-text-field
+              v-if="esAdministrador || formulario.orden !== null"
+              v-model.number="formulario.orden"
+              label="Orden"
+              type="number"
+              min="0"
+              variant="outlined"
+              density="comfortable"
+              :readonly="modo === 'ver' || !esAdministrador"
+              :rules="[reglas.enteroNoNegativo]"
             />
 
             <v-textarea
@@ -266,9 +279,19 @@ import { procesosService } from "@/service/procesos.service";
 import { factoresService } from "../../service/factores.service";
 import { FactorModel } from "../../model/factor.model";
 
+import { useUserStore } from "@/stores/userStore";
+import { esAdminObservatorios } from "@/utils/roles";
+import { ordenarPorOrden } from "@/utils/orden";
+
 const router = useRouter();
 
 const factorStore = useFactorStore();
+
+const userStore = useUserStore();
+
+const esAdministrador = computed(() =>
+  esAdminObservatorios(userStore.user?.role)
+);
 
 const search = ref("");
 const factores = ref([]);
@@ -292,6 +315,7 @@ const formulario = ref({
   descripcion: "",
   calificacion: "",
   caracteristicas: [],
+  orden: null,
   activo: true,
   fecha_creacion: "",
   fecha_modificacion: "",
@@ -301,6 +325,7 @@ const headers = ref([
   { title: "ID del Factor", key: "factor_id", align: "center" },
   { title: "Proceso", key: "proceso_id", align: "center" },
   { title: "Nombre", key: "nombre", align: "center" },
+  { title: "Orden", key: "orden", align: "center" },
   { title: "Estado", key: "activo", align: "center" },
   { title: "Acciones", key: "acciones", sortable: false, align: "center" },
 ]);
@@ -313,6 +338,12 @@ const reglas = {
     value === undefined ||
     /^\d+(\.\d+)?$/.test(String(value)) ||
     "La calificación debe ser un número decimal.",
+  enteroNoNegativo: (value) =>
+    value === "" ||
+    value === null ||
+    value === undefined ||
+    /^\d+$/.test(String(value)) ||
+    "El orden debe ser un número entero mayor o igual a cero.",
 };
 
 const limpiarValorFloat = (value) => {
@@ -409,20 +440,20 @@ const traerProcesos = async () => {
 };
 
 const factoresFiltrados = computed(() => {
-  if (!search.value) return factores.value;
+  const filtrados = search.value
+    ? factores.value.filter((factor) => {
+        const item = obtenerRaw(factor);
+        const texto = search.value.toLowerCase();
 
-  const textoBusqueda = search.value.toLowerCase();
+        return (
+          item.nombre?.toLowerCase().includes(texto) ||
+          item.descripcion?.toLowerCase().includes(texto) ||
+          String(item.factor_id || item.id || "").toLowerCase().includes(texto)
+        );
+      })
+    : factores.value;
 
-  return factores.value.filter((factor) => {
-    const nombreProceso = obtenerNombreProceso(factor.proceso_id);
-
-    return (
-      factor.nombre?.toLowerCase().includes(textoBusqueda) ||
-      factor.factor_id?.toLowerCase().includes(textoBusqueda) ||
-      factor.proceso_id?.toLowerCase().includes(textoBusqueda) ||
-      nombreProceso?.toLowerCase().includes(textoBusqueda)
-    );
-  });
+  return ordenarPorOrden(filtrados.map((item) => obtenerRaw(item)));
 });
 
 const procesosActivos = computed(() => {
@@ -484,6 +515,7 @@ const limpiarFormulario = () => {
     descripcion: "",
     calificacion: "",
     caracteristicas: [],
+    orden: null,
     activo: true,
     fecha_creacion: "",
     fecha_modificacion: "",
@@ -536,6 +568,7 @@ const verFactor = (item) => {
     caracteristicas: Array.isArray(factor.caracteristicas)
       ? factor.caracteristicas
       : [],
+    orden: factor.orden ?? null,
     activo: factor.activo !== false,
     fecha_creacion: factor.fecha_creacion || "",
     fecha_modificacion: factor.fecha_modificacion || "",
@@ -560,6 +593,7 @@ const editarFactor = (item) => {
     caracteristicas: Array.isArray(factor.caracteristicas)
       ? factor.caracteristicas
       : [],
+    orden: factor.orden ?? null,
     activo: factor.activo !== false,
     fecha_creacion: factor.fecha_creacion || "",
     fecha_modificacion: factor.fecha_modificacion || "",
@@ -580,14 +614,21 @@ const guardarFactor = async () => {
   guardando.value = true;
 
   try {
-    const factor = new FactorModel({
+    const datosFactor = {
       proceso_id: formulario.value.proceso_id,
       nombre: formulario.value.nombre,
       descripcion: formulario.value.descripcion,
       calificacion: formulario.value.calificacion || "",
       caracteristicas: formulario.value.caracteristicas || [],
       activo: formulario.value.activo,
-    });
+    };
+
+    if (esAdministrador.value) {
+      datosFactor.orden =
+        formulario.value.orden === "" ? null : formulario.value.orden;
+    }
+
+    const factor = new FactorModel(datosFactor);
 
     let mensajeExito = "";
 
@@ -777,6 +818,7 @@ const dirigirseFactor = (item) => {
     nombre: factor.nombre,
     descripcion: factor.descripcion,
     calificacion: factor.calificacion,
+    orden: factor.orden ?? null,
     activo: factor.activo,
   });
 
