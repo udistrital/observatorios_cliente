@@ -18,6 +18,18 @@ function getAuthHeaders() {
   };
 }
 
+function obtenerPayload(data) {
+  if (data instanceof ProcesoModel) {
+    return data.toPayload();
+  }
+
+  if (data && typeof data.toPayload === "function") {
+    return data.toPayload();
+  }
+
+  return data;
+}
+
 const api = axios.create({
   baseURL: environment.MAIN_BACKEND,
   headers: {
@@ -46,20 +58,14 @@ export const procesosService = {
   },
 
   async crear(data) {
-    const proceso = data instanceof ProcesoModel
-      ? data
-      : new ProcesoModel(data);
-
-    const response = await api.post("/procesos/", proceso.toPayload());
+    const payload = obtenerPayload(data);
+    const response = await api.post("/procesos/", payload);
     return ProcesoModel.fromApi(response.data);
   },
 
   async actualizar(id, data) {
-    const proceso = data instanceof ProcesoModel
-      ? data
-      : new ProcesoModel(data);
-
-    const response = await api.put(`/procesos/${id}/`, proceso.toPayload());
+    const payload = obtenerPayload(data);
+    const response = await api.put(`/procesos/${id}/`, payload);
     return ProcesoModel.fromApi(response.data);
   },
 

@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, watch } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import peticionAPI from "../../service/conexion_api";
 import Swal from "sweetalert2";
@@ -205,7 +205,9 @@ const verFactor = async () => {
 const editarFactor = async () => {
   if (!esAdministrador.value) return;
 
-  const resultado = await editarFactorDialog(factor.value);
+  const resultado = await editarFactorDialog(factor.value, {
+    puedeEditarOrden: esAdministrador.value,
+  });
 
   if (!resultado.isConfirmed) return;
 
@@ -215,11 +217,17 @@ const editarFactor = async () => {
       "Guardando los cambios del factor…"
     );
 
-    await actualizarFactor({
+    const payload = {
       nombre: resultado.value.nombre,
       descripcion: resultado.value.descripcion,
       calificacion: resultado.value.calificacion,
-    });
+    };
+
+    if (esAdministrador.value) {
+      payload.orden = resultado.value.orden;
+    }
+
+    await actualizarFactor(payload);
 
     cerrarCargando();
 
@@ -782,19 +790,38 @@ const diriguirseEstructura = (item) => {
 const abrirCrearCaracteristica = async () => {
   if (!esAdministrador.value) return;
 
-  const resultado = await crearCaracteristicaDialog();
+  const resultado = await crearCaracteristicaDialog({
+    puedeEditarOrden: esAdministrador.value,
+  });
 
   if (!resultado.isConfirmed) return;
 
   try {
-    await crearCaracteristicaApi(resultado.value);
+    const payload = {
+      nombre: resultado.value.nombre,
+      descripcion: resultado.value.descripcion,
+      calificacion: resultado.value.calificacion,
+    };
+
+    if (esAdministrador.value) {
+      payload.orden = resultado.value.orden;
+    }
+
+    console.log("Payload característica creada:", payload);
+
+    await crearCaracteristicaApi(payload);
+
+    await traerEstructuras();
 
     await mostrarExito(
       "¡Creada!",
       "La característica se creó correctamente."
     );
   } catch (error) {
-    console.error("Error al crear característica:", error?.response?.data || error);
+    console.error(
+      "Error al crear característica:",
+      error?.response?.data || error
+    );
 
     await mostrarError("No fue posible crear la característica.");
   }
@@ -810,23 +837,38 @@ const editarCaracteristica = async (item) => {
 
   const caracteristica = obtenerItem(item);
 
-  const resultado = await editarCaracteristicaDialog(caracteristica);
+  const resultado = await editarCaracteristicaDialog(caracteristica, {
+    puedeEditarOrden: esAdministrador.value,
+  });
 
   if (!resultado.isConfirmed) return;
 
   try {
-    await actualizarCaracteristica(caracteristica.id, {
+    const payload = {
       nombre: resultado.value.nombre,
       descripcion: resultado.value.descripcion,
       calificacion: resultado.value.calificacion,
-    });
+    };
+
+    if (esAdministrador.value) {
+      payload.orden = resultado.value.orden;
+    }
+
+    console.log("Payload característica enviado:", payload);
+
+    await actualizarCaracteristica(caracteristica.id, payload);
+
+    await traerEstructuras();
 
     await mostrarExito(
       "¡Actualizada!",
       "La característica se actualizó correctamente."
     );
   } catch (error) {
-    console.error("Error al editar característica:", error?.response?.data || error);
+    console.error(
+      "Error al editar característica:",
+      error?.response?.data || error
+    );
 
     await mostrarError("No fue posible editar la característica.");
   }
@@ -905,14 +947,20 @@ const diriguirseArchivos = (item) => {
   });
 };
 
-onMounted(async () => {
+const cargarPantallaFactor = async () => {
+  if (!factorId.value) return;
+
+  caracteristicasAbiertas.value = [];
+
   try {
     await mostrarCargando(
       "Cargando factor",
       "Consultando la información del factor…"
     );
 
-    await cargarFactor();
+    await cargarFactor({
+      force: true,
+    });
 
     cerrarCargando();
   } catch (error) {
@@ -925,7 +973,17 @@ onMounted(async () => {
   }
 
   await traerEstructuras();
-});
+};
+
+watch(
+  () => factorId.value,
+  async () => {
+    await cargarPantallaFactor();
+  },
+  {
+    immediate: true,
+  }
+);
 
 </script>
 

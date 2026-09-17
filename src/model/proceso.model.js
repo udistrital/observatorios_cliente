@@ -1,3 +1,5 @@
+import { normalizarOrden, ordenarPorOrden } from "@/utils/orden";
+
 export class ProcesoModel {
   constructor(data = {}) {
     this.id = data.id || data.proceso_id || null;
@@ -9,6 +11,7 @@ export class ProcesoModel {
     this.factores = Array.isArray(data.factores) ? data.factores : [];
     this.fecha_inicio = data.fecha_inicio || "";
     this.fecha_fin = data.fecha_fin || "";
+    this.orden = normalizarOrden(data.orden, null); 
     this.activo = data.activo !== undefined ? data.activo : true;
     this.fecha_creacion = data.fecha_creacion || "";
     this.fecha_modificacion = data.fecha_modificacion || "";
@@ -25,6 +28,7 @@ export class ProcesoModel {
       factores: data.factores || [],
       fecha_inicio: data.fecha_inicio,
       fecha_fin: data.fecha_fin,
+      orden: data.orden,
       activo: data.activo,
       fecha_creacion: data.fecha_creacion,
       fecha_modificacion: data.fecha_modificacion,
@@ -32,7 +36,7 @@ export class ProcesoModel {
   }
 
   static fromApiList(data = []) {
-    return data.map((item) => ProcesoModel.fromApi(item));
+    return ordenarPorOrden(data.map((item) => ProcesoModel.fromApi(item)));
   }
 
   toPayload() {
@@ -44,6 +48,7 @@ export class ProcesoModel {
       factores: this.factores || [],
       fecha_inicio: this.fecha_inicio || "",
       fecha_fin: this.fecha_fin || "",
+      orden: this.orden,
       activo: this.activo,
     };
   }

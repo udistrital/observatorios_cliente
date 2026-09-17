@@ -1,6 +1,7 @@
 import { ref } from "vue";
 import { aspectosService } from "@/service/aspectos.service";
 import { AspectoModel } from "@/model/aspecto.model";
+import { ordenarPorOrden } from "@/utils/orden";
 
 export function useAspectos(caracteristicaId) {
   const aspectos = ref([]);
@@ -23,20 +24,21 @@ export function useAspectos(caracteristicaId) {
     }
   };
 
-  const crearAspecto = async ({ nombre }) => {
+  const crearAspecto = async ({ nombre, orden = null }) => {
     const nuevoAspecto = new AspectoModel({
       caracteristica_id: caracteristicaId.value,
       nombre,
+      orden,
       activo: true,
       estructuras_evidencias: [],
     });
 
     const aspectoCreado = await aspectosService.crear(nuevoAspecto);
 
-    aspectos.value = [
+    aspectos.value = ordenarPorOrden([
       ...aspectos.value,
       aspectoCreado,
-    ];
+    ]);
 
     return aspectoCreado;
   };
@@ -47,16 +49,18 @@ export function useAspectos(caracteristicaId) {
       data
     );
 
-    aspectos.value = aspectos.value.map((aspecto) => {
-      if (aspecto.id !== id) {
-        return aspecto;
-      }
+    aspectos.value = ordenarPorOrden(
+      aspectos.value.map((aspecto) => {
+        if (aspecto.id !== id) {
+          return aspecto;
+        }
 
-      return {
-        ...aspecto,
-        ...aspectoActualizado,
-      };
-    });
+        return {
+          ...aspecto,
+          ...aspectoActualizado,
+        };
+      })
+    );
 
     return aspectoActualizado;
   };

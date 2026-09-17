@@ -39,6 +39,18 @@
           />
 
           <v-text-field
+            v-if="puedeEditarOrden || formulario.orden !== null"
+            v-model.number="formulario.orden"
+            label="Orden"
+            type="number"
+            min="0"
+            variant="outlined"
+            density="comfortable"
+            :readonly="modo === 'ver' || !puedeEditarOrden"
+            :rules="[reglas.enteroNoNegativo]"
+          />
+
+          <v-text-field
             v-model="formulario.dependencia_responsable"
             label="Dependencia responsable"
             variant="outlined"
@@ -113,8 +125,9 @@
 </template>
 
 <script setup>
-import { computed, ref, defineEmits, defineExpose } from "vue";
+import { computed, ref, defineEmits, defineExpose, defineProps } from "vue";
 import Swal from "sweetalert2";
+import { validarOrdenNoNegativo } from "@/utils/orden";
 
 import { procesosService } from "@/service/procesos.service";
 import { ProcesoModel } from "@/model/proceso.model";
@@ -127,6 +140,15 @@ const formRef = ref(null);
 const modo = ref("crear");
 const procesoSeleccionado = ref(null);
 
+const props = defineProps({
+  puedeEditarOrden: {
+    type: Boolean,
+    default: false,
+  },
+});
+
+const puedeEditarOrden = computed(() => props.puedeEditarOrden === true);
+
 const formulario = ref({
   nombre: "",
   descripcion: "",
@@ -135,11 +157,13 @@ const formulario = ref({
   factores: [],
   fecha_inicio: "",
   fecha_fin: "",
+  orden: null,
   activo: true,
 });
 
 const reglas = {
   requerido: (value) => !!value || "Este campo es obligatorio",
+  enteroNoNegativo: validarOrdenNoNegativo,
 };
 
 const tituloModal = computed(() => {
@@ -157,6 +181,7 @@ const limpiarFormulario = () => {
     factores: [],
     fecha_inicio: "",
     fecha_fin: "",
+    orden: null,
     activo: true,
   };
 
@@ -172,6 +197,7 @@ const cargarFormulario = (proceso = {}) => {
     factores: Array.isArray(proceso.factores) ? proceso.factores : [],
     fecha_inicio: proceso.fecha_inicio || "",
     fecha_fin: proceso.fecha_fin || "",
+    orden: proceso.orden ?? null,
     activo: proceso.activo !== false,
   };
 };
@@ -206,27 +232,43 @@ const guardarProceso = async () => {
   guardando.value = true;
 
   try {
-    const proceso = new ProcesoModel({
+    const payloadProceso = {
       nombre: formulario.value.nombre,
       descripcion: formulario.value.descripcion,
       dependencia_responsable: formulario.value.dependencia_responsable,
       objetivo: formulario.value.objetivo,
-      factores: [],
+      factores: Array.isArray(formulario.value.factores)
+        ? formulario.value.factores
+        : [],
       fecha_inicio: formulario.value.fecha_inicio,
       fecha_fin: formulario.value.fecha_fin,
       activo: formulario.value.activo,
-    });
+    };
+
+    if (puedeEditarOrden.value) {
+      payloadProceso.orden =
+        formulario.value.orden === "" ||
+        formulario.value.orden === null ||
+        formulario.value.orden === undefined
+          ? null
+          : Number(formulario.value.orden);
+    }
+
+    console.log("Payload proceso enviado:", payloadProceso);
 
     let procesoGuardado = null;
     let mensajeExito = "El proceso se ha creado correctamente.";
 
     if (modo.value === "editar") {
-      const id = procesoSeleccionado.value?.proceso_id || procesoSeleccionado.value?.id;
-      procesoGuardado = await procesosService.actualizar(id, proceso);
+      const id =
+        procesoSeleccionado.value?.proceso_id ||
+        procesoSeleccionado.value?.id;
+
+      procesoGuardado = await procesosService.actualizar(id, payloadProceso);
       mensajeExito = "El proceso se ha actualizado correctamente.";
       emit("proceso-actualizado", procesoGuardado);
     } else {
-      procesoGuardado = await procesosService.crear(proceso);
+      procesoGuardado = await procesosService.crear(payloadProceso);
       emit("proceso-creado", procesoGuardado);
     }
 

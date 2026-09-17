@@ -116,7 +116,7 @@
 
         <div class="factor-card__content">
           <span class="factor-card__label">
-            {{ obtenerEtiquetaFactor(factor, index) }}
+            Orden: {{ factor.orden ?? "-" }} · Id: {{ obtenerEtiquetaFactor(factor, index) }}
           </span>
 
           <h3>{{ factor.nombre }}</h3>
@@ -212,6 +212,18 @@
               :rules="[reglas.requerido]"
             />
 
+            <v-text-field
+              v-if="esAdministrador || formulario.orden !== null"
+              v-model.number="formulario.orden"
+              label="Orden"
+              type="number"
+              min="0"
+              variant="outlined"
+              density="comfortable"
+              :readonly="modo === 'ver' || !esAdministrador"
+              :rules="[reglas.enteroNoNegativo]"
+            />
+
             <v-textarea
               v-model="formulario.descripcion"
               label="Descripción"
@@ -267,6 +279,7 @@ import { FactorModel } from "@/model/factor.model";
 import { useFactorStore } from "@/stores/factorStore";
 import { useUserStore } from "@/stores/userStore";
 import { esAdminObservatorios, normalizarRoles } from "@/utils/roles";
+import { ordenarPorOrden, validarOrdenNoNegativo } from "@/utils/orden";
 
 const route = useRoute();
 const router = useRouter();
@@ -292,6 +305,7 @@ const formulario = ref({
   nombre: "",
   descripcion: "",
   calificacion: "",
+  orden: null,
   caracteristicas: [],
   activo: true,
 });
@@ -304,6 +318,7 @@ const reglas = {
     value === undefined ||
     /^\d+(\.\d+)?$/.test(String(value)) ||
     "La calificación debe ser un número decimal.",
+  enteroNoNegativo: validarOrdenNoNegativo,
 };
 
 const limpiarValorFloat = (value) => {
@@ -406,17 +421,23 @@ const factoresActivosDelProceso = computed(() => {
 });
 
 const factoresFiltrados = computed(() => {
-  if (!search.value) return factoresDelProceso.value;
+  const visibles = factoresDelProceso.value;
 
-  const textoBusqueda = search.value.toLowerCase();
+  const filtrados = search.value
+    ? visibles.filter((factor) => {
+        const textoBusqueda = search.value.toLowerCase();
 
-  return factoresDelProceso.value.filter((factor) => {
-    return (
-      factor.nombre?.toLowerCase().includes(textoBusqueda) ||
-      factor.descripcion?.toLowerCase().includes(textoBusqueda) ||
-      String(factor.factor_id || "").toLowerCase().includes(textoBusqueda)
-    );
-  });
+        return (
+          factor.nombre?.toLowerCase().includes(textoBusqueda) ||
+          factor.descripcion?.toLowerCase().includes(textoBusqueda) ||
+          String(factor.factor_id || factor.id || "")
+            .toLowerCase()
+            .includes(textoBusqueda)
+        );
+      })
+    : visibles;
+
+  return ordenarPorOrden(filtrados);
 });
 
 const traerProceso = async () => {
@@ -463,6 +484,7 @@ const limpiarFormulario = () => {
     nombre: "",
     descripcion: "",
     calificacion: "",
+    orden: null,
     caracteristicas: [],
     activo: true,
   };
@@ -485,7 +507,10 @@ const cargarFactorEnFormulario = (factor) => {
     nombre: factor.nombre || "",
     descripcion: factor.descripcion || "",
     calificacion: factor.calificacion || "",
-    caracteristicas: Array.isArray(factor.caracteristicas) ? factor.caracteristicas : [],
+    orden: factor.orden ?? null,
+    caracteristicas: Array.isArray(factor.caracteristicas)
+      ? factor.caracteristicas
+      : [],
     activo: factor.activo !== false,
   };
 };
@@ -526,6 +551,12 @@ const guardarFactor = async () => {
       nombre: formulario.value.nombre,
       descripcion: formulario.value.descripcion,
       calificacion: formulario.value.calificacion || "",
+      orden:
+        formulario.value.orden === "" ||
+        formulario.value.orden === null ||
+        formulario.value.orden === undefined
+          ? null
+          : Number(formulario.value.orden),
       caracteristicas: formulario.value.caracteristicas || [],
       activo: formulario.value.activo,
     });
@@ -642,6 +673,7 @@ const dirigirseFactor = (item) => {
     nombre: factor.nombre,
     descripcion: factor.descripcion,
     calificacion: factor.calificacion,
+    orden: factor.orden ?? null,
     activo: factor.activo,
   });
 

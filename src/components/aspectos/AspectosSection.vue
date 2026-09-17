@@ -63,6 +63,7 @@ import { useAspectoDialogs } from "./useAspectoDialogs";
 import { estructurasEvidenciasService } from "@/service/estructuras-evidencias.service";
 import { useRouter, useRoute } from "vue-router";
 import { useFactorStore } from "@/stores/factorStore";
+import { ordenarPorOrden } from "@/utils/orden";
 
 const props = defineProps({
   caracteristica: {
@@ -112,12 +113,18 @@ const aspectosVisibles = computed(() => {
     ? aspectos.value
     : aspectos.value.filter((aspecto) => aspecto.activo !== false);
 
-  return visibles.map((aspecto) => ({
-    ...aspecto,
-    estructuras_evidencias: props.puedeGestionar
-      ? aspecto.estructuras_evidencias || []
-      : (aspecto.estructuras_evidencias || []).filter((estructura) => estructura.activo !== false),
-  }));
+  return ordenarPorOrden(
+    visibles.map((aspecto) => ({
+      ...aspecto,
+      estructuras_evidencias: ordenarPorOrden(
+        props.puedeGestionar
+          ? aspecto.estructuras_evidencias || []
+          : (aspecto.estructuras_evidencias || []).filter(
+              (estructura) => estructura.activo !== false
+            )
+      ),
+    }))
+  );
 });
 
 const {
@@ -160,7 +167,9 @@ const cargar = async () => {
 const crearAspecto = async () => {
   if (!props.puedeGestionar) return;
 
-  const resultado = await crearAspectoDialog();
+  const resultado = await crearAspectoDialog({
+    puedeEditarOrden: props.puedeGestionar,
+  });
 
   if (!resultado.isConfirmed) return;
 
@@ -194,7 +203,9 @@ const verAspecto = async (aspecto) => {
 const editarAspecto = async (aspecto) => {
   if (!props.puedeGestionar) return;
 
-  const resultado = await editarAspectoDialog(aspecto);
+  const resultado = await editarAspectoDialog(aspecto, {
+    puedeEditarOrden: props.puedeGestionar,
+  });
 
   if (!resultado.isConfirmed) return;
 
@@ -204,9 +215,17 @@ const editarAspecto = async (aspecto) => {
       "Guardando los cambios del aspecto…"
     );
 
-    await actualizarAspecto(aspecto.id, {
+    const payload = {
       nombre: resultado.value.nombre,
-    });
+    };
+
+    if (props.puedeGestionar) {
+      payload.orden = resultado.value.orden;
+    }
+
+    console.log("Payload aspecto enviado:", payload);
+
+    await actualizarAspecto(aspecto.id, payload);
 
     cerrarCargandoAspecto();
 
@@ -292,22 +311,28 @@ const actualizarEstructurasDelAspecto = (
   aspectoId,
   estructurasEvidencias = []
 ) => {
-  aspectos.value = aspectos.value.map((aspecto) => {
-    if (aspecto.id !== aspectoId) {
-      return aspecto;
-    }
+  aspectos.value = ordenarPorOrden(
+    aspectos.value.map((aspecto) => {
+      if (aspecto.id !== aspectoId) {
+        return aspecto;
+      }
 
-    return {
-      ...aspecto,
-      estructuras_evidencias: estructurasEvidencias,
-    };
-  });
+      return {
+        ...aspecto,
+        estructuras_evidencias: ordenarPorOrden(
+          estructurasEvidencias || []
+        ),
+      };
+    })
+  );
 };
 
 const crearEstructuraEvidencia = async (aspecto) => {
   if (!props.puedeGestionar) return;
 
-  const resultado = await crearEstructuraEvidenciaDialog();
+  const resultado = await crearEstructuraEvidenciaDialog(null, {
+    puedeEditarOrden: props.puedeGestionar,
+  });
 
   if (!resultado.isConfirmed) return;
 
@@ -317,12 +342,20 @@ const crearEstructuraEvidencia = async (aspecto) => {
       "Creando el índice y asociándolo al aspecto…"
     );
 
-    const response = await estructurasEvidenciasService.crear({
+    const payload = {
       aspecto_id: aspecto.id,
       tipo_evidencia: resultado.value.tipo_evidencia,
       nombre: resultado.value.nombre,
       activo: true,
-    });
+    };
+
+    if (props.puedeGestionar) {
+      payload.orden = resultado.value.orden;
+    }
+
+    console.log("Payload estructura evidencia creado:", payload);
+
+    const response = await estructurasEvidenciasService.crear(payload);
 
     actualizarEstructurasDelAspecto(
       aspecto.id,
@@ -350,12 +383,20 @@ const crearEstructuraEvidencia = async (aspecto) => {
 };
 
 const verEstructuraEvidencia = async (estructura) => {
+  const orden =
+    estructura.orden !== null && estructura.orden !== undefined
+      ? estructura.orden
+      : "Sin orden registrado.";
+
   await Swal.fire({
     title: estructura.nombre || "Estructura evidencia",
     html: `
       <div style="text-align:left">
         <p><b>Id / índice:</b></p>
         <p style="word-break:break-word">${estructura.id}</p>
+
+        <p><b>Orden:</b></p>
+        <p>${orden}</p>
 
         <p><b>Tipo de evidencia:</b></p>
         <p>${estructura.tipo_evidencia}</p>
@@ -381,10 +422,17 @@ const verEstructuraEvidencia = async (estructura) => {
 const editarEstructuraEvidencia = async (aspecto, estructura) => {
   if (!props.puedeGestionar) return;
 
-  const resultado = await crearEstructuraEvidenciaDialog({
-    tipo_evidencia: estructura.tipo_evidencia,
-    nombre: estructura.nombre,
-  });
+  const resultado = await crearEstructuraEvidenciaDialog(
+    {
+      id: estructura.id,
+      tipo_evidencia: estructura.tipo_evidencia,
+      nombre: estructura.nombre,
+      orden: estructura.orden ?? null,
+    },
+    {
+      puedeEditarOrden: props.puedeGestionar,
+    }
+  );
 
   if (!resultado.isConfirmed) return;
 
@@ -394,14 +442,22 @@ const editarEstructuraEvidencia = async (aspecto, estructura) => {
       "Actualizando la información de la estructura…"
     );
 
+    const payload = {
+      aspecto_id: aspecto.id,
+      tipo_evidencia: resultado.value.tipo_evidencia,
+      nombre: resultado.value.nombre,
+      activo: estructura.activo !== false,
+    };
+
+    if (props.puedeGestionar) {
+      payload.orden = resultado.value.orden;
+    }
+
+    console.log("Payload estructura evidencia actualizado:", payload);
+
     const response = await estructurasEvidenciasService.actualizar(
       estructura.id,
-      {
-        aspecto_id: aspecto.id,
-        tipo_evidencia: resultado.value.tipo_evidencia,
-        nombre: resultado.value.nombre,
-        activo: estructura.activo !== false,
-      }
+      payload
     );
 
     actualizarEstructurasDelAspecto(
@@ -471,6 +527,7 @@ const cambiarEstadoEstructuraEvidencia = async (aspecto, estructura) => {
           aspecto_id: aspecto.id,
           tipo_evidencia: estructura.tipo_evidencia,
           nombre: estructura.nombre,
+          orden: estructura.orden ?? null,
           activo: true,
         }
       );
