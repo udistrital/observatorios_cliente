@@ -5,8 +5,8 @@
       @click="$emit('toggle', clave)"
     >
       <div class="caracteristica-card__title">
-        <span class="caracteristica-card__number">
-          {{ index + 1 }}
+        <span class="caracteristica-card__icon">
+          <v-icon size="20">mdi-shape-outline</v-icon>
         </span>
 
         <div>
@@ -117,7 +117,7 @@ defineEmits([
   gap: 12px;
 }
 
-.caracteristica-card__number {
+.caracteristica-card__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -126,8 +126,6 @@ defineEmits([
   border-radius: 50%;
   background: #ffffff;
   color: #315f99;
-  font-size: 14px;
-  font-weight: 900;
 }
 
 .caracteristica-card__label {

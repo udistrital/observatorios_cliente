@@ -5,8 +5,8 @@
       @click="$emit('toggle', aspecto.id)"
     >
       <div class="aspecto-card__title">
-        <span class="aspecto-card__number">
-          {{ index + 1 }}
+        <span class="aspecto-card__icon">
+          <v-icon size="18">mdi-format-list-checks</v-icon>
         </span>
 
         <div>
@@ -125,7 +125,7 @@ defineEmits([
   gap: 10px;
 }
 
-.aspecto-card__number {
+.aspecto-card__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -134,8 +134,6 @@ defineEmits([
   border-radius: 9px;
   background: #2e8b74;
   color: #ffffff;
-  font-size: 13px;
-  font-weight: 900;
 }
 
 .aspecto-card__label {
