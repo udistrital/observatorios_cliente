@@ -8,7 +8,7 @@ export const environment = {
   ASSETS_SERVICE: "https://assets.portaloas.udistrital.edu.co/",
   TOKEN: {
     AUTORIZATION_URL: 'https://autenticacion.portaloas.udistrital.edu.co/oauth2/authorize',
-    CLIENTE_ID: 'PDpmPDMZfxv_xLxiZXyPr1s1Rk4a',
+    CLIENTE_ID: 'i3lW3osJDii_wgMA0zwVFShFxwAa',
     RESPONSE_TYPE: 'id_token token',
     SCOPE: 'openid email',
     REDIRECT_URL: 'https://atlas.portaloas.udistrital.edu.co',
