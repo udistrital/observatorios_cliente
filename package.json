@@ -16,10 +16,12 @@
     "test": "vitest"
   },
   "dependencies": {
+    "@file-viewer/doc": "3.3.3",
     "@mdi/font": "^7.4.47",
     "@vueuse/core": "^12.5.0",
     "apexcharts": "^4.5.0",
     "axios": "^1.7.9",
+    "docx-preview": "0.4.1",
     "gsap": "^3.12.7",
     "pinia": "^2.3.1",
     "pinia-plugin-persistedstate": "^4.2.0",
@@ -29,10 +31,12 @@
     "vue-router": "^4.5.0",
     "vue3-apexcharts": "^1.8.0",
     "vuelidate": "^0.7.7",
-    "vuetify": "^3.3.0"
+    "vuetify": "^3.3.0",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
+    "jsdom": "25.0.1",
     "vite": "^6.0.5",
     "vitest": "^3.0.4"
   }

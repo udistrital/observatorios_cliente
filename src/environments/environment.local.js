@@ -21,5 +21,6 @@ export const environment = {
   MAIN_BACKEND: 'http://localhost:8000/api/v1',
   //MAIN_BACKEND: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/observatorio_crud/v1',
   GESTOR_DOCUMENTAL: 'https://autenticacion.portaloas.udistrital.edu.co/apioas/gestor_documental_mid/v1/',
+  //GESTOR_DOCUMENTAL: 'http://127.0.0.1:8034/v1/',
   ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL: 192
 };
