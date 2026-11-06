@@ -2,7 +2,9 @@ import { environment } from "@/environments/environment";
 import axios from "axios";
 
 const authHeader = () => {
-  const token = localStorage.getItem("access_token");
+  const token =
+    localStorage.getItem("access_token") ||
+    sessionStorage.getItem("access_token");
 
   if (!token) return {};
 
@@ -16,7 +18,7 @@ const gestorApi = axios.create({
     headers: {
       "Content-Type": "application/json",
     },
-    timeout: 30000,
+    timeout: 100000,
   });
 
 const request = async (method, path, data = null, params = null) => {
@@ -55,4 +57,3 @@ export default {
   put: gestorPut,
   delete: gestorDelete,
 };
-

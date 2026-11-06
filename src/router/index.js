@@ -148,6 +148,11 @@ const routes = [
     component: () => import("../components/archivos/ArchivosGestion.vue"),
   },
   {
+    path: "/documentos/:hash",
+    name: "documentoVisor",
+    component: () => import("../views/DocumentoVisor.vue"),
+  },
+  {
     path: "/:pathMatch(.*)*",
     redirect: "/procesos",
   },
@@ -200,7 +205,12 @@ router.beforeEach(async (to, from, next) => {
 
   if (to.name === rutaLogin) {
     if (accessToken) {
-      return next({ name: "procesos" });
+      const redirect = typeof to.query.redirect === "string"
+        ? to.query.redirect
+        : "";
+      const redirectInterno = redirect.startsWith("/") && !redirect.startsWith("//");
+
+      return next(redirectInterno ? redirect : { name: "procesos" });
     }
 
     return next();
@@ -250,6 +260,7 @@ router.beforeEach(async (to, from, next) => {
     "tablero",
     "estructuras",
     "estructurasVista",
+    "documentoVisor",
   ];
 
   const esRutaPanel = to.path.includes("/panel");
