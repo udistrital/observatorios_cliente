@@ -176,6 +176,21 @@ const router = useRouter();
 const estructuraStore = useEstructuraStore();
 const userStore = useUserStore();
 const idTipoDocumentoGestorDocumental = environment.ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL;
+const tiposDocumentoPermitidos = {
+  ".pdf": ["application/pdf", "application/x-pdf"],
+  ".doc": ["application/msword", "application/vnd.ms-word", "application/vnd.ms-office"],
+  ".docx": [
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/zip",
+    "application/x-zip-compressed",
+  ],
+  ".xls": ["application/vnd.ms-excel", "application/x-msexcel", "application/vnd.ms-office"],
+  ".xlsx": [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/zip",
+    "application/x-zip-compressed",
+  ],
+};
 
 const sortBy = ref(null);
 const sortDesc = ref(false);
@@ -396,17 +411,6 @@ const normalizarCampos = (campos = []) => {
     }));
 };
 
-const base64ToBlob = (base64, type = "application/pdf") => {
-  const bytes = atob(base64);
-  const array = new Uint8Array(bytes.length);
-
-  for (let i = 0; i < bytes.length; i++) {
-    array[i] = bytes.charCodeAt(i);
-  }
-
-  return new Blob([array], { type });
-};
-
 const verArchivoDocumental = async (item) => {
   const hash =
     item?.raw?.hash ||
@@ -431,37 +435,19 @@ const verArchivoDocumental = async (item) => {
     return;
   }
 
-  mostrarCargandoTablero(
-    "Abriendo documento",
-    "Consultando archivo en Gestor Documental…"
-  );
+  const { href } = router.resolve({
+    name: "documentoVisor",
+    params: { hash },
+  });
 
-  try {
-    const response = await gestorDocumentalApi.get(`document/${hash}`);
-    const base64 = response?.file;
+  const pestanaVisor = window.open(href, "_blank");
 
-    if (!base64) {
-      throw new Error("No se encontró el base64 del archivo.");
-    }
-
-    const blob = base64ToBlob(base64, "application/pdf");
-    const url = URL.createObjectURL(blob);
-
-    cerrarCargandoTablero();
-
-    window.open(url, "_blank");
-
-    setTimeout(() => URL.revokeObjectURL(url), 10000);
-  } catch (error) {
-    console.error("Error al abrir documento:", error);
-
-    cerrarCargandoTablero();
-
+  if (!pestanaVisor) {
     await Swal.fire({
-      title: "Error",
-      text: "No se pudo abrir el documento.",
-      icon: "error",
-      width: "340px",
+      title: "Ventana bloqueada",
+      text: "Permita las ventanas emergentes para visualizar el documento.",
+      icon: "info",
+      width: "380px",
       customClass: {
         popup: "popup-personalizado",
         title: "titulo-alerta-personalizado",
@@ -469,7 +455,11 @@ const verArchivoDocumental = async (item) => {
       },
       buttonsStyling: false,
     });
+
+    return;
   }
+
+  pestanaVisor.opener = null;
 };
 
 const esCampoHash = (campo) => {
@@ -2624,20 +2614,22 @@ const abrirFormularioDocumento = async (
       <div class="documento-popup">
         <p class="documento-help">
           ${esEdicion
-        ? "Actualice los campos del documento. Seleccione un nuevo PDF solo si desea reemplazar el archivo actual."
-        : "Seleccione el archivo PDF y complete los campos de la estructura."
+        ? "Actualice los campos del documento. Seleccione un nuevo archivo solo si desea reemplazar el actual."
+        : "Seleccione el archivo y complete los campos de la estructura."
       }
+          <br>
+          Formatos permitidos: PDF, Word (.doc, .docx) y Excel (.xls, .xlsx).
           <br>
           El campo <b>hash</b> se actualiza automáticamente con el identificador retornado por el Gestor Documental.
         </p>
 
         <label class="documento-label">
-          ${esEdicion ? "Nuevo archivo PDF opcional" : "Archivo PDF"}
+          ${esEdicion ? "Nuevo archivo opcional" : "Archivo"}
         </label>
         <input
           id="documentoArchivo"
           type="file"
-          accept=".pdf,application/pdf"
+          accept=".pdf,.doc,.docx,.xls,.xlsx"
           class="documento-file"
         />
 
@@ -2664,17 +2656,25 @@ const abrirFormularioDocumento = async (
       const file = document.getElementById("documentoArchivo")?.files?.[0];
 
       if (opciones.archivoRequerido && !file) {
-        Swal.showValidationMessage("Debe seleccionar un archivo PDF.");
+        Swal.showValidationMessage("Debe seleccionar un archivo PDF, Word o Excel.");
         return false;
       }
 
       if (file) {
-        const esPdf =
-          file.type === "application/pdf" ||
-          file.name.toLowerCase().endsWith(".pdf");
+        const nombreArchivo = file.name.toLowerCase();
+        const puntoExtension = nombreArchivo.lastIndexOf(".");
+        const extension = puntoExtension >= 0
+          ? nombreArchivo.slice(puntoExtension)
+          : "";
+        const mimesEsperados = tiposDocumentoPermitidos[extension];
+        const mimeArchivo = String(file.type || "").toLowerCase();
+        const mimeGenerico =
+          !mimeArchivo || mimeArchivo === "application/octet-stream";
 
-        if (!esPdf) {
-          Swal.showValidationMessage("Solo se permiten archivos PDF.");
+        if (!mimesEsperados || (!mimeGenerico && !mimesEsperados.includes(mimeArchivo))) {
+          Swal.showValidationMessage(
+            "Solo se permiten archivos PDF, Word (.doc, .docx) y Excel (.xls, .xlsx)."
+          );
           return false;
         }
       }
