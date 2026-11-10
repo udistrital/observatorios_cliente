@@ -1,33 +1,46 @@
-# Documentación técnica — observatorios_cliente
+# Documentación técnica de `observatorios_cliente`
 
-## Navegación recomendada
-1. `../AGENTS.md`
-2. `./arquitectura_e_integraciones.md`
-3. `./flujos.md`
-4. `./sdd/arquitectura_distribuida.md`
-5. `./sdd/matriz_interacciones.md`
-6. `./specs/README.md`
-7. `./REGLAS_DESARROLLO_AGENTES_IA.md`
+Fuente inspeccionada: rama `develop`, commit `8537cb7`, 2026-11-10.
 
-## Responsabilidad del repositorio
-`observatorios_cliente` es el **frontend web** del ecosistema Observatorios. Su responsabilidad es ofrecer la experiencia de usuario, validaciones de formulario, navegación por roles y consumo de APIs.
+## Ruta de lectura mínima
 
-## Alcance
-- Renderizado de vistas administrativas/operativas.
-- Gestión de estado de UI y sesión.
-- Consumo de servicios backend para CRUD y flujo documental.
+1. [Guía del repositorio](../AGENTS.md)
+2. [Inventario de evidencias](sdd/inventario-evidencias.md)
+3. [Arquitectura AS-IS](sdd/arquitectura-as-is.md)
+4. [Navegación y módulos](frontend/navegacion-y-modulos.md)
+5. [Servicios y estado](frontend/servicios-y-estado.md)
+6. [Matriz de interacciones](sdd/matriz_interacciones.md)
+7. [Especificaciones SDD](specs/README.md)
 
-## Fuera de alcance
-- Persistencia de datos de negocio.
-- Lógica de almacenamiento documental.
-- Escaneo antivirus.
+## Índice por responsabilidad
 
-## Interacciones con otros repositorios
-- **Con `observatorios_crud`**: consume endpoints REST para catálogos, estructuras y datos.
-- **Con `observatorios_mid`**: consume endpoint `/api/v1/documento` para creación/actualización de metadatos documentales y procesamiento de archivos.
+| Tema | Fuente canónica |
+|---|---|
+| Módulos y cobertura | [Inventario](sdd/inventario-evidencias.md) |
+| Contexto, componentes y secuencias | [Arquitectura AS-IS](sdd/arquitectura-as-is.md) |
+| Rutas, guardas y módulos | [Navegación](frontend/navegacion-y-modulos.md) |
+| HTTP, stores, validación y respuesta UI | [Servicios y estado](frontend/servicios-y-estado.md) |
+| Accesibilidad, estados e i18n | [Experiencia y accesibilidad](frontend/experiencia-y-accesibilidad.md) |
+| Integraciones activas y legadas | [Matriz](sdd/matriz_interacciones.md) |
+| REQ/BR/AC/código/prueba | [Trazabilidad](sdd/matriz-trazabilidad.md) |
+| Seguridad y deuda | [Brechas y riesgos](sdd/brechas-y-riesgos.md) |
+| Build, Docker y CI | [Ejecución y despliegue](operations/ejecucion-y-despliegue.md) |
+| Trabajo de agentes | [Guía](sdd/guia-agentes.md) y [flujo SDD](sdd/flujo-sdd.md) |
 
-Ver detalle en: `docs/arquitectura_e_integraciones.md` y `docs/flujos.md`.
+## Límites verificados
 
-## Convención de certeza documental
-- **EVIDENCIA**: dato verificable en código/configuración del repositorio.
-- **INFERENCIA**: hipótesis o dato no comprobable directamente.
+La SPA no persiste el dominio. El flujo documental activo consume directamente
+Gestor Documental para binarios y CRUD para metadatos/hash. `observatorios_mid`
+permanece en componentes legados y no se considera integración activa.
+
+Los documentos anteriores de arquitectura, flujos y reglas se conservan por
+trazabilidad. Si difieren, prevalecen las fuentes canónicas de este índice y el
+código del commit de referencia.
+
+## Convención de certeza
+
+- `[VERIFICADO]`: evidencia directa en checkout.
+- `[INFERIDO]`: consecuencia estática pendiente de ejecución.
+- `[NO VERIFICADO]`: falta evidencia o acceso.
+- `[PROPUESTA]`: evolución no implementada ni autorizada.
+- `[NO APLICA]`: dimensión evaluada que no corresponde.
