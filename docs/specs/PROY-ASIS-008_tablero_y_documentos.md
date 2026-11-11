@@ -2,7 +2,8 @@
 
 ## Identidad
 
-Sistema `observatorios_cliente`; AS-IS; referencia `8537cb7`, 2026-11-10.
+Sistema `observatorios_cliente`; AS-IS; referencia `0483dfe` +
+`PROY-TOBE-008`, 2026-11-11.
 Evidencia: `components/tablero/Tablero.vue`, `DocumentoVisor.vue`, servicios de
 campos/Gestor y `documentViewer.js`.
 
@@ -22,6 +23,7 @@ del Gestor y garantías transaccionales.
 | REQ-TAB-003 | Cargar documento. | BR-003: Gestor primero, CRUD después; `hash` reservado. |
 | REQ-TAB-004 | Reemplazar/eliminar. | BR-004: coordina dos servicios con compensación parcial. |
 | REQ-TAB-005 | Visualizar PDF/Word/Excel. | BR-005: ruta autenticada y representación local de solo lectura. |
+| REQ-TAB-006 | Capturar y abrir enlaces web. | BR-006: Tablas ofrecen `link`, validan HTTP(S) absoluto y muestran vínculos seguros en pestaña nueva. |
 
 ## Criterios
 
@@ -32,10 +34,12 @@ del Gestor y garantías transaccionales.
 - **AC-003**: Dado hash válido, cuando se abre `/documentos/{hash}`, entonces el
   visor solicita el binario con Bearer y selecciona representación por formato.
 - **AC-004**: Dado error de visor, entonces se presenta mensaje y reintento.
+- **AC-005**: Dado un campo `link`, cuando su valor es HTTP(S) válido, entonces
+  se muestra con `noopener noreferrer`; un valor inválido permanece como texto.
 
 ## NFR, pruebas y riesgos
 
-[VERIFICADO] no hay límite cliente; el archivo completo se convierte a base64.
-Cinco pruebas cubren utilidades, no el componente ni la integración. Riesgos:
-binarios huérfanos, PATCH automático sin rol, XSS en mensajes y estructura con
-solo `hash` sin columna visible.
+[VERIFICADO] no hay límite cliente para archivos; el archivo completo se convierte
+a base64. Diez pruebas cubren utilidades de documentos y enlaces, no componentes
+ni integración. Riesgos: binarios huérfanos, PATCH automático sin rol, XSS en
+mensajes y estructura con solo `hash` sin columna visible.
