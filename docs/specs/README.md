@@ -43,6 +43,7 @@ Organizar especificaciones AS-IS y futuras del frontend `observatorios_cliente` 
 - [PROY-TOBE-005 Gestión de procesos](PROY-TOBE-005_gestion_procesos_panel_principal.md)
 - [PROY-TOBE-006 Visualización no admin](PROY-TOBE-006_visualizacion_no_admin.md)
 - [PROY-TOBE-007 Visor de documentos](PROY-TOBE-007_visor_documentos_navegador.md)
+- [PROY-TOBE-008 Tipo de campo Enlace](PROY-TOBE-008_tipo_campo_enlace.md)
 
 `PROY-TOBE-007` debe registrar convergencia con el código ya presente; no se
 considera aprobado solo por existir la implementación.
