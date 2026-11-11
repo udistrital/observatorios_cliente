@@ -1,4 +1,8 @@
 # Historia de Usuario
+
+> Estado: reglas históricas. Para trabajo actual prevalecen [`../AGENTS.md`](../AGENTS.md),
+> [`sdd/guia-agentes.md`](sdd/guia-agentes.md) y [`sdd/flujo-sdd.md`](sdd/flujo-sdd.md).
+> El flujo MID descrito más abajo es legado, no la integración documental activa.
 Como equipo de `observatorios_cliente`,
 quiero reglas claras para agentes de IA,
 para implementar cambios frontend sin romper navegación, permisos ni contratos con `observatorios_crud` y `observatorios_mid`.
@@ -52,7 +56,7 @@ Antes de editar código, declarar:
 
 ### 5) Seguridad mínima por entorno
 - No introducir secretos en código fuente.
-- Revisar `src/eviroments.js` al cambiar URLs, flags o endpoints.
+- Revisar `src/environments/environment.*.js` al cambiar URLs, flags o endpoints.
 - **INFERENCIA:** el archivo de entornos actual contiene valores de prueba embebidos; su hardening depende de política externa de despliegue.
 
 ### 6) Pruebas/verificación mínima
@@ -84,5 +88,5 @@ actualizar en el mismo cambio:
 - `src/router/index.js`
 - `src/service/conexion_api.js`
 - `src/service/gestorDocumentalService.js`
-- `src/eviroments.js`
+- `src/environments/environment.*.js`
 - `.drone.yml`

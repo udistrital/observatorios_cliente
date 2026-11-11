@@ -93,6 +93,15 @@
           <v-skeleton-loader type="table" />
         </template>
 
+        <template v-for="campo in camposEnlace" :key="campo.campo_id || campo.nombre_campo"
+          #[`item.${campo.nombre_campo}`]="{ item }">
+          <a v-if="obtenerEnlaceTabla(item, campo)" :href="obtenerEnlaceTabla(item, campo)" target="_blank"
+            rel="noopener noreferrer" class="enlace-tabla" @click.stop>
+            {{ obtenerEnlaceTabla(item, campo) }}
+          </a>
+          <span v-else>{{ formatearValorEnlace(obtenerValorCampoTabla(item, campo)) }}</span>
+        </template>
+
         <template #item.acciones="{ item }">
           <div class="acciones-tabla">
             <v-btn variant="tonal" icon size="x-small" color="primary"
@@ -156,6 +165,10 @@ import peticionAPI from "@/service/conexion_api";
 import { useEstructuraStore } from "@/stores/estructuraStore";
 import { useUserStore } from "@/stores/userStore";
 import { esAdminObservatorios } from "@/utils/roles";
+import {
+  LONGITUD_MAXIMA_ENLACE,
+  normalizarEnlaceHttp,
+} from "@/utils/enlaces";
 
 import AgregarRegistro from "./AgregarRegistro.vue";
 import RegistroGestion from "./RegistroGestion.vue";
@@ -288,6 +301,38 @@ const esTabla = computed(() => {
 const esDocumental = computed(() => {
   return tipoEvidencia.value === "Documental";
 });
+
+const camposEnlace = computed(() => {
+  if (!esTabla.value) {
+    return [];
+  }
+
+  return camposEstructura.value.filter((campo) => {
+    return campo.activo !== false && campo.tipo_campo === "link";
+  });
+});
+
+const formatearValorEnlace = (valor) => {
+  return String(valor ?? "").trim() || "—";
+};
+
+const obtenerValorCampoTabla = (item, campo) => {
+  const nombre = campo.nombre_campo;
+  const registro = item?.raw || item;
+
+  if (
+    registro &&
+    Object.prototype.hasOwnProperty.call(registro, nombre)
+  ) {
+    return registro[nombre];
+  }
+
+  return item?.columns?.[nombre];
+};
+
+const obtenerEnlaceTabla = (item, campo) => {
+  return normalizarEnlaceHttp(obtenerValorCampoTabla(item, campo));
+};
 
 const etiquetaEstructura = computed(() => {
   return esDocumental.value ? "Estructura documental" : "Estructura tabla";
@@ -1040,6 +1085,24 @@ const convertirValorPorTipo = (campo, valorRaw) => {
     return null;
   }
 
+  if (tipo === "link") {
+    if (valor.length > LONGITUD_MAXIMA_ENLACE) {
+      throw new Error(
+        `${nombre}: no puede superar ${LONGITUD_MAXIMA_ENLACE} caracteres.`
+      );
+    }
+
+    const enlace = normalizarEnlaceHttp(valor);
+
+    if (!enlace) {
+      throw new Error(
+        `${nombre}: debe ser una URL válida con esquema http:// o https://.`
+      );
+    }
+
+    return enlace;
+  }
+
   if (esEnteroTabla(tipo)) {
     if (!/^-?\d+$/.test(valor)) {
       throw new Error(`${nombre}: debe ser un número entero. No use letras, decimales ni notación científica.`);
@@ -1130,11 +1193,13 @@ const obtenerMensajeErrorTabla = (
   }
 
   if (typeof detalle === "string") {
-    return detalle;
+    return escaparHtml(detalle);
   }
 
   return Object.entries(detalle)
-    .map(([campo, mensaje]) => `${campo}: ${mensaje}`)
+    .map(([campo, mensaje]) => {
+      return `${escaparHtml(campo)}: ${escaparHtml(mensaje)}`;
+    })
     .join("<br>");
 };
 
@@ -1144,15 +1209,48 @@ const construirInputRegistroTabla = (campo, registro = {}, esSoloLectura = false
   const valorPlano = registro?.[nombre] ?? "";
   const valor = escaparHtml(valorPlano);
   const disabled = esSoloLectura ? "disabled" : "";
+  const nombreSeguro = escaparHtml(nombre);
+
+  if (tipo === "link") {
+    const enlace = normalizarEnlaceHttp(valorPlano);
+    const texto = escaparHtml(formatearValorEnlace(valorPlano));
+
+    if (esSoloLectura) {
+      const contenido = enlace
+        ? `<a href="${escaparHtml(enlace)}" target="_blank" rel="noopener noreferrer" class="registro-enlace">${escaparHtml(enlace)}</a>`
+        : `<span>${texto}</span>`;
+
+      return `
+        <label class="registro-label">${nombreSeguro}</label>
+        <div class="registro-input registro-input--readonly">
+          ${contenido}
+        </div>
+      `;
+    }
+
+    return `
+      <label class="registro-label">${nombreSeguro}</label>
+      <input
+        id="registro_${nombreSeguro}"
+        type="url"
+        inputmode="url"
+        autocomplete="url"
+        maxlength="${LONGITUD_MAXIMA_ENLACE}"
+        class="registro-input"
+        placeholder="https://example.org"
+        value="${valor}"
+      />
+    `;
+  }
 
   if (tipo === "boolean") {
     const seleccionadoTrue = valorPlano === true || String(valorPlano) === "true" ? "selected" : "";
     const seleccionadoFalse = valorPlano === false || String(valorPlano) === "false" ? "selected" : "";
 
     return `
-      <label class="registro-label">${nombre}</label>
+      <label class="registro-label">${nombreSeguro}</label>
       <select
-        id="registro_${nombre}"
+        id="registro_${nombreSeguro}"
         class="registro-input"
         ${disabled}
       >
@@ -1165,9 +1263,9 @@ const construirInputRegistroTabla = (campo, registro = {}, esSoloLectura = false
 
   if (esFechaTabla(tipo)) {
     return `
-      <label class="registro-label">${nombre}</label>
+      <label class="registro-label">${nombreSeguro}</label>
       <input
-        id="registro_${nombre}"
+        id="registro_${nombreSeguro}"
         type="date"
         class="registro-input"
         value="${valor}"
@@ -1178,14 +1276,14 @@ const construirInputRegistroTabla = (campo, registro = {}, esSoloLectura = false
 
   if (esEnteroTabla(tipo) || esDecimalTabla(tipo)) {
     return `
-      <label class="registro-label">${nombre}</label>
+      <label class="registro-label">${nombreSeguro}</label>
       <input
-        id="registro_${nombre}"
+        id="registro_${nombreSeguro}"
         type="text"
         inputmode="${esDecimalTabla(tipo) ? "decimal" : "numeric"}"
         data-tipo-campo="${tipo}"
         class="registro-input input-numerico"
-        placeholder="${nombre}"
+        placeholder="${nombreSeguro}"
         value="${valor}"
         ${disabled}
       />
@@ -1198,22 +1296,22 @@ const construirInputRegistroTabla = (campo, registro = {}, esSoloLectura = false
       : valor;
 
     return `
-      <label class="registro-label">${nombre} (${tipo})</label>
+      <label class="registro-label">${nombreSeguro} (${tipo})</label>
       <textarea
-        id="registro_${nombre}"
+        id="registro_${nombreSeguro}"
         class="registro-input registro-textarea"
-        placeholder="${nombre}"
+        placeholder="${nombreSeguro}"
         ${disabled}
       >${valorJson}</textarea>
     `;
   }
 
   return `
-    <label class="registro-label">${nombre}</label>
+    <label class="registro-label">${nombreSeguro}</label>
     <input
-      id="registro_${nombre}"
+      id="registro_${nombreSeguro}"
       class="registro-input"
-      placeholder="${nombre}"
+      placeholder="${nombreSeguro}"
       value="${valor}"
       ${disabled}
     />
@@ -1554,6 +1652,7 @@ const TIPOS_DATO = [
   { label: "Decimal", value: "double" },
   { label: "Booleano", value: "boolean" },
   { label: "Fecha", value: "date" },
+  { label: "Enlace", value: "link" },
 ];
 
 const escaparHtml = (valor = "") => {
@@ -1566,7 +1665,11 @@ const escaparHtml = (valor = "") => {
 };
 
 const construirOpcionesTipoDato = (tipoSeleccionado = "text") => {
-  return TIPOS_DATO
+  const tiposDisponibles = TIPOS_DATO.filter((tipo) => {
+    return tipo.value !== "link" || esTabla.value || tipoSeleccionado === "link";
+  });
+
+  return tiposDisponibles
     .map((tipo) => {
       const selected = tipo.value === tipoSeleccionado ? "selected" : "";
 
@@ -3031,6 +3134,19 @@ onMounted(async () => {
   border-radius: 0;
 }
 
+.enlace-tabla,
+.registro-enlace {
+  color: #1565c0;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.enlace-tabla:hover,
+.registro-enlace:hover {
+  color: #0d47a1;
+}
+
 :deep(.tabla-registros .v-data-table__td),
 :deep(.tabla-registros .v-data-table__th) {
   text-align: center !important;
@@ -3477,6 +3593,12 @@ onMounted(async () => {
   background: #f3f7fc;
   color: #607d8b;
   cursor: not-allowed;
+}
+
+.registro-input--readonly {
+  min-height: 40px;
+  background: #f3f7fc;
+  overflow-wrap: anywhere;
 }
 
 .registro-fields {

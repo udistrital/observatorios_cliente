@@ -1,65 +1,62 @@
-# [ID_SPEC] Título de la especificación
+# [ID] Título
 
-## Historia de Usuario
-**Como** [rol]
-**Quiero** [necesidad funcional]
-**Para** [beneficio/valor]
+## Identidad
 
-## Criterios de aceptación de la historia (Gherkin recomendado)
-- **Dado** [contexto], **cuando** [acción], **entonces** [resultado esperado].
-- **Dado** [contexto alterno], **cuando** [acción], **entonces** [resultado esperado].
+| Campo | Valor |
+|---|---|
+| Sistema dueño | `observatorios_cliente` |
+| Estado | AS-IS / TO-BE propuesto / aprobado / implementado |
+| Referencia | rama, commit y fecha |
+| Reemplaza | ID o `[NO APLICA]` |
 
-## 1. Contexto
+## Contexto y objetivo
 
-## 2. Problema
+**Como** [actor], **quiero** [capacidad], **para** [valor].
 
-## 3. Objetivo
+## Alcance
 
-## 4. Alcance
 ### Incluye
-### Excluye (Fuera de alcance)
 
-## 5. Actores
+### Excluye
 
-## 6. Flujo principal
-1.
-2.
-3.
+## Requisitos funcionales
 
-## 7. Flujos alternos / excepciones
-- A1:
-- A2:
+| ID | Requisito verificable | Fuente/prioridad |
+|---|---|---|
+| REQ-[ID]-001 | El sistema ... | |
 
-## 8. Reglas de negocio
-- RN-01:
-- RN-02:
+## Reglas de negocio
 
-## 9. Consideraciones técnicas (solo soporte)
-- Endpoints:
-- Payloads:
-- Respuestas esperadas:
-- Códigos de error:
+| ID | Regla | Fuente |
+|---|---|---|
+| BR-[ID]-001 | | |
 
-## 10. Criterios de aceptación verificables
-- [ ] CA-01
-- [ ] CA-02
+## Escenarios
 
-## 11. Dependencias
-- Repo/módulo:
-- Servicio externo:
+Precondiciones, camino principal, alternos y excepciones.
 
-## 12. Riesgos
-- Riesgo:
-- Mitigación:
+## Criterios de aceptación
 
-## 13. Pendientes
-- Pendiente:
+- **AC-[ID]-001**: Dado ..., cuando ..., entonces ...
 
-## 14. Evidencia
-- `ruta/archivo_1`
-- `ruta/archivo_2`
+## Contratos e integraciones
 
-## 15. Clasificación SDD
-- Tipo: AS-IS / TO-BE
-- Tamaño relativo: S / M / L
-- Prioridad: Alta / Media / Baja
+Ruta Vue, rol, componente, store/servicio, método/ruta HTTP, respuesta y estados UI.
+
+## Requisitos no funcionales
+
+Seguridad, fiabilidad, rendimiento, mantenibilidad, accesibilidad y observabilidad.
+No inventar métricas; usar `[NO VERIFICADO]` cuando no existan.
+
+## Pruebas y evidencia
+
+Separar pruebas existentes de casos propuestos y citar rutas/símbolos.
+
+## Riesgos, dudas y decisiones
+
+Dependencias, supuestos etiquetados, ADR y preguntas abiertas.
+
+## Convergencia
+
+Para TO-BE: estado de implementación, comandos ejecutados y documentos AS-IS que
+deben actualizarse al entregar.

@@ -1,5 +1,10 @@
 # PROY-ASIS-003 — Consumo UI del flujo documental hacia MID
 
+> Estado: histórico/legado. El flujo activo está en
+> [`PROY-ASIS-008_tablero_y_documentos.md`](PROY-ASIS-008_tablero_y_documentos.md).
+> Los componentes que llaman MID conservan una URL base vacía y no representan el
+> camino principal del checkout actual.
+
 ## Historia de Usuario (AS-IS)
 **Como** usuario del módulo documental
 **Quiero** cargar y actualizar documentos desde la UI

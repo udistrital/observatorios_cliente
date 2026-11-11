@@ -32,7 +32,7 @@ Consolidar en una spec única los datos AS-IS del cliente.
 - `MAIN_BACKEND`, `OBSERVATORIOS_MID`, `GESTOR_DOCUMENTAL`.
 
 ### Evidencia verificable
-- `src/eviroments.js`
+- `src/environments/environment.*.js`
 - `src/router/index.js`
 - `src/service/conexion_api.js`
 
