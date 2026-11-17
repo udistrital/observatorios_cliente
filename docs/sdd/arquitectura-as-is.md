@@ -2,8 +2,8 @@
 
 ## Referencia
 
-Inspección de `observatorios_cliente@8537cb7104042cb1bd7874bb0d3cf8baa991d45e`
-el 2026-11-10. Se aplican conceptos de C4 y vistas de ISO/IEC/IEEE 42010 sin
+Inspección de `102cee4` y la implementación local de `PROY-TOBE-009` el
+2026-11-12. Se aplican conceptos de C4 y vistas de ISO/IEC/IEEE 42010 sin
 declarar conformidad.
 
 ## Contexto
@@ -11,13 +11,15 @@ declarar conformidad.
 ```mermaid
 flowchart LR
     U[Usuario] -->|Navegador| SPA[observatorios_cliente]
-    SPA -->|REST JSON y multipart| CRUD[observatorios_crud]
-    SPA -->|Carga consulta eliminación| GD[Gestor Documental]
+    SPA -->|REST, referencia y contenido del visor| CRUD[observatorios_crud]
+    SPA -->|Carga reemplazo eliminación| GD[Gestor Documental]
+    CRUD -->|GET fijo con Bearer reenviado| GD
     SPA -->|Autenticación y perfil| OAS[Servicios OAS]
     SPA -.->|Componentes legados| MID[observatorios_mid]
 ```
 
-- [VERIFICADO] CRUD y Gestor son integraciones activas.
+- [VERIFICADO] CRUD y Gestor son integraciones activas; el visor usa CRUD y no un
+  GET directo al Gestor.
 - [VERIFICADO] MID permanece en componentes legados con base vacía.
 - [NO VERIFICADO] Implementación y controles internos de Gestor/OAS.
 
@@ -77,22 +79,30 @@ sequenceDiagram
     participant T as Tablero.vue
     participant R as Vue Router
     participant V as DocumentoVisor.vue
-    participant G as Gestor Documental
+    participant C as observatorios_crud
     U->>T: abrir documento
-    T->>R: /documentos/{hash}
+    T->>C: POST campos/documentos/referencias/ + contexto + Bearer
+    C-->>T: 200 {referencia}
+    T->>R: /documentos/{referencia}
     R->>V: carga vista autenticada
-    V->>G: GET document/{hash}
-    G-->>V: base64 y metadatos
+    V->>C: GET campos/documentos/{referencia}/ + Bearer
+    C-->>V: JSON con base64 y metadatos
     V->>V: representa PDF Word o Excel localmente
     V-->>U: vista de solo lectura
 ```
+
+[VERIFICADO] El CRUD descifra con TTL, revalida la cadena Elasticsearch y consulta
+el Gestor fijo con el Bearer reenviado. El cliente no consulta directamente Gestor
+ni MID en este flujo. El CRUD solo valida sintaxis Bearer, la referencia es
+transferible durante el TTL y los permisos efectivos siguen en el Gestor.
 
 ## Estado y acceso
 
 - [VERIFICADO] La guarda espera token hasta 2 segundos y luego usuario hasta 2
   segundos (`router/index.js:180-201`).
-- [VERIFICADO] `localStorage` o `sessionStorage` habilitan navegación, pero la
-  mayoría de clientes CRUD solo adjunta el primero.
+- [VERIFICADO] `localStorage` o `sessionStorage` habilitan navegación;
+  `campos.service.js` reconoce ambos para el visor, pero la mayoría de los demás
+  clientes CRUD solo adjunta el primero.
 - [VERIFICADO] Las rutas permitidas y la regla `to.path.includes("/panel")` no son
   equivalentes a autorización por operación.
 - [VERIFICADO] La guarda hidrata el factor desde el servicio; si falla crea un

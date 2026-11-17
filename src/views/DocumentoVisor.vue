@@ -147,7 +147,7 @@
 import { computed, nextTick, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 
-import gestorDocumentalApi from "@/service/gestorDocumentalService";
+import { camposService } from "@/service/campos.service";
 import {
   base64ABytes,
   etiquetaColumna,
@@ -501,7 +501,7 @@ const mensajeErrorHttp = (error) => {
 
 const cargarDocumento = async () => {
   const cargaActual = ++idCarga;
-  const hash = String(route.params.hash || "").trim();
+  const referencia = String(route.params.referencia || "").trim();
 
   limpiarVisualizacion();
   cargando.value = true;
@@ -510,11 +510,11 @@ const cargarDocumento = async () => {
   extension.value = "";
 
   try {
-    if (!hash) {
-      throw new Error("No se recibio un identificador de documento valido.");
+    if (!referencia) {
+      throw new Error("No se recibio una referencia de documento valida.");
     }
 
-    const respuesta = await gestorDocumentalApi.get(`document/${encodeURIComponent(hash)}`);
+    const respuesta = await camposService.obtenerContenidoDocumento(referencia);
 
     if (cargaActual !== idCarga) return;
 
@@ -545,7 +545,9 @@ const cargarDocumento = async () => {
   } catch (error) {
     if (cargaActual !== idCarga) return;
 
-    console.error("Error al visualizar documento:", error);
+    console.error("Error al visualizar documento.", {
+      status: error?.response?.status,
+    });
     mensajeError.value = mensajeErrorHttp(error);
   } finally {
     if (cargaActual === idCarga) {
@@ -564,7 +566,7 @@ const cerrarVisor = () => {
   }, 100);
 };
 
-watch(() => route.params.hash, cargarDocumento, { immediate: true });
+watch(() => route.params.referencia, cargarDocumento, { immediate: true });
 
 onBeforeUnmount(() => {
   idCarga++;

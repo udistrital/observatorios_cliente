@@ -2,10 +2,11 @@
 
 ## Identidad
 
-Sistema `observatorios_cliente`; AS-IS; referencia `0483dfe` +
-`PROY-TOBE-008`, 2026-11-11.
+Sistema `observatorios_cliente`; AS-IS; referencia `102cee4` +
+`PROY-TOBE-008/009`, 2026-11-11.
 Evidencia: `components/tablero/Tablero.vue`, `DocumentoVisor.vue`, servicios de
-campos/Gestor y `documentViewer.js`.
+campos/Gestor y `documentViewer.js`. Verificación estática/unitaria y de build; sin
+prueba end-to-end.
 
 ## Objetivo y alcance
 
@@ -22,7 +23,7 @@ del Gestor y garantías transaccionales.
 | REQ-TAB-002 | Capturar datos tipados. | BR-002: valida y adapta valores a campos. |
 | REQ-TAB-003 | Cargar documento. | BR-003: Gestor primero, CRUD después; `hash` reservado. |
 | REQ-TAB-004 | Reemplazar/eliminar. | BR-004: coordina dos servicios con compensación parcial. |
-| REQ-TAB-005 | Visualizar PDF/Word/Excel. | BR-005: ruta autenticada y representación local de solo lectura. |
+| REQ-TAB-005 | Visualizar PDF/Word/Excel. | BR-005: tablero obtiene una referencia cifrada del CRUD; visor consulta contenido al CRUD y representa localmente en solo lectura. |
 | REQ-TAB-006 | Capturar y abrir enlaces web. | BR-006: Tablas ofrecen `link`, validan HTTP(S) absoluto y muestran vínculos seguros en pestaña nueva. |
 
 ## Criterios
@@ -31,8 +32,9 @@ del Gestor y garantías transaccionales.
   responden, entonces el registro aparece con su hash.
 - **AC-002**: Dado fallo del CRUD tras carga, entonces el AS-IS puede dejar archivo
   huérfano; no se documenta como éxito.
-- **AC-003**: Dado hash válido, cuando se abre `/documentos/{hash}`, entonces el
-  visor solicita el binario con Bearer y selecciona representación por formato.
+- **AC-003**: Dado contexto y hash válidos, el tablero POSTea los cuatro IDs al
+  CRUD, abre `/documentos/{referencia}` y el visor GETea el contenido del CRUD con
+  Bearer antes de seleccionar la representación por formato.
 - **AC-004**: Dado error de visor, entonces se presenta mensaje y reintento.
 - **AC-005**: Dado un campo `link`, cuando su valor es HTTP(S) válido, entonces
   se muestra con `noopener noreferrer`; un valor inválido permanece como texto.
@@ -43,3 +45,8 @@ del Gestor y garantías transaccionales.
 a base64. Diez pruebas cubren utilidades de documentos y enlaces, no componentes
 ni integración. Riesgos: binarios huérfanos, PATCH automático sin rol, XSS en
 mensajes y estructura con solo `hash` sin columna visible.
+
+El visor activo no consulta directamente Gestor ni MID. El CRUD solo comprueba la
+sintaxis Bearer: la referencia puede transferirse entre sesiones autenticadas
+durante el TTL, el Bearer reenviado conserva los permisos del Gestor y una
+credencial amplia todavía puede consultar directamente ese servicio.

@@ -6,7 +6,7 @@
 |---|---|
 | Sistema | `observatorios_cliente` |
 | Estado | TO-BE con implementación observada; aprobación y convergencia [NO VERIFICADO] |
-| Referencia | `8537cb7`, 2026-11-10 |
+| Referencia | `102cee4` + `PROY-TOBE-009`, 2026-11-11 |
 | Evidencia implementada | `DocumentoVisor.vue`, `documentViewer.js`, prueba y router |
 
 ## Contexto
@@ -22,8 +22,8 @@ registra puertas pendientes; no afirma aprobación institucional retroactiva.
 
 | ID | Requisito | Estado observado |
 |---|---|---|
-| REQ-VISOR-001 | Ruta autenticada `/documentos/:hash`. | [VERIFICADO] implementado |
-| REQ-VISOR-002 | Obtener documento del Gestor con Bearer. | [VERIFICADO] implementado |
+| REQ-VISOR-001 | Ruta autenticada `/documentos/:referencia`; el hash no aparece en URL. | [VERIFICADO] implementado por PROY-TOBE-009 |
+| REQ-VISOR-002 | Obtener documento del CRUD con Bearer; CRUD revalida y consulta el Gestor. | [VERIFICADO] implementado por PROY-TOBE-009 |
 | REQ-VISOR-003 | Representar PDF, DOC/DOCX y XLS/XLSX localmente. | [VERIFICADO] implementado estáticamente |
 | REQ-VISOR-004 | No enviar el contenido a visores externos. | [VERIFICADO] no se observan llamadas de visor externo |
 | REQ-VISOR-005 | Mostrar carga, error y reintento; liberar URLs temporales. | [VERIFICADO] implementado |
@@ -31,7 +31,7 @@ registra puertas pendientes; no afirma aprobación institucional retroactiva.
 
 ## Criterios
 
-- **AC-VISOR-001**: Dado hash y sesión válidos, cuando el Gestor responde PDF,
+- **AC-VISOR-001**: Dada referencia y sesión válidas, cuando el CRUD responde PDF,
   entonces se presenta en modo de solo lectura.
 - **AC-VISOR-002**: Dado Word o Excel compatible, cuando se procesa, entonces no
   se navega a un servicio externo.
@@ -43,12 +43,15 @@ registra puertas pendientes; no afirma aprobación institucional retroactiva.
 ## Pruebas y puertas de convergencia
 
 `documentViewer.spec.js` cubre 5 casos utilitarios. Faltan pruebas de componente,
-servicio, router, errores, limpieza y accesibilidad. Antes de declarar convergencia
-se debe confirmar contrato del Gestor, límite de tamaño, navegadores soportados,
-revisión de seguridad de librerías y resultado de build/test en Node compatible.
+servicio, router, errores, limpieza y accesibilidad. La consulta indirecta está
+cubierta en el CRUD con dobles, no de extremo a extremo. Antes de declarar
+convergencia completa se debe confirmar límite de tamaño, navegadores soportados y
+revisión de seguridad de librerías.
 
 ## Riesgos y decisiones
 
-Carga completa en memoria, timeout de 100 s, dependencia de MIME/metadatos externos
-y procesamiento de contenido no confiable. [PROPUESTA] Las decisiones pendientes
-requieren aprobación; esta spec no autoriza nuevos cambios.
+Carga completa en memoria, timeout de 240 s, dependencia de MIME/metadatos externos
+y procesamiento de contenido no confiable. La referencia es transferible durante
+su TTL y el CRUD no valida JWT/ACL; el Gestor decide sobre el Bearer reenviado.
+[PROPUESTA] Las decisiones pendientes requieren aprobación; esta spec no autoriza
+nuevos cambios.

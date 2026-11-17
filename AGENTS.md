@@ -4,7 +4,7 @@
 
 `observatorios_cliente` es la SPA del sistema Observatorios. Presenta la jerarquia de procesos, factores, caracteristicas, aspectos y estructuras de evidencia; valida entradas en la interfaz; administra navegacion y estado local; y consume los servicios HTTP del ecosistema.
 
-Este repositorio es responsable del cliente. La persistencia del dominio corresponde a `observatorios_crud` y los binarios documentales se envian al servicio configurado como `GESTOR_DOCUMENTAL`.
+Este repositorio es responsable del cliente. La persistencia del dominio corresponde a `observatorios_crud` y los binarios documentales se envian al servicio configurado como `GESTOR_DOCUMENTAL`. La visualizacion activa no consulta directamente ese servicio: solicita al CRUD una referencia cifrada y luego el contenido validado.
 
 ## Tecnologias verificadas
 
@@ -69,7 +69,7 @@ Existen rutas antiguas sin `proceso_id`; se conservan por compatibilidad. Las ru
 
 `App.vue` integra el web component `ng-uui-oas`. La guarda global espera un `access_token` y los roles del usuario. El rol administrativo se normaliza y valida mediante `src/utils/roles.js`; las acciones de escritura de estructuras se muestran solo a `ADMIN_OBSERVATORIOS`.
 
-Los servicios Axios agregan `Authorization: Bearer <access_token>` cuando el token esta en `localStorage`. La guarda y `gestorDocumentalService.js` tambien reconocen `sessionStorage`; los demas clientes HTTP aun no lo hacen. No agregue otro mecanismo de autenticacion sin revisar esta diferencia y el contrato OAS.
+Los servicios Axios agregan `Authorization: Bearer <access_token>` cuando el token esta en `localStorage`. La guarda, `gestorDocumentalService.js` y `campos.service.js` tambien reconocen `sessionStorage`; los demas clientes HTTP aun no lo hacen. No agregue otro mecanismo de autenticacion sin revisar esta diferencia y el contrato OAS.
 
 ## Flujo habitual de una funcionalidad
 
@@ -106,7 +106,8 @@ No concatene `/api/v1` a mano si ya esta incluido en `MAIN_BACKEND`. Antes de ca
 - Vista de registros: `src/views/Tablero.vue` y `src/components/tablero/Tablero.vue`.
 - Estructuras: `src/service/estructuras-evidencias.service.js`.
 - Campos y registros: `src/service/campos.service.js`.
-- Binarios: `src/service/gestorDocumentalService.js`.
+- Carga/reemplazo/eliminacion de binarios: `src/service/gestorDocumentalService.js`.
+- Visualizacion validada: `src/service/campos.service.js` y `src/views/DocumentoVisor.vue`.
 - Estado seleccionado: `src/stores/estructuraStore.js`.
 
 Una estructura admite `tipo_evidencia` `Documental` o `Tabla`. En una estructura Documental, el cliente crea y oculta un campo reservado `hash`; los demas campos son metadatos configurables.
@@ -129,7 +130,9 @@ La interfaz acepta `.pdf`, `.doc`, `.docx`, `.xls` y `.xlsx`, validando la exten
 
 ### Consulta, visualizacion y descarga
 
-`verArchivoDocumental()` abre la ruta autenticada `/documentos/:hash` en otra pestana. La vista consulta `GET GESTOR_DOCUMENTAL/document/{hash}` con bearer token y procesa localmente PDF, Word y Excel en modo de solo lectura. No envia el binario al CRUD, no convierte Office a PDF y no usa visores externos.
+`verArchivoDocumental()` abre primero una pestana vacia y envia `proceso_id`, `factor_id`, `estructura_id` y `documento_id` a `POST MAIN_BACKEND/campos/documentos/referencias/`. Tras recibir `{referencia}`, navega a `/documentos/:referencia`. `DocumentoVisor.vue` consulta `GET MAIN_BACKEND/campos/documentos/{referencia}/` con Bearer y procesa localmente el JSON retornado para PDF, Word y Excel en modo de solo lectura. No consulta directamente Gestor ni MID, no convierte Office a PDF y no usa visores externos.
+
+El CRUD solo comprueba sintacticamente el Bearer y no incorpora verificador JWT ni ACL por proceso. La referencia es transferible entre sesiones autenticadas durante su TTL; el Bearer reenviado por el CRUD sigue sujeto a permisos del Gestor. Una credencial con alcance amplio que consulte directamente el Gestor permanece como riesgo residual.
 
 ### Actualizacion
 
@@ -144,7 +147,7 @@ La metadata puede actualizarse sin reemplazar el archivo. Si se selecciona otro 
 
 La eliminacion individual borra primero el registro del CRUD y luego intenta borrar el binario del Gestor Documental. Un fallo en el segundo paso puede dejar un archivo huerfano. La limpieza completa de una estructura elimina registros del CRUD, pero no elimina uno a uno sus binarios.
 
-Solo administradores pueden cargar, editar, reemplazar o eliminar desde la interfaz. El cliente no reemplaza controles de autorizacion del servidor. Los componentes de `src/components/archivos/` usan contratos legados y no deben confundirse con el tablero vigente.
+Solo administradores pueden cargar, editar, reemplazar o eliminar desde la interfaz. El cliente no reemplaza controles de autorizacion del servidor. Los componentes de `src/components/archivos/` usan contratos legados, incluido un GET directo antiguo al Gestor, y no deben confundirse con el tablero/visor vigente.
 
 ## Variables y ambientes
 
@@ -157,7 +160,7 @@ No se usan archivos `.env` ni variables `VITE_*`. Los scripts copian uno de esto
 Claves relevantes:
 
 - `MAIN_BACKEND`: base de `observatorios_crud`.
-- `GESTOR_DOCUMENTAL`: base del servicio de binarios.
+- `GESTOR_DOCUMENTAL`: base usada por carga, reemplazo y eliminacion; no por el visor activo.
 - `ID_TIPO_DOCUMENTO_GESTOR_DOCUMENTAL`: tipo documental enviado al gestor.
 - `TOKEN`: configuracion publica de autenticacion/redireccion OAS.
 - `CONFIGURACION_SERVICE` y `ASSETS_SERVICE`: servicios OAS auxiliares.
@@ -191,7 +194,7 @@ No existe script `lint`. No afirme que se ejecuto lint si no se incorpora una he
 - Reutilice servicios, modelos visuales y mensajes existentes.
 - No invente endpoints, variables, respuestas ni campos retornados por el Gestor Documental.
 - No cambie un contrato HTTP sin revisar el API y la matriz de interacciones.
-- No mueva almacenamiento binario al CRUD: el flujo actual separa binarios y metadatos/hash.
+- No confunda el proxy temporal de visualizacion con almacenamiento: los binarios siguen en el Gestor y metadatos/hash en CRUD.
 - Mantenga compatibilidad con PDF y con las rutas legadas salvo instruccion contraria.
 - Evite refactors, cambios visuales o dependencias fuera del alcance.
 - Toda evolucion funcional debe tener spec TO-BE en `docs/specs/`, entrada de backlog y trazabilidad en `docs/sdd/matriz_interacciones.md` cuando cambie una integracion.

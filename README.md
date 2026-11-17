@@ -4,7 +4,7 @@
 
 `observatorios_cliente` es la aplicacion web del sistema Observatorios. Permite navegar procesos, factores, caracteristicas y aspectos; administrar estructuras de evidencia; capturar datos tabulares; y registrar evidencias documentales.
 
-La aplicacion consume `observatorios_crud` para datos del dominio. En el flujo documental activo, los metadatos y el hash se registran en el CRUD, mientras el archivo binario se envia al Gestor Documental configurado para el ambiente.
+La aplicacion consume `observatorios_crud` para datos del dominio. En el flujo documental activo, los metadatos y el hash se registran en el CRUD, mientras el archivo binario se envia al Gestor Documental configurado para el ambiente. La visualizacion usa una referencia cifrada y el proxy validado del CRUD, no un GET directo del navegador al Gestor.
 
 La guia operativa para agentes de codigo esta en `AGENTS.md`. Las especificaciones funcionales se encuentran en `docs/specs/`.
 
@@ -98,9 +98,9 @@ Las funcionalidades de estructura se reparten entre `components/aspectos/`, `com
 
 ## Integracion con APIs
 
-`src/service/conexion_api.js` crea el cliente general para `MAIN_BACKEND`. Los servicios de dominio usan Axios y agregan un Bearer token obtenido de `localStorage`.
+`src/service/conexion_api.js` crea el cliente general para `MAIN_BACKEND`. Los servicios de dominio usan Axios y agregan un Bearer token obtenido de `localStorage`; `campos.service.js` también admite `sessionStorage` para el flujo del visor.
 
-`src/service/gestorDocumentalService.js` crea un cliente separado para `GESTOR_DOCUMENTAL`, también con Bearer token y un timeout de 100 segundos.
+`src/service/gestorDocumentalService.js` crea un cliente separado para las operaciones de carga, reemplazo y eliminación en `GESTOR_DOCUMENTAL`, también con Bearer token y un timeout de 100 segundos. `campos.service.js` usa `MAIN_BACKEND` para emitir referencias y obtener el contenido del visor.
 
 La URL base de cada servicio se selecciona en `src/environments/`. El frontend no usa un proxy de Vite.
 
@@ -115,7 +115,11 @@ Flujo vigente:
 3. El usuario selecciona un PDF, Word o Excel y completa los metadatos.
 4. El cliente convierte el archivo a base64 y llama `document/uploadAnyFormat` del Gestor Documental.
 5. El hash retornado se registra junto con los metadatos en `observatorios_crud` mediante `/campos/datos/{estructura_id}/`.
-6. Para consultar el archivo, el cliente abre `/documentos/{hash}` en una pestana nueva, solicita `document/{hash}` con bearer token y procesa localmente PDF, Word o Excel en modo de solo lectura, sin convertir el original ni enviarlo a servicios externos.
+6. Para consultar el archivo, el tablero envía proceso, factor, estructura y hash a `POST /campos/documentos/referencias/` del CRUD.
+7. Con la referencia opaca retornada abre `/documentos/{referencia}` y el visor consulta `GET /campos/documentos/{referencia}/` del CRUD con Bearer.
+8. El visor procesa localmente PDF, Word o Excel en modo de solo lectura. El visor activo no consulta directamente Gestor ni MID y no usa visores externos.
+
+Las referencias vencen y son transferibles entre sesiones autenticadas mientras dure su TTL. El CRUD solo valida la sintaxis Bearer; los permisos efectivos del Bearer reenviado corresponden al Gestor y no constituyen una ACL por proceso en el CRUD.
 
 La interfaz acepta PDF (`.pdf`), Word (`.doc`, `.docx`) y Excel (`.xls`, `.xlsx`). No hay limite de tamano implementado en el cliente. La metadata se puede editar sin reemplazar el archivo; el reemplazo y la eliminacion coordinan llamadas al Gestor Documental y al CRUD.
 
@@ -144,7 +148,7 @@ No existe un script de lint.
 npm run test -- --run
 ```
 
-Vite configura Vitest con entorno `jsdom`, declarado como dependencia directa. `src/utils/documentViewer.spec.js` contiene cinco pruebas de utilidades del visor; no se identificaron pruebas del router, servicios, stores o componentes.
+Vite configura Vitest con entorno `jsdom`, declarado como dependencia directa. `documentViewer.spec.js` y `enlaces.spec.js` contienen diez pruebas unitarias; no se identificaron pruebas del router, servicios, stores o componentes.
 
 ## Build
 
@@ -174,7 +178,7 @@ Confirme que `observatorios_crud` responda en `http://localhost:8000` y que el s
 
 ### Una sesion permite navegar pero las APIs responden sin autorizacion
 
-La guarda de rutas y el cliente del Gestor Documental aceptan tokens de `localStorage` y `sessionStorage`; los demas clientes Axios leen `localStorage`. Verifique donde fue almacenado `access_token`.
+La guarda de rutas, el cliente del Gestor Documental y `campos.service.js` aceptan tokens de `localStorage` y `sessionStorage`; los demas clientes Axios leen `localStorage`. Verifique donde fue almacenado `access_token`.
 
 ### Las pruebas solicitan `jsdom`
 

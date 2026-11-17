@@ -2,8 +2,9 @@
 
 > Estado: histórico/legado. El flujo activo está en
 > [`PROY-ASIS-008_tablero_y_documentos.md`](PROY-ASIS-008_tablero_y_documentos.md).
-> Los componentes que llaman MID conservan una URL base vacía y no representan el
-> camino principal del checkout actual.
+> Los componentes bajo `components/archivos/` conservan una URL base vacía y no
+> representan el camino principal. El visor activo usa CRUD
+> `/campos/documentos/*`; no consulta MID ni Gestor directamente.
 
 ## Historia de Usuario (AS-IS)
 **Como** usuario del módulo documental
@@ -44,6 +45,11 @@ Estandarizar referencia del consumo documental para futuras mejoras TO-BE.
 
 ### Riesgos
 - Doble estrategia HTTP (`conexion_api` + `gestorDocumentalService`) puede generar divergencia de comportamiento.
+- Confundir estos componentes con el tablero activo puede reintroducir contratos
+  MID antiguos o un GET directo que omita la validación del CRUD.
 
-### INFERENCIA
-- No se observa en documentación local un contrato único que distinga explícitamente cuándo usar MID vs gestor documental.
+### Distinción vigente
+- `Tablero.vue` usa Gestor directamente para carga/reemplazo/eliminación y CRUD
+  para metadatos y visualización.
+- `DocumentoVisor.vue` usa `campos.service.js` con una referencia `v1_`.
+- MID solo aparece en componentes legados y no participa en el flujo activo.

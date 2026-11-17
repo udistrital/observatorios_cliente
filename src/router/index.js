@@ -148,7 +148,7 @@ const routes = [
     component: () => import("../components/archivos/ArchivosGestion.vue"),
   },
   {
-    path: "/documentos/:hash",
+    path: "/documentos/:referencia",
     name: "documentoVisor",
     component: () => import("../views/DocumentoVisor.vue"),
   },
