@@ -411,6 +411,7 @@ const cargarContextoDesdeIdTabla = async () => {
 
     factor: {
       id: factor?.id || factorIdConsulta || route.params.factor_id,
+      proceso_id: factor?.proceso_id || route.params.proceso_id || "",
       nombre: factor?.nombre || "Factor",
       descripcion: factor?.descripcion || "",
       calificacion: factor?.calificacion || "",
@@ -457,11 +458,12 @@ const normalizarCampos = (campos = []) => {
 };
 
 const verArchivoDocumental = async (item) => {
+  const registro = item?.raw || item;
   const hash =
-    item?.raw?.hash ||
-    item?.raw?.Hash ||
-    item?.raw?.enlace ||
-    item?.raw?.Enlace;
+    registro?.hash ||
+    registro?.Hash ||
+    registro?.enlace ||
+    registro?.Enlace;
 
   if (!hash) {
     await Swal.fire({
@@ -480,12 +482,32 @@ const verArchivoDocumental = async (item) => {
     return;
   }
 
-  const { href } = router.resolve({
-    name: "documentoVisor",
-    params: { hash },
-  });
+  const procesoId =
+    route.params.proceso_id ||
+    estructuraSeleccionada.value?.factor?.proceso_id;
+  const factorId =
+    route.params.factor_id ||
+    estructuraSeleccionada.value?.factor?.id;
+  const estructuraId = idEstructura.value;
 
-  const pestanaVisor = window.open(href, "_blank");
+  if (!procesoId || !factorId || !estructuraId) {
+    await Swal.fire({
+      title: "Contexto incompleto",
+      text: "No fue posible validar el contexto del documento seleccionado.",
+      icon: "error",
+      width: "380px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+
+    return;
+  }
+
+  const pestanaVisor = window.open("about:blank", "_blank");
 
   if (!pestanaVisor) {
     await Swal.fire({
@@ -505,6 +527,49 @@ const verArchivoDocumental = async (item) => {
   }
 
   pestanaVisor.opener = null;
+
+  try {
+    const respuesta = await camposService.solicitarReferenciaDocumento({
+      proceso_id: procesoId,
+      factor_id: factorId,
+      estructura_id: estructuraId,
+      documento_id: hash,
+    });
+    const referencia = String(respuesta?.referencia || "").trim();
+
+    if (!referencia) {
+      throw new Error("El CRUD no retornó una referencia documental válida.");
+    }
+
+    const { href } = router.resolve({
+      name: "documentoVisor",
+      params: { referencia },
+    });
+
+    pestanaVisor.location.replace(href);
+  } catch (error) {
+    pestanaVisor.close();
+
+    const estado = error?.response?.status;
+    const mensaje = estado === 404
+      ? "El archivo no pertenece a la estructura seleccionada o ya no está disponible."
+      : estado === 401 || estado === 403
+        ? "Su sesión no tiene autorización para consultar este archivo."
+        : "No fue posible validar el documento seleccionado.";
+
+    await Swal.fire({
+      title: "Documento no disponible",
+      text: mensaje,
+      icon: "error",
+      width: "420px",
+      customClass: {
+        popup: "popup-personalizado",
+        title: "titulo-alerta-personalizado",
+        confirmButton: "confirmacion-alerta-personalizado",
+      },
+      buttonsStyling: false,
+    });
+  }
 };
 
 const esCampoHash = (campo) => {

@@ -8,6 +8,7 @@
 | PROY-TOBE-004 | Validación de carga masiva con feedback por registro fallido | Alto | Medio | M | `src/components/tablero/CargarArchivo.vue`, endpoints CRUD | `docs/specs/PROY-ASIS-002_carga_masiva_datos.md` |
 | PROY-TOBE-005 | Gestión de procesos desde panel principal | Alto | Medio | M | `src/views/Espacios.vue`, `src/components/procesos/ProcesoFactores.vue`, `src/router/index.js` | `docs/specs/PROY-TOBE-005_gestion_procesos_panel_principal.md` |
 | PROY-TOBE-008 | Tipo Enlace para campos de estructuras Tabla | Alto | Medio | S | `observatorios_crud`, `src/components/tablero/Tablero.vue` | `docs/specs/PROY-ASIS-008_tablero_y_documentos.md` |
+| PROY-TOBE-009 | [IMPLEMENTADO] Visor documental mediante referencia cifrada validada por CRUD | Alto | Alto residual | M | `observatorios_crud`, Gestor Documental, `Tablero.vue`, `DocumentoVisor.vue` | `docs/specs/PROY-ASIS-008_tablero_y_documentos.md`; sin E2E |
 
 ## Nota
 - Convención vigente de requerimientos nuevos: `PROY-TOBE-XXX`.

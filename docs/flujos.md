@@ -63,3 +63,16 @@ Registrar o actualizar documento asociado a datos de estructura.
 - El contrato del Gestor no está disponible localmente.
 - Puede quedar un binario huérfano si falla la escritura posterior.
 - `components/archivos/` conserva un flujo MID legado con base vacía.
+
+## Flujo activo: visualización documental
+
+1. El tablero obtiene proceso, factor, estructura y hash del registro.
+2. Abre una pestaña vacía y POSTea esos cuatro IDs a
+   `MAIN_BACKEND/campos/documentos/referencias/` con Bearer.
+3. Navega la pestaña a `/documentos/{referencia}`.
+4. El visor GETea `MAIN_BACKEND/campos/documentos/{referencia}/` con Bearer.
+5. Procesa localmente el JSON para PDF, Word o Excel sin cambiar el renderizado.
+
+El visor no consulta directamente Gestor ni MID. El CRUD solo comprueba sintaxis
+Bearer y reenvía la credencial al Gestor; la referencia es transferible durante el
+TTL y no sustituye los permisos efectivos del Gestor.

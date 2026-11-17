@@ -2,8 +2,9 @@
 
 ## Referencia
 
-`observatorios_cliente@8537cb7`, inspeccionado el 2026-11-10. No se instalaron
-dependencias ni se contactaron servicios externos.
+`102cee4` más la implementación local de `PROY-TOBE-009`, inspeccionado el
+2026-11-12. No se contactaron servicios externos ni se realizó verificación
+end-to-end.
 
 ## Requisitos y scripts confirmados
 
@@ -70,17 +71,19 @@ npm run test -- --run
 npm run build:local
 ```
 
-La primera prueba cubre solo utilidades del visor. `build:local` modifica el archivo
-ignorado `environment.js`, no el código versionado. Debe usarse configuración local
-y nunca apuntar una prueba manual a producción sin autorización.
+Vitest cubre utilidades del visor y enlaces. `build:local` modifica el archivo
+ignorado `environment.js`, no el código versionado. El 2026-11-12 se ejecutaron con
+Node 20.19.1 los 10 casos y el build local; ambos terminaron correctamente. No se
+abrió navegador ni se contactaron CRUD, Elasticsearch o Gestor.
 
 ## Troubleshooting
 
 | Síntoma | Evidencia y comprobación |
 |---|---|
 | Falta `environment.js` | Ejecutar un script `dev:*` o `build:*`; no crear configuración ad hoc. |
-| Navega pero CRUD no recibe Bearer | Token puede estar solo en `sessionStorage`; servicios CRUD leen `localStorage`. |
-| Visor agota tiempo | Gestor tiene timeout de 100 s; revisar tamaño y respuesta sin registrar el archivo. |
+| Navega pero CRUD no recibe Bearer | La mayoría de servicios CRUD solo lee `localStorage`; `campos.service.js` reconoce también `sessionStorage`. |
+| Visor agota tiempo | El GET al CRUD tiene timeout de 240 s; el CRUD limita a 90 s la lectura upstream total antes de servir el spool. Revisar estado HTTP y límites sin registrar referencia ni archivo. |
+| UUID antiguo falla en `/documentos/...` | La ruta ahora espera una referencia `v1_` emitida por el POST del CRUD, no el hash del Gestor. |
 | Ruta directa de panel falla | Comprobar stores de observatorio/panel y parámetros; algunos no se hidratan. |
 | DELETE 204 no retorna datos | `peticionAPI` tiene tratamiento especial de 200. |
 

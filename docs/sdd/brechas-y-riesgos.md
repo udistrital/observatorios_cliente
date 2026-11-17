@@ -18,6 +18,8 @@ Referencias OWASP y WCAG clasifican preocupaciones; no expresan certificación.
 | CLI-R-012 | Media | [VERIFICADO] estático | Docker usa build genérico sin generar `environment.js`; no hay `.dockerignore`. | `Dockerfile`; scripts |
 | CLI-R-013 | Media | [VERIFICADO] | CI no ejecuta pruebas ni lint; cobertura funcional mínima. | `.drone.yml`; `package.json` |
 | CLI-R-014 | Media | [VERIFICADO] riesgo / [NO VERIFICADO] fallo | Node 18 de CI puede divergir de engines transitivos del lock. | lockfile y Drone |
+| CLI-R-015 | Alta | [VERIFICADO] | La referencia documental es transferible entre sesiones autenticadas durante el TTL; el CRUD solo exige Bearer sintáctico, sin JWT/ACL por proceso. | `Tablero.vue`; `campos.service.js`; CRUD `PROY-TOBE-008` |
+| CLI-R-016 | Alta | [VERIFICADO] diseño / [NO VERIFICADO] permisos | Una credencial amplia puede consultar directamente el Gestor; el proxy CRUD reenvía el Bearer y depende de sus permisos. | contrato CRUD documental |
 
 ## Decisiones pendientes
 
@@ -26,6 +28,8 @@ Referencias OWASP y WCAG clasifican preocupaciones; no expresan certificación.
 - [PROPUESTA] Unificar almacenamiento de token y manejo 401 mediante spec TO-BE.
 - [PROPUESTA] Definir compensación/idempotencia documental con el proveedor.
 - [PROPUESTA] Resolver o retirar el flujo MID legado solo con evidencia de uso.
+- [PROPUESTA] Incorporar autorización verificable en el servidor sin tratar la
+  referencia cifrada como sustituto de JWT/ACL.
 - [PROPUESTA] Establecer una puerta WCAG verificable para cambios de interfaz.
 
 Las propuestas no autorizan cambios de código ni dependencias.

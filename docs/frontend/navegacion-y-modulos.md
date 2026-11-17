@@ -2,7 +2,7 @@
 
 ## Inventario completo de rutas
 
-Fuente: `src/router/index.js: routes`, commit `8537cb7`.
+Fuente: `src/router/index.js: routes`, `102cee4` + `PROY-TOBE-009`.
 
 | # | Ruta | Nombre/comportamiento | Vista o componente | Estado |
 |---:|---|---|---|---|
@@ -32,7 +32,7 @@ Fuente: `src/router/index.js: routes`, commit `8537cb7`.
 | 24 | `/:factor_id/caracteristica` | `caracteristicaPrincipal` | `CaracteristicaPrincipal.vue` | Legada |
 | 25 | `/panelVista/:factor_id` | `panelVista` | `PanelVista.vue` | Legada |
 | 26 | `/:factor_id/archivos` | `archivosGestion` | `archivos/ArchivosGestion.vue` | Legada |
-| 27 | `/documentos/:hash` | `documentoVisor` | `views/DocumentoVisor.vue` | Activa |
+| 27 | `/documentos/:referencia` | `documentoVisor` | `views/DocumentoVisor.vue` | Activa; referencia opaca, no hash |
 | 28 | `/:pathMatch(.*)*` | redirección | `/procesos` | Fallback |
 
 ## Guarda y roles
@@ -55,7 +55,7 @@ Fuente: `src/router/index.js: routes`, commit `8537cb7`.
 | Abrir factores | ruta 4 | `ProcesoFactores.vue`, `Factor*` | Carga y tarjetas |
 | Gestionar jerarquía | ruta 9 | `Estructuras.vue`, `AspectosSection.vue`, componentes por dominio | Árbol expandible, diálogos CUD |
 | Capturar tabla/documentos | ruta 11 | `Tablero.vue` | Tabla, paginación, formulario, carga/error/vacío |
-| Consultar documento | ruta 27 | `DocumentoVisor.vue` | Carga, error con reintento, visor por formato |
+| Consultar documento | ruta 27 | `Tablero.vue`, `campos.service.js`, `DocumentoVisor.vue` | POST de referencia, GET de contenido por CRUD, error con reintento y visor por formato |
 | Gestionar panel | rutas 12-16 | `components/panel/` | Configuración y visualización de gráficas |
 | Gestión documental anterior | rutas 17 y 26 | `components/archivos/` | [VERIFICADO] contrato MID legado |
 
@@ -65,5 +65,7 @@ Fuente: `src/router/index.js: routes`, commit `8537cb7`.
 - Las rutas hijas de administración no tienen nombre, por lo que la lista de
   permitidas no las incluye para usuarios no administradores.
 - Accesos directos a panel pueden carecer de observatorio no persistido.
+- La ruta acepta cualquier texto como `:referencia`; el CRUD rechaza UUID antiguos,
+  referencias manipuladas o vencidas.
 - [PROPUESTA] Cualquier retiro de rutas legadas requiere una spec TO-BE y evidencia
   de consumidores; este documento no autoriza eliminarlas.

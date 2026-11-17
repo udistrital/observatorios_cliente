@@ -2,7 +2,8 @@
 
 ## Identidad
 
-Sistema `observatorios_cliente`; estado AS-IS; referencia `8537cb7`, 2026-11-10.
+Sistema `observatorios_cliente`; estado AS-IS; referencia `102cee4` +
+`PROY-TOBE-009`, 2026-11-11.
 Evidencia: router, vistas de procesos y componentes/servicios de jerarquía.
 
 ## Objetivo y alcance
@@ -20,6 +21,7 @@ del servidor.
 | REQ-CLI-JER-002 | Mostrar características, aspectos y estructuras. | BR-002: el árbol usa servicios CRUD y estado del factor. |
 | REQ-CLI-JER-003 | Permitir CUD visible a admin. | BR-003: rol normalizado `ADMIN_OBSERVATORIOS`. |
 | REQ-CLI-JER-004 | Conservar rutas antiguas. | BR-004: compatibilidad sin `proceso_id`. |
+| REQ-CLI-JER-005 | Proveer contexto al visor documental. | BR-005: el tablero combina `proceso_id`, `factor_id`, `estructura_id` y hash antes de solicitar una referencia. |
 
 ## Criterios
 
@@ -29,6 +31,8 @@ del servidor.
   guarda intenta hidratarlo.
 - **AC-003**: Dado un no administrador, las acciones CUD de jerarquía no se
   presentan; [NO VERIFICADO] el API las rechaza si se invoca directamente.
+- **AC-004**: Si falta proceso, factor o estructura, el tablero no solicita la
+  referencia y muestra error de contexto incompleto.
 
 ## Contratos, NFR y pruebas
 

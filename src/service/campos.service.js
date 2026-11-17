@@ -2,7 +2,10 @@ import axios from "axios";
 import { environment } from "@/environments/environment";
 
 function getToken() {
-  return localStorage.getItem("access_token");
+  return (
+    localStorage.getItem("access_token") ||
+    sessionStorage.getItem("access_token")
+  );
 }
 
 function getAuthHeaders() {
@@ -34,6 +37,29 @@ api.interceptors.request.use((config) => {
 });
 
 export const camposService = {
+  async solicitarReferenciaDocumento(data) {
+    const response = await api.post(
+      "/campos/documentos/referencias/",
+      data,
+      {
+        timeout: 15000,
+      }
+    );
+
+    return response.data;
+  },
+
+  async obtenerContenidoDocumento(referencia) {
+    const response = await api.get(
+      `/campos/documentos/${encodeURIComponent(referencia)}/`,
+      {
+        timeout: 240000,
+      }
+    );
+
+    return response.data;
+  },
+
   async listarTipos() {
     const response = await api.get("/campos/tipos");
 

@@ -10,7 +10,7 @@ aprobado.
 | REQ-ASIS-CLI-003 | Gestionar jerarquía | BR-003 presenta CUD al administrador; AC-003 recarga después de éxito | Estructuras/Aspectos | servicios de dominio | No | [VERIFICADO] UI; servidor [NO VERIFICADO] |
 | REQ-ASIS-CLI-004 | Capturar datos | BR-004 adapta valores a campos y valida enlaces HTTP(S); AC-004 POST refresca tabla y un `link` válido es navegable | Tablero/campos | `campos.service.js`; `Tablero.vue`; `utils/enlaces.js` | 5 casos de enlaces | [VERIFICADO] parcial |
 | REQ-ASIS-CLI-005 | Cargar documento | BR-005 sube binario y luego hash; AC-005 éxito muestra registro | Tablero/Gestor/campos | `Tablero.vue`; servicios | No | [VERIFICADO], compensación incompleta |
-| REQ-ASIS-CLI-006 | Visualizar documento | BR-006 usa ruta autenticada y representación local; AC-006 soporta PDF/Word/Excel | `DocumentoVisor.vue` | `documentViewer.js` | 5 casos utilitarios | [VERIFICADO] |
+| REQ-ASIS-CLI-006 | Visualizar documento | BR-006 solicita referencia con contexto, usa `/documentos/:referencia` y obtiene JSON del CRUD; AC-006 soporta PDF/Word/Excel | `Tablero.vue`, `DocumentoVisor.vue`, `campos.service.js` | `documentViewer.js` | 5 casos utilitarios; sin prueba de servicio/componente | [VERIFICADO] estático/unitario; sin E2E |
 | REQ-ASIS-CLI-007 | Reemplazar/eliminar documento | BR-007 coordina CRUD y Gestor; AC-007 intenta compensar reemplazo fallido | Tablero | `Tablero.vue` | No | [VERIFICADO], no transaccional |
 | REQ-ASIS-CLI-008 | Gestionar panel/gráficas | BR-008 usa dashboard seleccionado; AC-008 persiste configuración | Paneles | `components/panel/` | No | [VERIFICADO], rol insuficiente |
 | REQ-ASIS-CLI-009 | Administrar observatorios | BR-009 solo ruta administrativa; AC-009 recarga lista tras mutación | Administración | componentes de observatorios | No | [VERIFICADO] UI |
@@ -26,5 +26,6 @@ aprobado.
 ## Compatibilidad cruzada
 
 REQ-003 a REQ-009 deben trazarse también al OpenAPI del CRUD y a
-[`matriz_interacciones.md`](matriz_interacciones.md). REQ-005 a REQ-007 dependen de
-un contrato de Gestor Documental no disponible localmente.
+[`matriz_interacciones.md`](matriz_interacciones.md). REQ-005 y REQ-007 dependen
+directamente del contrato del Gestor; REQ-006 depende de CRUD `PROY-TOBE-008`, que
+reenvía el Bearer al Gestor. No se verificó el flujo end-to-end.

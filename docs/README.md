@@ -1,6 +1,8 @@
 # Documentación técnica de `observatorios_cliente`
 
-Fuente inspeccionada: rama `develop`, commit `8537cb7`, 2026-11-10.
+Fuente inspeccionada: `102cee4` más la implementación local de
+`PROY-TOBE-009`, 2026-11-12. La evidencia es estática, de pruebas unitarias y
+build; no incluye verificación end-to-end.
 
 ## Ruta de lectura mínima
 
@@ -29,9 +31,10 @@ Fuente inspeccionada: rama `develop`, commit `8537cb7`, 2026-11-10.
 
 ## Límites verificados
 
-La SPA no persiste el dominio. El flujo documental activo consume directamente
-Gestor Documental para binarios y CRUD para metadatos/hash. `observatorios_mid`
-permanece en componentes legados y no se considera integración activa.
+La SPA no persiste el dominio. Carga, reemplazo y eliminación consumen directamente
+Gestor Documental; metadatos/hash y la visualización validada consumen CRUD. El
+visor activo no consulta directamente Gestor ni MID. `observatorios_mid` permanece
+en componentes legados y no se considera integración activa.
 
 Los documentos anteriores de arquitectura, flujos y reglas se conservan por
 trazabilidad. Si difieren, prevalecen las fuentes canónicas de este índice y el

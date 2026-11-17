@@ -11,16 +11,17 @@
 ```mermaid
 flowchart LR
   U[Usuario] --> C[observatorios_cliente\nSPA Vue]
-  C -->|REST api/v1| CRUD[observatorios_crud]
-  C -->|binarios| GD[Gestor Documental]
+  C -->|REST api/v1 y visor| CRUD[observatorios_crud]
+  C -->|carga reemplazo eliminación| GD[Gestor Documental]
+  CRUD -->|consulta validada| GD
   C -.->|componentes legados| MID[observatorios_mid]
 ```
 
 ## Contratos e interacciones esperadas
 | Sistema destino | Propósito | Evidencia técnica |
 |---|---|---|
-| `observatorios_crud` | CRUD de entidades del dominio observatorios | Variables de entorno/front y servicios axios |
-| Gestor Documental | Binarios: alta, consulta y eliminación | `gestorDocumentalService.js`, tablero y visor |
+| `observatorios_crud` | CRUD del dominio y visualización por referencia cifrada | `campos.service.js`, tablero y visor |
+| Gestor Documental | Binarios: alta, reemplazo y eliminación directos; consulta indirecta por CRUD | `gestorDocumentalService.js`, tablero |
 | `observatorios_mid` | Flujo anterior no configurado | Componentes `archivos/` con base vacía |
 
 ## Riesgos técnicos
